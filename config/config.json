@@ -1,0 +1,4 @@
+{
+	"fdm_port": "/dev/ttyS0",
+	"fdm_speed": 19200
+}
