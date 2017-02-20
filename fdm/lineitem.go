@@ -1,0 +1,58 @@
+package fdm
+
+import (
+	"log"
+	"regexp"
+	"strconv"
+	"strings"
+)
+
+type POSLineItem struct {
+	Quantity    float64
+	Description string
+	Price       float64
+	VAT         rune
+}
+
+// Stringer generates a text for a line item in a format for the FDM.
+func (l *POSLineItem) Stringer() string {
+	// quantity length should be 4 letters, if len is smaller than 4, prepend zeros
+	q := strconv.FormatFloat(l.Quantity, 'f', 0, 64)
+	q = strings.Replace(q, ".", "", 1)
+	q = strings.Replace(q, "-", "", 1)
+	if len(q) < 4 {
+		diff := 4 - len(q)
+		for i := 0; i < diff; i++ {
+			q = "0" + q
+		}
+	}
+	// desc len should be 20, if len is smaller than 20, append spaces to the right
+	// remove all spaces from the description
+	reg := regexp.MustCompile(`[^A-Za-z0-9]`)
+	desc := reg.ReplaceAllString(l.Description, "")
+	desc = strings.ToUpper(desc)
+	d := desc
+	if len(d) > 20 {
+		d = d[:20]
+	} else if len(d) < 20 {
+		diff := 20 - len(d)
+		for i := 0; i < diff; i++ {
+			d += " "
+		}
+	}
+	// price len should be 8, if len is smaller than 8, prepend zeros
+	p := strconv.FormatFloat(l.Price, 'f', 2, 64)
+	p = strings.Replace(p, ".", "", 1)
+	p = strings.Replace(p, "-", "", 1)
+	if len(p) < 8 {
+		diff := 8 - len(p)
+		for i := 0; i < diff; i++ {
+			p = "0" + p
+		}
+	}
+
+	// make sure the len of res = 33
+	result := q + d + p + string(l.VAT)
+	log.Printf("Item: %s\n", result)
+	return result
+}

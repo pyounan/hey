@@ -1,11 +1,13 @@
 package fdm
 
 import (
-	"log"
 	"errors"
+	"fmt"
+	"log"
+	"time"
 
-	"pos-proxy/config"
 	"github.com/tarm/serial"
+	"pos-proxy/config"
 )
 
 type FDM struct {
@@ -13,7 +15,7 @@ type FDM struct {
 	s *serial.Port
 }
 
-func New() *FDM {
+func New() (*FDM, error) {
 	fdm := &FDM{}
 	log.Println("Trying to stablish connection with FDM with configuration:")
 	log.Printf("Port: %s", config.Config.FDM_Port)
@@ -23,17 +25,17 @@ func New() *FDM {
 	fdm.s = s
 	if err != nil {
 		log.Println("Failed to stablish connection:")
-		log.Fatal(err)
+		return nil, err
 	}
-	if _, err := fdm.Write("S000", false); err != nil {
-		log.Fatal(err)
+	if _, err := fdm.Write("S000", false, 21); err != nil {
+		return nil, err
 	}
 
 	log.Println("Connection to FDM has beedn stablished successfully.")
-	return fdm
+	return fdm, nil
 }
 
-func(fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
+func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 	// if the response is not valid we try to retry reading the answer again
 	ack := 0x00
 	max_retries := byte('3')
@@ -43,8 +45,7 @@ func(fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 			return false, err
 		}
 		res := make([]byte, 1)
-		n, err := fdm.s.Read(res)
-		log.Println(n)
+		_, err = fdm.s.Read(res)
 		if err != nil {
 			return false, err
 		}
@@ -62,57 +63,62 @@ func(fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 	}
 }
 
-func(fdm *FDM) Write(message string, just_wait_for_ACK bool) (bool, error) {
+func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int) (string, error) {
 	packet := generateLowLevelMessage(message)
 	got_response := false
-	max_nacks := 1
+	max_nacks := 2
 	sent_nacks := 0
+	response := ""
+
 	ok, err := fdm.SendAndWaitForACK(packet)
 	if ok == false {
-		return false, errors.New("Didn't recieve ACK")
-	}
-	if just_wait_for_ACK {
-		return true, nil
+		return "", errors.New("Didn't recieve ACK")
 	}
 	log.Println("ACK Received")
+	if just_wait_for_ACK {
+		return "", nil
+	}
 	for got_response == false && sent_nacks < max_nacks {
 		stx := make([]byte, 1)
 		_, err = fdm.s.Read(stx)
 		if err != nil {
-			return false, err
+			return "", err
 		}
-                msg := make([]byte, 62)
-                _, err = fdm.s.Read(msg)
+		time.Sleep(time.Second * 5)
+		msg := make([]byte, response_size)
+		msg_len, err := fdm.s.Read(msg)
 		if err != nil {
-			return false, err
+			return "", err
 		}
 		etx := make([]byte, 1)
-                _, err = fdm.s.Read(etx)
+		_, err = fdm.s.Read(etx)
 		if err != nil {
-			return false, err
+			return "", err
 		}
 		bcc := make([]byte, 1)
-                _, err = fdm.s.Read(bcc)
+		_, err = fdm.s.Read(bcc)
 		if err != nil {
-			return false, err
+			return "", err
 		}
 		// compare results
-		log.Println(string(stx))
-		if stx != nil && etx != nil && bcc != nil {
+		fmt.Printf("%v, %s, %v, %v\n", stx[0], msg[:msg_len], etx[0], bcc[0])
+		if fmt.Sprintf("%v", stx) != fmt.Sprintf("%v", 0x02) && fmt.Sprintf("%v", etx) != fmt.Sprintf("%v", 0x03) && bcc != nil && calculateLRC(msg) == bcc[0] {
 			got_response = true
 			log.Println("got response")
+			response = string(msg)
 			fdm.s.Write([]byte("0x06"))
 		} else {
 			log.Println("Received ACK but not a valid response, sending NACK....")
+			response = string(msg)
 			sent_nacks += 1
 			fdm.s.Write([]byte("0x015"))
 		}
 	}
 
 	if got_response == false {
-		log.Printf("sent %d NACKS without receiving response, giving up.", sent_nacks)
-		return false, nil
+		err := errors.New(fmt.Sprintf("sent %d NACKS without receiving response, giving up.", sent_nacks))
+		return response, err
 	} else {
-		return true, nil
+		return response, nil
 	}
 }

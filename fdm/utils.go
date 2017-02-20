@@ -1,41 +1,22 @@
 package fdm
 
 import (
-	"log"
+	"crypto/sha1"
 	"fmt"
-	"strconv"
 )
 
-func generateLowLevelMessage(message string) []byte {
-	packet := []byte{0x02}
-	msg := []byte(message)
-	BCC := calculateLRC(msg)
-	packet = append(packet, msg...)
-	packet = append(packet, 0x03)
-	packet = append(packet, BCC)
-
-	return packet
+// ApplySHA1 convert text to SHA1
+func ApplySHA1(text string) string {
+	msg := sha1.New()
+	msg.Write([]byte(text))
+	bs := msg.Sum(nil)
+	return fmt.Sprintf("%x", bs)
 }
 
-
-func calculateLRC(message []byte) byte {
-	var LRC byte = byte(0)
-	for _, rune := range message {
-		LRC = (LRC + rune) & 0xFF
+func GeneratePLUHash(items []POSLineItem) string {
+	text := ""
+	for _, i := range items {
+		text += fmt.Sprintf("%s", i)
 	}
-	LRC = ((LRC ^ 0xFF) + 1) & 0xFF
-	return LRC
-}
-
-
-
-func incrementRetryCounter(packet []byte) int{
-	s := fmt.Sprint(packet[4])
-	i, err := strconv.Atoi(s)
-	if err != nil {
-		log.Fatal(err)
-	}
-	i += 1
-	packet[4] = byte(i)
-	return 0
+	return ApplySHA1(text)
 }

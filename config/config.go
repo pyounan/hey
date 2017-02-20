@@ -2,19 +2,21 @@ package config
 
 import (
 	"encoding/json"
-	"os"
 	"log"
+	"os"
 	"path/filepath"
 )
 
 type ConfigHolder struct {
-	FDM_Port string `json:"fdm_port"`
-	FDM_Speed int `json:"fdm_speed"`
+	FDM_Port  string `json:"fdm_port"`
+	FDM_Speed int    `json:"fdm_speed"`
 }
 
 var Config *ConfigHolder = &ConfigHolder{}
 
 func init() {
+	flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
+	flag.Parse()
 	log.Println("Loading configuration...")
 	confPath, _ := filepath.Abs("config/config.json")
 	log.Printf("File: %s\n", confPath)
