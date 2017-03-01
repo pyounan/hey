@@ -10,11 +10,14 @@ import (
 	"pos-proxy/config"
 )
 
+// FDM is a structure the defines the configuration and the port to the fdm
+// connection.
 type FDM struct {
 	c *serial.Config
 	s *serial.Port
 }
 
+// New Creates a new fdm connection and returns FDM struct.
 func New() (*FDM, error) {
 	fdm := &FDM{}
 	log.Println("Trying to stablish connection with FDM with configuration:")
@@ -27,14 +30,22 @@ func New() (*FDM, error) {
 		log.Println("Failed to stablish connection:")
 		return nil, err
 	}
-	if _, err := fdm.Write("S000", false, 21); err != nil {
-		return nil, err
-	}
 
 	log.Println("Connection to FDM has beedn stablished successfully.")
 	return fdm, nil
 }
 
+// CheckStatus sends S000 to the FDM and check if its ready.
+func (fdm *FDM) CheckStatus() (bool, error) {
+	if _, err := fdm.Write("S000", false, 21); err != nil {
+		return false, err
+	}
+
+	log.Println("FDM is ready.")
+	return true, nil
+}
+
+// SendAndWaitForACK sends a message to the FDM and retries until it recievs ACK.
 func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 	// if the response is not valid we try to retry reading the answer again
 	ack := 0x00
@@ -63,6 +74,9 @@ func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 	}
 }
 
+// Write writes a message to the fdm, if just_wait_for_ACK is true, then it won't
+// wait for the response. IF its false, then the process goes on and process the
+// response.
 func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int) (string, error) {
 	packet := generateLowLevelMessage(message)
 	got_response := false
