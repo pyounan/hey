@@ -4,7 +4,6 @@ import (
 	"flag"
 	//"fmt"
 	"github.com/gorilla/mux"
-	"io/ioutil"
 	"log"
 	"net/http"
 
