@@ -16,7 +16,8 @@ func ApplySHA1(text string) string {
 func GeneratePLUHash(items []POSLineItem) string {
 	text := ""
 	for _, i := range items {
-		text += fmt.Sprintf("%s", i)
+		text += fmt.Sprintf("%s", i.String())
 	}
+	fmt.Printf("plu before hasshing: %s\n", text)
 	return ApplySHA1(text)
 }

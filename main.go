@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	//"fmt"
+	gh "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -14,8 +14,12 @@ import (
 func main() {
 	port := flag.String("port", "7000", "Port to listen on")
 	flag.Parse()
+	originsOk := gh.AllowedOrigins([]string{"*"})
+	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 	r := mux.NewRouter()
-	r.HandleFunc("/fdm/status", handlers.FDMStatus).Methods("GET")
+	r.HandleFunc("/proxy/fdm/status", handlers.FDMStatus).Methods("GET")
+	r.HandleFunc("/proxy/fdm/submissions", handlers.SubmitInvoice).Methods("POST")
 	log.Printf("Listening on http://localhost:%s\n", *port)
-	log.Fatal(http.ListenAndServe(":"+*port, r))
+	log.Fatal(http.ListenAndServe(":"+*port, gh.CORS(originsOk, headersOk, methodsOk)(r)))
 }

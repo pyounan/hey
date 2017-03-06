@@ -8,6 +8,7 @@ import (
 
 	"github.com/tarm/serial"
 	"pos-proxy/config"
+	"pos-proxy/db"
 )
 
 // FDM is a structure the defines the configuration and the port to the fdm
@@ -23,7 +24,7 @@ func New() (*FDM, error) {
 	log.Println("Trying to stablish connection with FDM with configuration:")
 	log.Printf("Port: %s", config.Config.FDM_Port)
 	log.Printf("Baud Speed: %d", config.Config.FDM_Speed)
-	fdm.c = &serial.Config{Name: config.Config.FDM_Port, Baud: config.Config.FDM_Speed}
+	fdm.c = &serial.Config{Name: config.Config.FDM_Port, Baud: config.Config.FDM_Speed, ReadTimeout: time.Second * 5}
 	s, err := serial.OpenPort(fdm.c)
 	fdm.s = s
 	if err != nil {
@@ -31,13 +32,18 @@ func New() (*FDM, error) {
 		return nil, err
 	}
 
-	log.Println("Connection to FDM has beedn stablished successfully.")
+	log.Println("Connection to FDM has been stablished successfully.")
 	return fdm, nil
 }
 
 // CheckStatus sends S000 to the FDM and check if its ready.
 func (fdm *FDM) CheckStatus() (bool, error) {
-	if _, err := fdm.Write("S000", false, 21); err != nil {
+	n, err := db.GetNextSequence()
+	if err != nil {
+		return false, err
+	}
+	msg := fmt.Sprintf("S%2d0", n)
+	if _, err := fdm.Write(msg, true, 21); err != nil {
 		return false, err
 	}
 
@@ -49,24 +55,31 @@ func (fdm *FDM) CheckStatus() (bool, error) {
 func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 	// if the response is not valid we try to retry reading the answer again
 	ack := 0x00
-	max_retries := byte('3')
+	max_retries := byte('1')
 	for packet[4] < max_retries && ack != 0x06 {
+		log.Println("looping")
+		log.Println(packet[4])
 		_, err := fdm.s.Write(packet)
 		if err != nil {
 			return false, err
 		}
+		log.Println("packet sent")
 		res := make([]byte, 1)
 		_, err = fdm.s.Read(res)
 		if err != nil {
+			log.Print("Couldn't read")
 			return false, err
 		}
 		incrementRetryCounter(packet)
 		if res[0] != 0x00 {
+			log.Println("ACK received.")
+			log.Println(res[0])
 			ack = 0x06
 		} else {
 			log.Println("ACK wasn't received, retrying...")
 		}
 	}
+	log.Println("loop finished")
 	if ack == 0x06 {
 		return true, nil
 	} else {
@@ -135,4 +148,8 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 	} else {
 		return response, nil
 	}
+}
+
+func (fdm *FDM) Close() {
+	fdm.s.Close()
 }

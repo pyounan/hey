@@ -1,18 +1,35 @@
 package fdm
 
 import (
-	"log"
 	"testing"
 
 	_ "pos-proxy/config"
+	"pos-proxy/fdm"
 )
 
 func TestConnection(t *testing.T) {
-	log.SetFlags(log.Lshortfile)
 	// connection to FDM
-	_, err := New()
+	_, err := fdm.New()
 	if err != nil {
 		t.Fail()
-		log.Fatal(err)
+		t.Log(err)
+	}
+}
+
+func TestCheckStatus(t *testing.T) {
+	FDM, err := fdm.New()
+	if err != nil {
+		t.Fail()
+		t.Log(err)
+	}
+
+	res, err := FDM.CheckStatus()
+	if err != nil {
+		t.Fail()
+		t.Log(err)
+	}
+	if res != true {
+		t.Fail()
+		t.Log("FDM is offline")
 	}
 }

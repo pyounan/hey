@@ -16,53 +16,23 @@ func TestNormalSales(t *testing.T) {
 		t.Log(err)
 	}
 
-	items := make([]fdm.POSLineItem, 8)
+	items := make([]fdm.POSLineItem, 3)
 	items[0] = fdm.POSLineItem{
-		Quantity:    3,
-		Description: "soda LIGHT 33 CL",
-		Price:       6.60,
+		Quantity:    1,
+		Description: "Drink 1",
+		Price:       0.50,
 		VAT:         'A',
 	}
 	items[1] = fdm.POSLineItem{
-		Quantity:    2,
-		Description: "Spaghetti Bolognaise (KLEIN)",
-		Price:       10.00,
+		Quantity:    1,
+		Description: "food 1",
+		Price:       5.00,
 		VAT:         'B',
 	}
 	items[2] = fdm.POSLineItem{
-		Quantity:    0.527,
-		Description: "Salad Bar",
-		Price:       8.53,
-		VAT:         'B',
-	}
-	items[3] = fdm.POSLineItem{
 		Quantity:    1,
-		Description: "Steak Hach",
-		Price:       14.50,
-		VAT:         'B',
-	}
-	items[4] = fdm.POSLineItem{
-		Quantity:    2,
-		Description: "Koffie verkeerd medium",
-		Price:       6,
-		VAT:         'A',
-	}
-	items[5] = fdm.POSLineItem{
-		Quantity:    1,
-		Description: "Dame Blanche",
-		Price:       7.00,
-		VAT:         'B',
-	}
-	items[6] = fdm.POSLineItem{
-		Quantity:    -1,
-		Description: "Soda LIGHT 33",
-		Price:       -2.20,
-		VAT:         'A',
-	}
-	items[7] = fdm.POSLineItem{
-		Quantity:    1.25,
-		Description: "Huiswijnliter",
-		Price:       12.50,
+		Description: "drink 1",
+		Price:       0.50,
 		VAT:         'A',
 	}
 
@@ -75,8 +45,8 @@ func TestNormalSales(t *testing.T) {
 	vats[1].Percentage = 15.00
 	vats[1].FixedAmount = 10.00
 	vats[2].Percentage = 15.00
-	vats[2].Percentage = 15.00
-	vats[3].FixedAmount = 10.00
+	vats[2].FixedAmount = 15.00
+	vats[3].Percentage = 10.00
 	vats[3].FixedAmount = 10.00
 
 	RCRS := "ACAS0001234567" // 14 letters

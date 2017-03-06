@@ -8,14 +8,17 @@ import (
 )
 
 type POSLineItem struct {
-	Quantity    float64
-	Description string
-	Price       float64
-	VAT         rune
+	UUID         string  `json:"frontend_id" bson:"_id"`
+	InvoiceID    float64 `json:"posinvoice" bson:"invoice_id"`
+	Quantity     float64 `json:"qty" bson:"qty"`
+	Description  string  `json:"description" bson:"description"`
+	Price        float64 `json:"price" bson:"price"`
+	VAT          rune    `json:"vat,omitempty" bson:"vat"`
+	TicketNumber string  `json:"ticket_number,omitempty" bson:"ticket_number,omitempty"`
 }
 
-// Stringer generates a text for a line item in a format for the FDM.
-func (l *POSLineItem) Stringer() string {
+// String generates a text for a line item in a format for the FDM.
+func (l *POSLineItem) String() string {
 	// quantity length should be 4 letters, if len is smaller than 4, prepend zeros
 	q := strconv.FormatFloat(l.Quantity, 'f', 0, 64)
 	q = strings.Replace(q, ".", "", 1)

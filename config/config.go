@@ -16,10 +16,10 @@ type ConfigHolder struct {
 var Config *ConfigHolder = &ConfigHolder{}
 
 func init() {
-	flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
+	file_path := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
 	flag.Parse()
 	log.Println("Loading configuration...")
-	confPath, _ := filepath.Abs("config/config.json")
+	confPath, _ := filepath.Abs(*file_path)
 	log.Printf("File: %s\n", confPath)
 	f, err := os.Open(confPath)
 	if err != nil {
