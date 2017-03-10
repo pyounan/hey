@@ -55,7 +55,7 @@ func (fdm *FDM) CheckStatus() (bool, error) {
 func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 	// if the response is not valid we try to retry reading the answer again
 	ack := 0x00
-	max_retries := byte('1')
+	max_retries := byte('3')
 	for packet[4] < max_retries && ack != 0x06 {
 		log.Println("looping")
 		log.Println(packet[4])

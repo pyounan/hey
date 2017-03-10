@@ -19,7 +19,7 @@ func main() {
 	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 	r := mux.NewRouter()
 	r.HandleFunc("/proxy/fdm/status", handlers.FDMStatus).Methods("GET")
-	r.HandleFunc("/proxy/fdm/submissions", handlers.SubmitInvoice).Methods("POST")
+	r.HandleFunc("/proxy/fdm/invoices", handlers.SubmitInvoice).Methods("POST")
 	log.Printf("Listening on http://localhost:%s\n", *port)
 	log.Fatal(http.ListenAndServe(":"+*port, gh.CORS(originsOk, headersOk, methodsOk)(r)))
 }

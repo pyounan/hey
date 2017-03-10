@@ -6,7 +6,6 @@ import (
 
 	_ "pos-proxy/config"
 	"pos-proxy/fdm"
-	"pos-proxy/fdm/tickets"
 )
 
 func TestNormalSales(t *testing.T) {
@@ -36,27 +35,30 @@ func TestNormalSales(t *testing.T) {
 		VAT:         'A',
 	}
 
-	plu := fdm.GeneratePLUHash(items)
-	t.Log(plu)
+	ticket := fdm.Ticket{}
+	ticket.TicketNumber = "999000"
+	ticket.CreatedAt = time.Now()
+	ticket.Items = items
+	ticket.RCRS = "ACAS0001234567" // 14 letters
+	ticket.UserID = "12345678910"  // 11 letters
+	ticket.InvoiceNumber = "1-10"
+	ticket.TotalAmount = 3.72
+	ticket.PLUHash = fdm.GeneratePLUHash(items)
 
-	vats := make([]tickets.VAT, 4)
-	vats[0].Percentage = 30.00
-	vats[0].FixedAmount = 40.00
-	vats[1].Percentage = 15.00
-	vats[1].FixedAmount = 10.00
-	vats[2].Percentage = 15.00
-	vats[2].FixedAmount = 15.00
-	vats[3].Percentage = 10.00
-	vats[3].FixedAmount = 10.00
+	vats := make([]fdm.VAT, 4)
+	vats[0].Percentage = 21.00
+	vats[0].FixedAmount = 10.00
+	vats[1].Percentage = 12.00
+	vats[1].FixedAmount = 7.00
+	vats[2].Percentage = 6.00
+	vats[2].FixedAmount = 0.00
+	vats[3].Percentage = 0.00
+	vats[3].FixedAmount = 7.50
 
-	RCRS := "ACAS0001234567" // 14 letters
-	user_id := "12345678910"
-	ticket_number := 123
-	total_amount := 100.10
+	ticket.VATs = vats
 
-	req := tickets.HashAndSignMsg("PS", plu, time.Now(), user_id,
-		ticket_number, total_amount, vats, RCRS)
-	res, err := f.Write(req, false, 109)
+	req := fdm.HashAndSignMsg("PS", ticket)
+	res, err := f.Write(req, false, 64)
 	if err != nil {
 		t.Log(err)
 	}

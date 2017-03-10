@@ -13,7 +13,7 @@ type POSLineItem struct {
 	Quantity     float64 `json:"qty" bson:"qty"`
 	Description  string  `json:"description" bson:"description"`
 	Price        float64 `json:"price" bson:"price"`
-	VAT          rune    `json:"vat,omitempty" bson:"vat"`
+	VAT          string  `json:"vat_code" bson:"vat_code"`
 	TicketNumber string  `json:"ticket_number,omitempty" bson:"ticket_number,omitempty"`
 }
 
@@ -55,7 +55,7 @@ func (l *POSLineItem) String() string {
 	}
 
 	// make sure the len of res = 33
-	result := q + d + p + string(l.VAT)
+	result := q + d + p + string(l.VAT[0])
 	log.Printf("Item: %s\n", result)
 	return result
 }

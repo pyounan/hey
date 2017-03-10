@@ -37,12 +37,14 @@ func GetNextTicketNumber() (int, error) {
 	}
 }
 
-func UpdateLastSequenct(val int) error {
-	err := DB.C("metadata").Update(bson.M{"key": "last_sequence"}, bson.M{"value": val})
+func UpdateLastSequence(val int) error {
+	err := DB.C("metadata").Update(bson.M{"key": "last_sequence"},
+		bson.M{"$set": bson.M{"value": val}})
 	return err
 }
 
 func UpdateLastTicketNumber(val int) error {
-	err := DB.C("metadata").Update(bson.M{"key": "last_ticket_number"}, bson.M{"value": val})
+	err := DB.C("metadata").Update(bson.M{"key": "last_ticket_number"},
+		bson.M{"$set": bson.M{"value": val}})
 	return err
 }
