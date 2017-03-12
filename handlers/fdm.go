@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"strconv"
 	"time"
 
@@ -25,16 +26,18 @@ func FDMStatus(w http.ResponseWriter, r *http.Request) {
 	ready, err := f.CheckStatus()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(err)
+		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 		return
 	}
 	json.NewEncoder(w).Encode(ready)
 }
 
 func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
+	d, _ := httputil.DumpRequest(r, true)
+	log.Println(string(d))
 	decoder := json.NewDecoder(r.Body)
 	type Request struct {
-		InvoiceID     float64            `json:"_id"`
+		InvoiceID     string             `json:"_id"`
 		InvoiceNumber string             `json:"invoice_number"`
 		Items         []fdm.POSLineItem  `json:"posinvoicelineitem_set"`
 		UserID        string             `json:"user_id"`
@@ -73,6 +76,12 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	t.UserID = req.UserID
 	t.RCRS = req.RCRS
 	t.InvoiceNumber = req.InvoiceNumber
+	//itemsToInsert := []fdm.POSLineItem{}
+	//for _, v := range req.Items {
+	//	if v.Quantity > v.SubmittedQuantity {
+	//		itemsToInsert = append(itemsToInsert, v)
+	//	}
+	//}
 	t.Items = req.Items
 	t.TotalAmount = req.Total
 	t.CreatedAt = time.Now()

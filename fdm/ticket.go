@@ -12,7 +12,7 @@ type Ticket struct {
 	RCRS          string        `json:"rcrs" bson:"rcrs"`
 	UserID        string        `json:"user_id" bson:"user_id"`
 	TotalAmount   float64       `json:"total_amount" bson:"total_amount"`
-	Items         []POSLineItem `json:"items,omitempty" bson:"items"`
+	Items         []POSLineItem `json:"items" bson:"items"`
 	IsSubmitted   bool          `json:"is_submitted,omitempty" bson:"is_sumbitted"`
 	IsPaid        bool          `json:is_paid,omitempty" bson:"is_paid"`
 	PLUHash       string        `bson:"plu_hash"`

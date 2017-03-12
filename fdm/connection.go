@@ -39,10 +39,12 @@ func New() (*FDM, error) {
 // CheckStatus sends S000 to the FDM and check if its ready.
 func (fdm *FDM) CheckStatus() (bool, error) {
 	n, err := db.GetNextSequence()
+	db.UpdateLastSequence(n)
 	if err != nil {
 		return false, err
 	}
-	msg := fmt.Sprintf("S%2d0", n)
+	msg := fmt.Sprintf("S%s0", FormatSequence(n))
+	log.Println(msg)
 	if _, err := fdm.Write(msg, true, 21); err != nil {
 		return false, err
 	}
@@ -56,9 +58,9 @@ func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 	// if the response is not valid we try to retry reading the answer again
 	ack := 0x00
 	max_retries := byte('3')
+	fmt.Sprintf("%s", packet)
 	for packet[4] < max_retries && ack != 0x06 {
-		log.Println("looping")
-		log.Println(packet[4])
+		log.Println(packet)
 		_, err := fdm.s.Write(packet)
 		if err != nil {
 			return false, err
@@ -67,7 +69,8 @@ func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 		res := make([]byte, 1)
 		_, err = fdm.s.Read(res)
 		if err != nil {
-			log.Print("Couldn't read")
+			log.Println("Couldn't read")
+			log.Println(err)
 			return false, err
 		}
 		incrementRetryCounter(packet)
@@ -79,7 +82,6 @@ func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 			log.Println("ACK wasn't received, retrying...")
 		}
 	}
-	log.Println("loop finished")
 	if ack == 0x06 {
 		return true, nil
 	} else {
@@ -99,6 +101,7 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 
 	ok, err := fdm.SendAndWaitForACK(packet)
 	if ok == false {
+		log.Println(err)
 		return "", errors.New("Didn't recieve ACK")
 	}
 	log.Println("ACK Received")
