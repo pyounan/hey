@@ -106,6 +106,7 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 	}
 	log.Println("ACK Received")
 	if just_wait_for_ACK {
+		fdm.s.Write(make([]byte, 6))
 		return "", nil
 	}
 	for got_response == false && sent_nacks < max_nacks {
@@ -149,6 +150,7 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 		err := errors.New(fmt.Sprintf("sent %d NACKS without receiving response, giving up.", sent_nacks))
 		return response, err
 	} else {
+		fdm.s.Write(make([]byte, 6))
 		return response, nil
 	}
 }

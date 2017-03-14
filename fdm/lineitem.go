@@ -13,6 +13,7 @@ type POSLineItem struct {
 	SubmittedQuantity float64 `json:"submitted_qty" bson:"submitted_qty"`
 	Description       string  `json:"description" bson:"description"`
 	Price             float64 `json:"price" bson:"price"`
+	NetAmount         float64 `json:"net_amount" bson:"net_amount"`
 	VAT               string  `json:"vat_code" bson:"vat_code"`
 	VATPercentage     float64 `json:"vat_percentage" bson:"vat_percentage"`
 }

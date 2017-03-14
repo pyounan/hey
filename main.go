@@ -20,6 +20,9 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/proxy/fdm/status", handlers.FDMStatus).Methods("GET")
 	r.HandleFunc("/proxy/fdm/invoices", handlers.SubmitInvoice).Methods("POST")
+	r.HandleFunc("/proxy/fdm/void", handlers.VoidItem).Methods("POST")
+	r.HandleFunc("/proxy/fdm/folio", handlers.Folio).Methods("POST")
+	r.HandleFunc("/proxy/fdm/payment", handlers.PayInvoice).Methods("POST")
 	log.Printf("Listening on http://localhost:%s\n", *port)
 	log.Fatal(http.ListenAndServe(":"+*port, gh.CORS(originsOk, headersOk, methodsOk)(r)))
 }
