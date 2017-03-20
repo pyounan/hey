@@ -86,53 +86,52 @@ func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 // Write writes a message to the fdm, if just_wait_for_ACK is true, then it won't
 // wait for the response. IF its false, then the process goes on and process the
 // response.
-func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int) (string, error) {
+func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int) ([]byte, error) {
 	packet := generateLowLevelMessage(message)
 	got_response := false
 	max_nacks := 2
 	sent_nacks := 0
-	response := ""
+	response := []byte{}
 
 	ok, err := fdm.SendAndWaitForACK(packet)
 	if ok == false {
 		log.Println(err)
-		return "", errors.New("Didn't recieve ACK")
+		return response, errors.New("Didn't recieve ACK")
 	}
 	if just_wait_for_ACK {
-		return "", nil
+		return response, nil
 	}
 	for got_response == false && sent_nacks < max_nacks {
 		stx := make([]byte, 1)
 		_, err = fdm.s.Read(stx)
 		if err != nil {
-			return "", err
+			return response, err
 		}
 		time.Sleep(time.Second * 1)
 		msg := make([]byte, response_size)
 		_, err = fdm.s.Read(msg)
 		if err != nil {
-			return "", err
+			return response, err
 		}
 		etx := make([]byte, 1)
 		_, err = fdm.s.Read(etx)
 		if err != nil {
-			return "", err
+			return response, err
 		}
 		bcc := make([]byte, 1)
 		_, err = fdm.s.Read(bcc)
 		if err != nil {
-			return "", err
+			return response, err
 		}
 		// compare results
 		// fmt.Printf("FDM RESPONSE: %v, %v, %v\n", stx[0], etx[0], bcc[0])
 		if fmt.Sprintf("%v", stx) != fmt.Sprintf("%v", 0x02) && fmt.Sprintf("%v", etx) != fmt.Sprintf("%v", 0x03) && bcc != nil && calculateLRC(msg) == bcc[0] {
 			got_response = true
-			// log.Printf("%v\n", msg)
-			response = string(msg)
+			response = msg
 			break
 		} else {
 			log.Println("Not a valid response, sending NACK....")
-			response = string(msg)
+			response = msg
 			sent_nacks += 1
 			fdm.SendNACK()
 		}
