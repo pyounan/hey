@@ -44,8 +44,7 @@ func (fdm *FDM) CheckStatus() (bool, error) {
 		return false, err
 	}
 	msg := fmt.Sprintf("S%s0", FormatSequence(n))
-	log.Println(msg)
-	if _, err := fdm.Write(msg, true, 21); err != nil {
+	if _, err := fdm.Write(msg, false, 21); err != nil {
 		return false, err
 	}
 
@@ -58,25 +57,20 @@ func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 	// if the response is not valid we try to retry reading the answer again
 	ack := 0x00
 	max_retries := byte('3')
-	fmt.Sprintf("%s", packet)
 	for packet[4] < max_retries && ack != 0x06 {
-		log.Println(packet)
 		_, err := fdm.s.Write(packet)
 		if err != nil {
 			return false, err
 		}
-		log.Println("packet sent")
 		res := make([]byte, 1)
 		_, err = fdm.s.Read(res)
 		if err != nil {
-			log.Println("Couldn't read")
 			log.Println(err)
 			return false, err
 		}
 		incrementRetryCounter(packet)
-		if res[0] != 0x00 {
+		if res[0] == 0x06 {
 			log.Println("ACK received.")
-			log.Println(res[0])
 			ack = 0x06
 		} else {
 			log.Println("ACK wasn't received, retrying...")
@@ -104,9 +98,7 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 		log.Println(err)
 		return "", errors.New("Didn't recieve ACK")
 	}
-	log.Println("ACK Received")
 	if just_wait_for_ACK {
-		fdm.s.Write(make([]byte, 6))
 		return "", nil
 	}
 	for got_response == false && sent_nacks < max_nacks {
@@ -115,9 +107,9 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 		if err != nil {
 			return "", err
 		}
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 1)
 		msg := make([]byte, response_size)
-		msg_len, err := fdm.s.Read(msg)
+		_, err = fdm.s.Read(msg)
 		if err != nil {
 			return "", err
 		}
@@ -132,17 +124,17 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 			return "", err
 		}
 		// compare results
-		fmt.Printf("%v, %s, %v, %v\n", stx[0], msg[:msg_len], etx[0], bcc[0])
+		// fmt.Printf("FDM RESPONSE: %v, %v, %v\n", stx[0], etx[0], bcc[0])
 		if fmt.Sprintf("%v", stx) != fmt.Sprintf("%v", 0x02) && fmt.Sprintf("%v", etx) != fmt.Sprintf("%v", 0x03) && bcc != nil && calculateLRC(msg) == bcc[0] {
 			got_response = true
-			log.Println("got response")
+			// log.Printf("%v\n", msg)
 			response = string(msg)
-			fdm.s.Write([]byte("0x06"))
+			break
 		} else {
-			log.Println("Received ACK but not a valid response, sending NACK....")
+			log.Println("Not a valid response, sending NACK....")
 			response = string(msg)
 			sent_nacks += 1
-			fdm.s.Write([]byte("0x015"))
+			fdm.SendNACK()
 		}
 	}
 
@@ -150,11 +142,22 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 		err := errors.New(fmt.Sprintf("sent %d NACKS without receiving response, giving up.", sent_nacks))
 		return response, err
 	} else {
-		fdm.s.Write(make([]byte, 6))
+		fdm.SendACK()
 		return response, nil
 	}
 }
 
 func (fdm *FDM) Close() {
 	fdm.s.Close()
+}
+
+func (fdm *FDM) SendACK() {
+	//fdm.s.Write([]byte("0x06"))
+	msg := []byte{0x06}
+	fdm.s.Write(msg)
+	// fdm.Write("0x06", true, 1)
+}
+
+func (fdm *FDM) SendNACK() {
+	fdm.s.Write([]byte{0x015})
 }

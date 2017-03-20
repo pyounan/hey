@@ -1,21 +1,21 @@
 package fdm
 
 import (
-	"log"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
 type POSLineItem struct {
-	UUID              string  `json:"frontend_id" bson:"frontend_id"`
-	Quantity          float64 `json:"qty" bson:"qty"`
-	SubmittedQuantity float64 `json:"submitted_qty" bson:"submitted_qty"`
-	Description       string  `json:"description" bson:"description"`
-	Price             float64 `json:"price" bson:"price"`
-	NetAmount         float64 `json:"net_amount" bson:"net_amount"`
-	VAT               string  `json:"vat_code" bson:"vat_code"`
-	VATPercentage     float64 `json:"vat_percentage" bson:"vat_percentage"`
+	//	UUID          string  `json:"frontend_id" bson:"frontend_id"`
+	Quantity      float64 `json:"qty" bson:"qty"`
+	Description   string  `json:"description" bson:"description"`
+	UnitPrice     float64 `json:"unit_price" bson:"unit_price"`
+	Price         float64 `json:"price" bson:"price"`
+	NetAmount     float64 `json:"net_amount" bson:"net_amount"`
+	TaxAmount     float64 `json:"tax_amount" bson:"tax_amount"`
+	VAT           string  `json:"vat_code" bson:"vat_code"`
+	VATPercentage float64 `json:"vat_percentage" bson:"vat_percentage"`
 }
 
 // String generates a text for a line item in a format for the FDM.
@@ -57,6 +57,5 @@ func (l *POSLineItem) String() string {
 
 	// make sure the len of res = 33
 	result := q + d + p + string(l.VAT[0])
-	log.Printf("Item: %s\n", result)
 	return result
 }

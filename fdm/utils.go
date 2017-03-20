@@ -21,7 +21,6 @@ func GeneratePLUHash(items []POSLineItem) string {
 	for _, i := range items {
 		text += fmt.Sprintf("%s", i.String())
 	}
-	fmt.Printf("plu before hasshing: %s\n", text)
 	return ApplySHA1(text)
 }
 
@@ -49,7 +48,6 @@ func FormatTicketNumber(old_val string) string {
 	for len(tn) < 6 {
 		tn = " " + tn
 	}
-	fmt.Printf("Ticket Number: %s\n", tn)
 	return tn
 }
 
