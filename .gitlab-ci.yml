@@ -8,7 +8,7 @@ go_build:
     paths:
       - /go/src
   script:
-   - mv -r * "$GOPATH/src"
+   - cp -r * "$GOPATH/src"
    - cd "$GOPATH/src"
   only:
   - master
