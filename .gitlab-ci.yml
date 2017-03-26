@@ -1,6 +1,8 @@
 stages:
   - go_build
   - push_testing
+  - push_staging
+  - push_live
 
 go_build:
   stage: go_build
@@ -33,3 +35,32 @@ push_testing:
   - gsutil cp -r bin/ gs://pos-proxy/testing/
   only:
   - master
+
+push_staging:
+  image: google/cloud-sdk
+  stage: push_staging
+  dependencies:
+    - go_build
+  script:
+  - echo "$GOOGLE_KEY" > key.json
+  - gcloud auth activate-service-account --key-file key.json
+  - gcloud config set project pos-proxy
+  - gsutil cp -r bin/ gs://pos-proxy/staging/
+  only:
+  - master
+  when: manual
+ 
+ push_live:
+  image: google/cloud-sdk
+  stage: push_live
+  dependencies:
+    - go_build
+  script:
+  - echo "$GOOGLE_KEY" > key.json
+  - gcloud auth activate-service-account --key-file key.json
+  - gcloud config set project pos-proxy
+  - gsutil cp -r bin/ gs://pos-proxy/live/
+  only:
+  - master
+  when: manual
+
