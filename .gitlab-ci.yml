@@ -1,11 +1,12 @@
 stages:
   - go_build
-  - testing
+  - push_testing
 
 go_build:
   stage: go_build
   image: golang:1.8
   artifacts:
+    expire_in: 1 week
     paths:
       - /go/bin
   script:
@@ -20,7 +21,9 @@ go_build:
 
 push_testing:
   image: google/cloud-sdk
-  stage: testing
+  stage: push_testing
+  dependencies:
+    - go_build
   script:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
