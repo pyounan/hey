@@ -31,6 +31,6 @@ push_testing:
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set compute/zone us-central1-a
   - gcloud config set project corded-guild-155314
-  - ls -sh bin
+  - gsutil help
   only:
   - master
