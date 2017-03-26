@@ -8,6 +8,7 @@ go_build:
     paths:
       - /go/bin
   script:
+   - set -ex && apk add --no-cache --virtual git  && apk del .build-deps
    - mkdir -p "$GOPATH/src/pos-proxy"
    - cp -r * "$GOPATH/src/pos-proxy"
    - mkdir -p /etc/cloudinn/
