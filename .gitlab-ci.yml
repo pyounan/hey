@@ -1,0 +1,14 @@
+stages:
+  - go_build
+
+go_build:
+  stage: go_build
+  image: golang:1.8-alpine
+  artifacts:
+    paths:
+      - /go/src
+  script:
+   - mv -r * "$GOPATH/src"
+   - cd "$GOPATH/src"
+  only:
+  - master
