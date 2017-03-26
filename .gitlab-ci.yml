@@ -1,5 +1,6 @@
 stages:
   - go_build
+  - testing
 
 go_build:
   stage: go_build
@@ -14,6 +15,17 @@ go_build:
    - cd "$GOPATH/src/pos-proxy"
    - go get
    - go install
-   - ls -sh /go/bin
+  only:
+  - master
+
+push_testing:
+  image: google/cloud-sdk
+  stage: testing
+  script:
+  - echo "$GOOGLE_KEY" > key.json
+  - gcloud auth activate-service-account --key-file key.json
+  - gcloud config set compute/zone us-central1-a
+  - gcloud config set project corded-guild-155314
+  - ls -sh /go/bin
   only:
   - master
