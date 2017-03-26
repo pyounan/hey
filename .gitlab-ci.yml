@@ -30,6 +30,6 @@ push_testing:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - gsutil ls
+  - gsutil cp -r bin/ gs://pos-proxy/testing/
   only:
   - master
