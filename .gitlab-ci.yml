@@ -49,8 +49,8 @@ push_staging:
   only:
   - master
   when: manual
- 
- push_live:
+
+push_live:
   image: google/cloud-sdk
   stage: push_live
   dependencies:
@@ -63,4 +63,3 @@ push_staging:
   only:
   - master
   when: manual
-
