@@ -12,12 +12,12 @@ go_build:
   script:
    - apt-get update && apt-get install -y --no-install-recommends git
    - mkdir bin
-   - mkdir -p "$GOPATH/src/pos-proxy"
-   - cp -r * "$GOPATH/src/pos-proxy"
-   - cd "$GOPATH/src/pos-proxy"
+   - mkdir -p $GOPATH/src/pos-proxy
+   - cp -r * $GOPATH/src/pos-proxy
+   - cd $GOPATH/src/pos-proxy
    - go get
    - go install
-   - cp -r "$GOPATH/bin/*" "$CI_PROJECT_DIR/bin"
+   - cp -r $GOPATH/bin/* $CI_PROJECT_DIR/bin
   only:
   - master
 
