@@ -6,9 +6,15 @@ go_build:
   image: golang:1.8-alpine
   artifacts:
     paths:
-      - /go/src
+      - /go/bin
   script:
-   - cp -r * "$GOPATH/src"
-   - cd "$GOPATH/src"
+   - mkdir -p "$GOPATH/src/pos-proxy"
+   - cp -r * "$GOPATH/src/pos-proxy"
+   - mkdir -p /etc/cloudinn/
+   - cp config/config.json /etc/cloudinn/pos_config.json
+   - cd "$GOPATH/src/pos-proxy"
+   - go get
+   - go install
+   - ls /go/bin
   only:
   - master
