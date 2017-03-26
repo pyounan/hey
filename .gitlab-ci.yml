@@ -3,12 +3,12 @@ stages:
 
 go_build:
   stage: go_build
-  image: golang:1.8-alpine
+  image: golang:1.8
   artifacts:
     paths:
       - /go/bin
   script:
-   - set -ex && apk add --no-cache --virtual git 
+   - apt-get update && apt-get install -y --no-install-recommends git
    - mkdir -p "$GOPATH/src/pos-proxy"
    - cp -r * "$GOPATH/src/pos-proxy"
    - mkdir -p /etc/cloudinn/
