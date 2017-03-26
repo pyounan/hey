@@ -8,14 +8,16 @@ go_build:
   artifacts:
     expire_in: 1 week
     paths:
-      - /go/bin
+      - bin/
   script:
    - apt-get update && apt-get install -y --no-install-recommends git
+   - mkdir bin
    - mkdir -p "$GOPATH/src/pos-proxy"
    - cp -r * "$GOPATH/src/pos-proxy"
    - cd "$GOPATH/src/pos-proxy"
    - go get
    - go install
+   - cp -r "$GOPATH/bin/*" "$CI_PROJECT_DIR/bin"
   only:
   - master
 
@@ -29,6 +31,6 @@ push_testing:
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set compute/zone us-central1-a
   - gcloud config set project corded-guild-155314
-  - ls -sh /go/bin
+  - ls -sh bin
   only:
   - master
