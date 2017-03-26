@@ -29,9 +29,7 @@ push_testing:
   script:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
-  - gcloud config set compute/zone us-central1-a
   - gcloud config set project pos-proxy
-  - gcloud components update
-  - gsutil ls gs://bucket
+  - gsutil ls
   only:
   - master
