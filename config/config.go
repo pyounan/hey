@@ -10,6 +10,7 @@ import (
 
 type ConfigHolder struct {
 	BackendURI string      `json:"backend_uri"`
+	TenantID   string      `json:"tenant_id"`
 	FDMs       []FDMConfig `json:"fdms"`
 }
 

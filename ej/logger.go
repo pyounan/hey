@@ -63,7 +63,7 @@ func PushToBackend() {
 		go func(netClient *http.Client, DB *mgo.Database, record map[string]interface{}) {
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(r)
-			uri := fmt.Sprintf("%s/api/pos/ej/?tenant_id=42", config.Config.BackendURI)
+			uri := fmt.Sprintf("%s/api/pos/ej/?tenant_id=%s", config.Config.BackendURI, config.Config.TenantID)
 			req, err := http.NewRequest("POST", uri, b)
 			if err != nil {
 				log.Println(err)
