@@ -15,6 +15,8 @@ import (
 
 func main() {
 	port := flag.String("port", "7000", "Port to listen on")
+	server_crt := flag.String("crt", "server.crt", "Certificate path")
+	server_key := flag.String("crt", "server.key", "Certificate key path")
 	flag.Parse()
 	originsOk := gh.AllowedOrigins([]string{"*"})
 	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
@@ -33,6 +35,6 @@ func main() {
 	}()
 
 	log.Printf("Listening on http://localhost:%s\n", *port)
-	log.Fatal(http.ListenAndServeTLS(":"+*port, "server.crt", "server.key", gh.CORS(originsOk, headersOk, methodsOk)(r)))
+	log.Fatal(http.ListenAndServeTLS(":"+*port, *server_crt, *server_key, gh.CORS(originsOk, headersOk, methodsOk)(r)))
 
 }

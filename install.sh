@@ -3,6 +3,10 @@ error() {
   printf '\E[31m'; echo "$@"; printf '\E[0m'
 }
 
+info() {
+  printf '\e[34m'; echo "$@"; printf '\E[0m'
+}
+
 #if [[ $EUID -eq 0 ]]; then
 if [ "$(id -u)" != "0" ]; then
     error "This script should be run using sudo or as the root user"
@@ -17,6 +21,13 @@ fi
 if [ ! -f "$1" ]; then
     error "Key not found!"
     exit 1
+fi
+
+mkdir -p /usr/local/certs/
+if [ ! -f /usr/local/certs/server.crt ]; then
+    info "Generating self signed certificate ..."
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /usr/local/certs/server.key -out /usr/local/certs/server.crt
+    info "Certificate created!"
 fi
 
 GS_KEY=$1
@@ -61,7 +72,7 @@ FILE=/etc/supervisor/conf.d/pos_proxy.conf
 touch $FILE
 cat <<EOM >$FILE
 [program:pos-proxy]
-command=/usr/local/bin/pos-proxy
+command=/usr/local/bin/pos-proxy -server_crt=/usr/local/certs/server.crt -server_key=/usr/local/certs/server.key
 autostart=true
 autorestart=true
 stderr_logfile=/var/log/pos_proxy.err.log
