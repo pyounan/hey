@@ -18,6 +18,11 @@ if [ "$1" == "" ]; then
     exit 1
 fi
 
+if [ "$2" == "" ]; then
+	error "Please provide instance id"
+	exit
+fi
+
 if [ ! -f "$1" ]; then
     error "Key not found!"
     exit 1
@@ -86,7 +91,7 @@ touch $FILE
 cat <<EOM >$FILE
 {
 	"backend_uri": "https://staging.cloudinn.net",
-    "tenant_id": "4",
+    "tenant_id": "$2",
     "fdms": [
        {
              "fdm_port": "/dev/ttyS0",
