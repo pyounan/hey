@@ -22,9 +22,9 @@ type FDM struct {
 func New() (*FDM, error) {
 	fdm := &FDM{}
 	log.Println("Trying to stablish connection with FDM with configuration:")
-	log.Printf("Port: %s", config.Config.FDM_Port)
-	log.Printf("Baud Speed: %d", config.Config.FDM_Speed)
-	fdm.c = &serial.Config{Name: config.Config.FDM_Port, Baud: config.Config.FDM_Speed, ReadTimeout: time.Second * 5}
+	log.Printf("Port: %s", config.Config.FDMs[0].FDM_Port)
+	log.Printf("Baud Speed: %d", config.Config.FDMs[0].FDM_Speed)
+	fdm.c = &serial.Config{Name: config.Config.FDMs[0].FDM_Port, Baud: config.Config.FDMs[0].FDM_Speed, ReadTimeout: time.Second * 5}
 	s, err := serial.OpenPort(fdm.c)
 	fdm.s = s
 	if err != nil {

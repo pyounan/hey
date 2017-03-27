@@ -6,8 +6,10 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"time"
 
 	_ "pos-proxy/db"
+	"pos-proxy/ej"
 	"pos-proxy/handlers"
 )
 
@@ -22,6 +24,15 @@ func main() {
 	r.HandleFunc("/proxy/fdm/invoices", handlers.SubmitInvoice).Methods("POST")
 	r.HandleFunc("/proxy/fdm/folio", handlers.Folio).Methods("POST")
 	r.HandleFunc("/proxy/fdm/payment", handlers.PayInvoice).Methods("POST")
+
+	go func() {
+		for true {
+			ej.PushToBackend()
+			time.Sleep(time.Second * 5)
+		}
+	}()
+
 	log.Printf("Listening on http://localhost:%s\n", *port)
-	log.Fatal(http.ListenAndServe(":"+*port, gh.CORS(originsOk, headersOk, methodsOk)(r)))
+	log.Fatal(http.ListenAndServeTLS(":"+*port, "server.crt", "server.key", gh.CORS(originsOk, headersOk, methodsOk)(r)))
+
 }

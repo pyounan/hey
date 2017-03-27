@@ -9,6 +9,11 @@ import (
 )
 
 type ConfigHolder struct {
+	BackendURI string      `json:"backend_uri"`
+	FDMs       []FDMConfig `json:"fdms"`
+}
+
+type FDMConfig struct {
 	FDM_Port  string `json:"fdm_port"`
 	FDM_Speed int    `json:"fdm_speed"`
 }

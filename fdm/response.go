@@ -7,7 +7,7 @@ import (
 )
 
 type FDMResponse interface {
-	Process(res []byte)
+	Process(res []byte) map[string]interface{}
 }
 
 type ProformaResponse struct {
@@ -27,7 +27,7 @@ type ProformaResponse struct {
 	Signature          string
 }
 
-func (r ProformaResponse) Process(fdm_response []byte) ProformaResponse {
+func (r *ProformaResponse) Process(fdm_response []byte) map[string]interface{} {
 	log.Println("FDM STRING RESPONSE =========>")
 	str := string(fdm_response[:])
 	log.Println(str)
@@ -48,17 +48,33 @@ func (r ProformaResponse) Process(fdm_response []byte) ProformaResponse {
 
 	r.VSC = str[21:35]
 
-	t, _ := time.Parse("20060102", str[35:42])
+	t, _ := time.Parse("20060102", str[35:43])
 	r.Date = t
-	t, _ = time.Parse("20060102", str[42:48])
+	t, _ = time.Parse("150405", str[43:49])
 	r.TimePeriod = t
 
-	r.TicketCounter = str[48:57]
-	r.TotalTicketCounter = str[57:66]
-	r.EventLabel = str[66:68]
+	r.EventLabel = str[49:51]
+	r.TicketCounter = str[51:60]
+	r.TotalTicketCounter = str[60:69]
 
-	r.Signature = str[68:108]
-	return r
+	r.Signature = str[69:109]
+	// make map
+	res := make(map[string]interface{})
+	res["identifier"] = r.Identifier
+	res["sequence"] = r.Sequence
+	res["retry"] = r.Retry
+	res["error1"] = r.Error1
+	res["error2"] = r.Error2
+	res["error3"] = r.Error3
+	res["production_number"] = r.ProductionNumber
+	res["vsc"] = r.VSC
+	res["date"] = r.Date
+	res["time_period"] = r.TimePeriod
+	res["ticket_counter"] = r.TicketCounter
+	res["total_ticket_counter"] = r.TotalTicketCounter
+	res["event_label"] = r.EventLabel
+	res["signature"] = r.Signature
+	return res
 }
 
 type NormalResponse struct {
