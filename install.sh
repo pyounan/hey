@@ -75,7 +75,7 @@ touch $FILE
 cat <<EOM >$FILE
 {
 	"backend_uri": "https://staging.cloudinn.net",
-    "tenant_id": 4,
+    "tenant_id": "4",
     "fdms": [
        {
              "fdm_port": "/dev/ttyS0",
@@ -90,3 +90,4 @@ cat <<EOM >$FILE
      ]
 }
 EOM
+sudo systemctl restart supervisor.service
