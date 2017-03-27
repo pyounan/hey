@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"pos-proxy/config"
 	_ "pos-proxy/db"
 	"pos-proxy/ej"
 	"pos-proxy/handlers"
@@ -17,7 +18,9 @@ func main() {
 	port := flag.String("port", "7000", "Port to listen on")
 	server_crt := flag.String("server_crt", "server.crt", "Certificate path")
 	server_key := flag.String("server_key", "server.key", "Certificate key path")
+	file_path := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
 	flag.Parse()
+	config.Load(*file_path)
 	originsOk := gh.AllowedOrigins([]string{"*"})
 	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
 	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})

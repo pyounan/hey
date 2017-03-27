@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"flag"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,11 +20,9 @@ type FDMConfig struct {
 
 var Config *ConfigHolder = &ConfigHolder{}
 
-func init() {
-	file_path := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
-	flag.Parse()
+func Load(file_path string) {
 	log.Println("Loading configuration...")
-	confPath, _ := filepath.Abs(*file_path)
+	confPath, _ := filepath.Abs(file_path)
 	log.Printf("File: %s\n", confPath)
 	f, err := os.Open(confPath)
 	if err != nil {
