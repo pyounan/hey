@@ -15,8 +15,8 @@ import (
 
 func main() {
 	port := flag.String("port", "7000", "Port to listen on")
-	server_crt := flag.String("crt", "server.crt", "Certificate path")
-	server_key := flag.String("crt", "server.key", "Certificate key path")
+	server_crt := flag.String("server_crt", "server.crt", "Certificate path")
+	server_key := flag.String("server_key", "server.key", "Certificate key path")
 	flag.Parse()
 	originsOk := gh.AllowedOrigins([]string{"*"})
 	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
