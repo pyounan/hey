@@ -18,7 +18,7 @@ import (
 
 func Log(event_label string, ticket fdm.Ticket, response map[string]interface{}) error {
 	record := make(map[string]interface{})
-	record["action_time"] = time.Now()
+	record["action_time"] = ticket.ActionTime
 	changes := make(map[string]interface{})
 	changes["event_label"] = event_label
 	changes["fdm_response"] = response
@@ -26,9 +26,8 @@ func Log(event_label string, ticket fdm.Ticket, response map[string]interface{})
 	changes["cashier_number"] = ticket.CashierNumber
 	changes["invoice_number"] = ticket.InvoiceNumber
 	changes["terminal_name"] = ticket.TerminalName
-	// changes["cashier_id"] = ticket.CashierID
 	changes["ticket_number"] = ticket.TicketNumber
-	changes["ticket_datetime"] = ticket.CreatedAt
+	changes["ticket_datetime"] = ticket.ActionTime
 	changes["total_amount"] = ticket.TotalAmount
 	changes["items"] = ticket.Items
 	changes["vats"] = ticket.VATs
@@ -74,9 +73,7 @@ func PushToBackend() {
 				log.Println(err)
 			}
 			if response != nil {
-				// changes := r["changes"].(map[string]interface{})
 				err := DB.C("ej").RemoveId(r["_id"].(bson.ObjectId))
-				// (bson.M{"ticket_number": changes["ticket_number"], "invoice_number": changes["invoice_number"]})
 				if err != nil {
 					log.Println(err)
 				}

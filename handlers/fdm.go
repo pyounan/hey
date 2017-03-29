@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -35,6 +34,7 @@ func FDMStatus(w http.ResponseWriter, r *http.Request) {
 func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	type Request struct {
+		ActionTime    string            `json:"action_time"`
 		InvoiceNumber string            `json:"invoice_number"`
 		TableNumber   string            `json:"table_number"`
 		TerminalName  string            `json:"terminal_name"`
@@ -94,6 +94,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 			return
 		}
+		t.ActionTime = req.ActionTime
 		t.TicketNumber = strconv.Itoa(tn)
 		t.TerminalName = req.TerminalName
 		t.CashierName = req.CashierName
@@ -104,7 +105,6 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		t.InvoiceNumber = req.InvoiceNumber
 		t.Items = items
 		t.TotalAmount = total_amount
-		t.CreatedAt = time.Now()
 		t.PLUHash = fdm.GeneratePLUHash(t.Items)
 		t.VATs = make([]fdm.VAT, 4)
 		t.VATs[0].Percentage = 21
@@ -216,7 +216,6 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 	t.InvoiceNumber = req.InvoiceNumber
 	t.Items = req.Items
 	t.TotalAmount = total_amount
-	t.CreatedAt = time.Now()
 	t.PLUHash = fdm.GeneratePLUHash(t.Items)
 	t.VATs = make([]fdm.VAT, 4)
 	t.VATs[0].Percentage = 21
@@ -315,7 +314,6 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	t.InvoiceNumber = req.InvoiceNumber
 	t.Items = req.Items
 	t.TotalAmount = total_amount
-	t.CreatedAt = time.Now()
 	t.PLUHash = fdm.GeneratePLUHash(t.Items)
 	t.VATs = make([]fdm.VAT, 4)
 	t.VATs[0].Percentage = 21

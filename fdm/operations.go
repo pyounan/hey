@@ -14,8 +14,8 @@ func HashAndSignMsg(event_label string, t Ticket) string {
 	db.UpdateLastSequence(ns)
 	sequence := FormatSequence(ns)
 	retry := "0"
-	dt := FormatDate(t.CreatedAt)
-	period := FormatTime(t.CreatedAt)
+	dt := FormatDate(t.ActionTime)
+	period := FormatTime(t.ActionTime)
 	amount := FormatAmount(t.TotalAmount)
 	tn := FormatTicketNumber(t.TicketNumber)
 

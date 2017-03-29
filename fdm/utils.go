@@ -51,10 +51,14 @@ func FormatTicketNumber(old_val string) string {
 	return tn
 }
 
-func FormatDate(old_val time.Time) string {
-	return old_val.Format("20060102")
+func FormatDate(old_val string) string {
+	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", old_val)
+	str := t.Format("20060102")
+	return str
 }
 
-func FormatTime(old_val time.Time) string {
-	return old_val.Format("150405")
+func FormatTime(old_val string) string {
+	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", old_val)
+	str := t.Format("150405")
+	return str
 }

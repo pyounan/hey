@@ -2,7 +2,6 @@ package fdm
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"time"
 )
 
 type Ticket struct {
@@ -19,5 +18,5 @@ type Ticket struct {
 	Items         []POSLineItem `json:"items" bson:"items"`
 	PLUHash       string        `bson:"plu_hash"`
 	VATs          []VAT         `bson:"vats"`
-	CreatedAt     time.Time     `bson:"created_at"`
+	ActionTime    string        `bson:"action_time"`
 }
