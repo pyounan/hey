@@ -14,8 +14,9 @@ type ConfigHolder struct {
 }
 
 type FDMConfig struct {
-	FDM_Port  string `json:"fdm_port"`
-	FDM_Speed int    `json:"fdm_speed"`
+	FDM_Port  string   `json:"fdm_port"`
+	FDM_Speed int      `json:"fdm_speed"`
+	RCRS      []string `json:"rcrs"`
 }
 
 var Config *ConfigHolder = &ConfigHolder{}

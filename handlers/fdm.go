@@ -16,7 +16,7 @@ import (
 )
 
 func FDMStatus(w http.ResponseWriter, r *http.Request) {
-	f, err := fdm.New()
+	f, err := fdm.New("")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err)
@@ -53,7 +53,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	FDM, err := fdm.New()
+	FDM, err := fdm.New(req.RCRS)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -186,7 +186,7 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	FDM, err := fdm.New()
+	FDM, err := fdm.New(req.RCRS)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -285,7 +285,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	FDM, err := fdm.New()
+	FDM, err := fdm.New(req.RCRS)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

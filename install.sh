@@ -71,13 +71,8 @@ cat <<EOM >$FILE
        {
              "fdm_port": "/dev/ttyS0",
              "fdm_speed": 19200
+			 "rcrs": []
        }
-     ],
-     "fdm_mapping": [
-        {
-             "rcrs": "12345678901234",
-             "fdm": "/dev/ttyS0"
-        }
      ]
 }
 EOM

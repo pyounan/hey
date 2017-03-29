@@ -19,16 +19,29 @@ type FDM struct {
 }
 
 // New Creates a new fdm connection and returns FDM struct.
-func New() (*FDM, error) {
+func New(RCRS string) (*FDM, error) {
 	fdm := &FDM{}
-	log.Println("Trying to stablish connection with FDM with configuration:")
-	log.Printf("Port: %s", config.Config.FDMs[0].FDM_Port)
-	log.Printf("Baud Speed: %d", config.Config.FDMs[0].FDM_Speed)
-	fdm.c = &serial.Config{Name: config.Config.FDMs[0].FDM_Port, Baud: config.Config.FDMs[0].FDM_Speed, ReadTimeout: time.Second * 5}
+	// find the FDM that is supposed to receive requests from this RCRS number
+	if RCRS == "" {
+		f := config.Config.FDMs[0]
+		fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed, ReadTimeout: time.Second * 3}
+
+	} else {
+		for _, f := range config.Config.FDMs {
+			for _, r := range f.RCRS {
+				if r == RCRS {
+					fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed, ReadTimeout: time.Second * 3}
+					break
+				}
+			}
+		}
+	}
+	log.Println("Trying to stablish connection with FDM with configuration ->")
+	log.Printf("Port: %s", fdm.c.Name)
 	s, err := serial.OpenPort(fdm.c)
 	fdm.s = s
 	if err != nil {
-		log.Println("Failed to stablish connection:")
+		log.Println("Failed to stablish connection with FDM")
 		return nil, err
 	}
 
