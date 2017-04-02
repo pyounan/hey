@@ -1,6 +1,7 @@
 package fdm
 
 import (
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -19,8 +20,9 @@ type POSLineItem struct {
 }
 
 // String generates a text for a line item in a format for the FDM.
-func (l *POSLineItem) String() string {
+func (l POSLineItem) String() string {
 	// quantity length should be 4 letters, if len is smaller than 4, prepend zeros
+	l.Quantity = math.Abs(l.Quantity)
 	q := strconv.FormatFloat(l.Quantity, 'f', 0, 64)
 	q = strings.Replace(q, ".", "", 1)
 	q = strings.Replace(q, "-", "", 1)
@@ -45,6 +47,7 @@ func (l *POSLineItem) String() string {
 		}
 	}
 	// price len should be 8, if len is smaller than 8, prepend zeros
+	l.Price = math.Abs(l.Price)
 	p := strconv.FormatFloat(l.Price, 'f', 2, 64)
 	p = strings.Replace(p, ".", "", 1)
 	p = strings.Replace(p, "-", "", 1)
@@ -54,6 +57,8 @@ func (l *POSLineItem) String() string {
 			p = "0" + p
 		}
 	}
+
+	l.NetAmount = math.Abs(l.NetAmount)
 
 	// make sure the len of res = 33
 	result := q + d + p + string(l.VAT[0])

@@ -3,6 +3,8 @@ package fdm
 import (
 	"crypto/sha1"
 	"fmt"
+	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -34,12 +36,14 @@ func FormatSequence(val int) string {
 }
 
 func FormatAmount(old_val float64) string {
+	old_val = math.Abs(old_val)
 	amount := strconv.FormatFloat(old_val, 'f', 2, 64)
 	amount = strings.Replace(amount, ".", "", 1)
 	// make sure total amount is 11 length, 9.2
 	for len(amount) < 11 {
 		amount = " " + amount
 	}
+	log.Println("amount: ", amount)
 	return amount
 }
 
