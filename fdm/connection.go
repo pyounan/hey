@@ -123,7 +123,6 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 			log.Println("Error reading stx", stx, err)
 			return response, err
 		}
-		// time.Sleep(time.Second * 5)
 		msg := make([]byte, response_size)
 		for i := 0; i < response_size; i++ {
 			tmp := make([]byte, 1)
@@ -132,9 +131,12 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 				log.Println("Error reading msg", msg, err)
 				return response, err
 			}
-			msg = append(msg, tmp[0])
+			msg[i] = tmp[0]
 		}
-		log.Println("MEssage: ", msg)
+
+		log.Println("response_size param:: ", response_size)
+		log.Println("MSG: ", msg)
+		log.Println("MSG len: ", len(msg))
 		etx := make([]byte, 1)
 		_, err = fdm.s.Read(etx)
 		if err != nil {

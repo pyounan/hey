@@ -33,7 +33,6 @@ func (r *ProformaResponse) Process(fdm_response []byte) map[string]interface{} {
 	log.Println(str)
 
 	r.Identifier = str[:1]
-
 	n, _ := strconv.Atoi(str[1:3])
 	r.Sequence = n
 
@@ -41,9 +40,11 @@ func (r *ProformaResponse) Process(fdm_response []byte) map[string]interface{} {
 	r.Retry = n
 
 	r.Error1 = str[4:5]
-
+	log.Println("error1", r.Error1)
 	r.Error2 = str[5:7]
+	log.Println("error2", r.Error2)
 	r.Error3 = str[7:10]
+	log.Println("error3", r.Error3)
 
 	r.ProductionNumber = str[10:21]
 
