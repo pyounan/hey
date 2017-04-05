@@ -41,6 +41,7 @@ func (r *ProformaResponse) Process(fdm_response []byte) map[string]interface{} {
 	r.Retry = n
 
 	r.Error1 = str[4:5]
+
 	r.Error2 = str[5:7]
 	r.Error3 = str[7:10]
 

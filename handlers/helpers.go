@@ -82,7 +82,7 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 	pf_response := fdm.ProformaResponse{}
 	response := pf_response.Process(res)
 	if pf_response.Error2 != "00" && pf_response.Error2 != "01" {
-		err := errors.New(fmt.Sprintf("FDM Response error, code %s", pf_response.Error3))
+		err := errors.New(fmt.Sprintf("FDM Response error, error2 code: %s, erro3 code: %s", pf_response.Error2, pf_response.Error3))
 		return err
 	}
 	// send event to Electrnoic Journal

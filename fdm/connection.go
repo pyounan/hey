@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
+	// "time"
 
 	"github.com/tarm/serial"
 	"pos-proxy/config"
@@ -24,13 +24,13 @@ func New(RCRS string) (*FDM, error) {
 	// find the FDM that is supposed to receive requests from this RCRS number
 	if RCRS == "" {
 		f := config.Config.FDMs[0]
-		fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed, ReadTimeout: time.Second * 3}
+		fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed}
 
 	} else {
 		for _, f := range config.Config.FDMs {
 			for _, r := range f.RCRS {
 				if r == RCRS {
-					fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed, ReadTimeout: time.Second * 3}
+					fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed}
 					break
 				}
 			}
@@ -123,13 +123,18 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 			log.Println("Error reading stx", stx, err)
 			return response, err
 		}
-		time.Sleep(time.Second * 5)
+		// time.Sleep(time.Second * 5)
 		msg := make([]byte, response_size)
-		_, err = fdm.s.Read(msg)
-		if err != nil {
-			log.Println("Error reading msg", msg, err)
-			return response, err
+		for i := 0; i < response_size; i++ {
+			tmp := make([]byte, 1)
+			_, err = fdm.s.Read(tmp)
+			if err != nil {
+				log.Println("Error reading msg", msg, err)
+				return response, err
+			}
+			msg = append(msg, tmp[0])
 		}
+		log.Println("MEssage: ", msg)
 		etx := make([]byte, 1)
 		_, err = fdm.s.Read(etx)
 		if err != nil {
