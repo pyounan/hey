@@ -34,6 +34,30 @@ func Log(event_label string, ticket fdm.Ticket, response map[string]interface{})
 	changes["rcrs"] = ticket.RCRS
 	changes["plu_hash"] = ticket.PLUHash
 	changes["change_type"] = "event"
+	// calculate totals summary
+	type RateSummary map[string]float64
+	summary := make(map[string]RateSummary)
+	totals := make(map[string]float64)
+	totals["net_amount"] = 0
+	totals["vat_amount"] = 0
+	totals["taxable_amount"] = 0
+	rates := []string{"A", "B", "C", "D"}
+	for _, r := range rates {
+		summary[r] = RateSummary{}
+		summary[r]["net_amount"] = 0
+		summary[r]["vat_amount"] = 0
+		summary[r]["taxable_amount"] = 0
+	}
+	for _, item := range ticket.Items {
+		summary[item.VAT]["net_amount"] += item.NetAmount
+		summary[item.VAT]["vat_amount"] += item.NetAmount * item.VATPercentage / 100
+		summary[item.VAT]["taxable_amount"] += item.Price
+		totals["net_amount"] += item.NetAmount
+		totals["vat_amount"] += item.NetAmount * item.VATPercentage / 100
+		totals["taxable_amount"] += item.Price
+	}
+	changes["summary"] = summary
+	changes["totals"] = totals
 	if ticket.TableNumber != "" {
 		changes["table_number"] = ticket.TableNumber
 	} else {

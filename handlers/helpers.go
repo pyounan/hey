@@ -26,10 +26,9 @@ func fixItemsPrice(items []fdm.POSLineItem) []fdm.POSLineItem {
 }
 
 func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSLineItem) error {
-	for _, i := range items {
-		log.Printf("%f %s %f %s\n", i.Quantity, i.Description, i.Price, i.VAT)
+	if len(items) == 0 {
+		return nil
 	}
-	log.Println("==============")
 	VATs := calculateVATs(items)
 	total_amount := calculateTotalAmount(items)
 	t := fdm.Ticket{}
@@ -63,14 +62,16 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 	t.VATs[3].Percentage = 0
 	t.VATs[3].FixedAmount = math.Abs(VATs["D"])
 	// Don't send aything to FDM is there is no new items added
-	if len(t.Items) == 0 {
-		return nil
-	}
 	err = db.DB.C("tickets").Insert(&t)
 	if err != nil {
 		return err
 	}
 
+	log.Println("========= PLU Items =========")
+	for _, i := range items {
+		log.Println(i.String())
+	}
+	log.Println("=============================")
 	msg := fdm.HashAndSignMsg(event_label, t)
 	res, err := FDM.Write(msg, false, 109)
 	if err != nil {
