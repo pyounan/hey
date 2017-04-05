@@ -70,7 +70,7 @@ cat <<EOM >$FILE
     "fdms": [
        {
              "fdm_port": "/dev/ttyS0",
-             "fdm_speed": 19200
+             "fdm_speed": 19200,
 			 "rcrs": []
        }
      ]

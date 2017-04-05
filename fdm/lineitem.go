@@ -1,6 +1,7 @@
 package fdm
 
 import (
+	"log"
 	"math"
 	"regexp"
 	"strconv"
@@ -61,6 +62,7 @@ func (l POSLineItem) String() string {
 	l.NetAmount = math.Abs(l.NetAmount)
 
 	// make sure the len of res = 33
+	log.Println("Item VAT", l.Description, l.VAT)
 	result := q + d + p + string(l.VAT[0])
 	return result
 }

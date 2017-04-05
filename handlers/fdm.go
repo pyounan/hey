@@ -29,15 +29,20 @@ type Request struct {
 func FDMStatus(w http.ResponseWriter, r *http.Request) {
 	f, err := fdm.New("")
 	if err != nil {
+		log.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(err)
+		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
-	defer f.Close()
+	defer func() {
+		log.Println("closing connection with fdm")
+		f.Close()
+	}()
 	ready, err := f.CheckStatus()
 	if err != nil {
+		log.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 	json.NewEncoder(w).Encode(ready)

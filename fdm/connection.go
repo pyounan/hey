@@ -45,7 +45,7 @@ func New(RCRS string) (*FDM, error) {
 		return nil, err
 	}
 
-	log.Println("Connection to FDM has been stablished successfully.")
+	log.Println("Connection to Serial Port has been stablished successfully.")
 	return fdm, nil
 }
 
@@ -58,6 +58,7 @@ func (fdm *FDM) CheckStatus() (bool, error) {
 	}
 	msg := fmt.Sprintf("S%s0", FormatSequence(n))
 	if _, err := fdm.Write(msg, false, 21); err != nil {
+		log.Println("Error: ", err)
 		return false, err
 	}
 
@@ -112,28 +113,33 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 		return response, errors.New("Didn't recieve ACK")
 	}
 	if just_wait_for_ACK {
+		fdm.SendACK()
 		return response, nil
 	}
 	for got_response == false && sent_nacks < max_nacks {
 		stx := make([]byte, 1)
 		_, err = fdm.s.Read(stx)
 		if err != nil {
+			log.Println("Error reading stx", stx, err)
 			return response, err
 		}
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Second * 3)
 		msg := make([]byte, response_size)
 		_, err = fdm.s.Read(msg)
 		if err != nil {
+			log.Println("Error reading msg", msg, err)
 			return response, err
 		}
 		etx := make([]byte, 1)
 		_, err = fdm.s.Read(etx)
 		if err != nil {
+			log.Println("Error reading etx", etx, err)
 			return response, err
 		}
 		bcc := make([]byte, 1)
 		_, err = fdm.s.Read(bcc)
 		if err != nil {
+			log.Println("Error reading bcc", bcc, err)
 			return response, err
 		}
 		// compare results
@@ -141,6 +147,7 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 		if fmt.Sprintf("%v", stx) != fmt.Sprintf("%v", 0x02) && fmt.Sprintf("%v", etx) != fmt.Sprintf("%v", 0x03) && bcc != nil && calculateLRC(msg) == bcc[0] {
 			got_response = true
 			response = msg
+			log.Println("Received a valid response")
 			break
 		} else {
 			log.Println("Not a valid response, sending NACK....")
