@@ -123,7 +123,7 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 			log.Println("Error reading stx", stx, err)
 			return response, err
 		}
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 5)
 		msg := make([]byte, response_size)
 		_, err = fdm.s.Read(msg)
 		if err != nil {
