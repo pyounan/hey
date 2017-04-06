@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
 	"pos-proxy/config"
@@ -18,6 +17,10 @@ import (
 
 func Log(event_label string, ticket fdm.Ticket, response map[string]interface{}) error {
 	record := make(map[string]interface{})
+	// we are using is_locked to determine if this record is
+	// already picked up by a goroutine when sending to backend
+	// so that we don't send a record twice
+	record["is_locked"] = false
 	record["action_time"] = ticket.ActionTime
 	changes := make(map[string]interface{})
 	changes["event_label"] = event_label
@@ -74,37 +77,39 @@ func Log(event_label string, ticket fdm.Ticket, response map[string]interface{})
 
 func PushToBackend() {
 	var records []map[string]interface{}
-	_ = db.DB.C("ej").Find(bson.M{}).All(&records)
+	_ = db.DB.C("ej").Find(bson.M{"is_locked": false}).All(&records)
+	recordIDs := []bson.ObjectId{}
+	for _, rec := range records {
+		recordIDs = append(recordIDs, rec["_id"].(bson.ObjectId))
+	}
+	_ = db.DB.C("ej").Update(bson.M{"_id": bson.M{"$in": recordIDs}}, bson.M{"is_locked": true})
 
 	var netClient = &http.Client{
 		Timeout: time.Second * 10,
 	}
 
-	log.Printf("%d ej records found\n", len(records))
+	// log.Printf("%d ej records found\n", len(records))
 
 	for _, r := range records {
-		go func(netClient *http.Client, DB *mgo.Database, record map[string]interface{}) {
-			b := new(bytes.Buffer)
-			json.NewEncoder(b).Encode(r)
-			uri := fmt.Sprintf("%s/api/pos/ej/?tenant_id=%s", config.Config.BackendURI, config.Config.TenantID)
-			req, err := http.NewRequest("POST", uri, b)
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(r)
+		uri := fmt.Sprintf("%s/api/pos/ej/?tenant_id=%s", config.Config.BackendURI, config.Config.TenantID)
+		req, err := http.NewRequest("POST", uri, b)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		req.Header.Set("Content-Type", "application/json")
+		response, err := netClient.Do(req)
+		if err != nil {
+			_ = db.DB.C("ej").Update(bson.M{"_id": r["_id"].(bson.ObjectId)}, bson.M{"is_locked": false})
+			log.Println(err.Error())
+		}
+		if response != nil {
+			err := db.DB.C("ej").RemoveId(r["_id"].(bson.ObjectId))
 			if err != nil {
-				log.Println(err)
+				log.Println(err.Error())
 			}
-			req.Header.Set("Content-Type", "application/json")
-			response, err := netClient.Do(req)
-			if err != nil {
-				log.Println(err)
-			}
-			if response != nil {
-				err := DB.C("ej").RemoveId(r["_id"].(bson.ObjectId))
-				if err != nil {
-					log.Println(err)
-				}
-
-				log.Println("success")
-			}
-		}(netClient, db.DB, r)
+		}
 	}
 
 }

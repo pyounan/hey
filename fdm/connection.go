@@ -134,9 +134,6 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 			msg[i] = tmp[0]
 		}
 
-		log.Println("response_size param:: ", response_size)
-		log.Println("MSG: ", msg)
-		log.Println("MSG len: ", len(msg))
 		etx := make([]byte, 1)
 		_, err = fdm.s.Read(etx)
 		if err != nil {

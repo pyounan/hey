@@ -5,12 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
-	"gopkg.in/mgo.v2/bson"
-
-	"pos-proxy/db"
-	"pos-proxy/ej"
 	"pos-proxy/fdm"
 )
 
@@ -78,9 +73,6 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Items = fixItemsPrice(req.Items)
-	for _, item := range req.Items {
-		log.Printf("item price: %f", item.Price)
-	}
 	// calculate total amount of each VAT rate
 	vats := calculateVATs(req.Items)
 	positiveVATs := []string{}
@@ -125,6 +117,7 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&req)
 	if err != nil {
 		log.Println(err)
+		log.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 		return
@@ -139,71 +132,51 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 	}
 	defer FDM.Close()
 
-	VATs := calculateVATs(req.Items)
-	total_amount := calculateTotalAmount(req.Items)
-	t := fdm.Ticket{}
-	t.ID = bson.NewObjectId()
-	tn, err := db.GetNextTicketNumber()
-	if err != nil {
+	// check status
+	ok, err := FDM.CheckStatus()
+	if err != nil || ok == false {
+		log.Println("Failed to get response from FDM")
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+		json.NewEncoder(w).Encode("Failed to get response from FDM")
 		return
 	}
-	t.TicketNumber = strconv.Itoa(tn)
-	t.TerminalName = req.TerminalName
-	t.CashierName = req.CashierName
-	t.CashierNumber = req.CashierNumber
-	t.TableNumber = req.TableNumber
-	t.UserID = req.UserID
-	t.RCRS = req.RCRS
-	t.InvoiceNumber = req.InvoiceNumber
-	t.Items = req.Items
-	t.TotalAmount = total_amount
-	t.PLUHash = fdm.GeneratePLUHash(t.Items)
-	t.VATs = make([]fdm.VAT, 4)
-	t.VATs[0].Percentage = 21
-	t.VATs[0].FixedAmount = VATs["A"]
+	req.Items = fixItemsPrice(req.Items)
+	// calculate total amount of each VAT rate
+	vats := calculateVATs(req.Items)
+	positiveVATs := []string{}
+	negativeVATs := []string{}
+	for rate, amount := range vats {
+		if amount >= 0 {
+			positiveVATs = append(positiveVATs, rate)
+		} else if amount < 0 {
+			negativeVATs = append(negativeVATs, rate)
+		}
+	}
 
-	t.VATs[1].Percentage = 12
-	t.VATs[1].FixedAmount = VATs["B"]
-
-	t.VATs[2].Percentage = 6
-	t.VATs[2].FixedAmount = VATs["C"]
-
-	t.VATs[3].Percentage = 0
-	t.VATs[3].FixedAmount = VATs["D"]
-	// Don't send aything to FDM is there is no new items added
-	if len(t.Items) == 0 {
-		json.NewEncoder(w).Encode("success")
-		return
-	}
-	err = db.DB.C("tickets").Insert(&t)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(fmt.Sprintf("%v, err"))
-		return
-	}
-	event_label := "PS"
-	msg := fdm.HashAndSignMsg(event_label, t)
-	res, err := FDM.Write(msg, false, 109)
-	log.Println("finished writing to FDM")
-	log.Println(res)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
-		return
-	}
-	db.UpdateLastTicketNumber(tn)
-	pf_response := fdm.ProformaResponse{}
-	response := pf_response.Process(res)
-	go func() {
-		err := ej.Log(event_label, t, response)
+	// send positive msg
+	items := splitItemsByVATRates(req.Items, positiveVATs)
+	if len(items) > 0 {
+		err = sendMessage("PS", FDM, req, items)
 		if err != nil {
 			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			return
 		}
-	}()
+	}
+	// send negative msg
+	items = splitItemsByVATRates(req.Items, negativeVATs)
+	if len(items) > 0 {
+		err = sendMessage("PR", FDM, req, items)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			return
+		}
+	}
+
 	json.NewEncoder(w).Encode("success")
 }
 
@@ -227,69 +200,50 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	defer FDM.Close()
 
-	VATs := calculateVATs(req.Items)
-	total_amount := calculateTotalAmount(req.Items)
-	t := fdm.Ticket{}
-	t.ID = bson.NewObjectId()
-	tn, err := db.GetNextTicketNumber()
-	if err != nil {
+	// check status
+	ok, err := FDM.CheckStatus()
+	if err != nil || ok == false {
+		log.Println("Failed to get response from FDM")
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+		json.NewEncoder(w).Encode("Failed to get response from FDM")
 		return
 	}
-	t.TicketNumber = strconv.Itoa(tn)
-	t.TerminalName = req.TerminalName
-	t.CashierName = req.CashierName
-	t.CashierNumber = req.CashierNumber
-	t.TableNumber = req.TableNumber
-	t.UserID = req.UserID
-	t.RCRS = req.RCRS
-	t.InvoiceNumber = req.InvoiceNumber
-	t.Items = req.Items
-	t.TotalAmount = total_amount
-	t.PLUHash = fdm.GeneratePLUHash(t.Items)
-	t.VATs = make([]fdm.VAT, 4)
-	t.VATs[0].Percentage = 21
-	t.VATs[0].FixedAmount = VATs["A"]
+	req.Items = fixItemsPrice(req.Items)
+	// calculate total amount of each VAT rate
+	vats := calculateVATs(req.Items)
+	positiveVATs := []string{}
+	negativeVATs := []string{}
+	for rate, amount := range vats {
+		if amount >= 0 {
+			positiveVATs = append(positiveVATs, rate)
+		} else if amount < 0 {
+			negativeVATs = append(negativeVATs, rate)
+		}
+	}
 
-	t.VATs[1].Percentage = 12
-	t.VATs[1].FixedAmount = VATs["B"]
-
-	t.VATs[2].Percentage = 6
-	t.VATs[2].FixedAmount = VATs["C"]
-
-	t.VATs[3].Percentage = 0
-	t.VATs[3].FixedAmount = VATs["D"]
-	// Don't send aything to FDM is there is no new items added
-	if len(t.Items) == 0 {
-		json.NewEncoder(w).Encode("success")
-		return
-	}
-	err = db.DB.C("tickets").Insert(&t)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(fmt.Sprintf("%v, err"))
-		return
-	}
-	log.Println("Making a Normal Sale")
-	event_label := "NS"
-	msg := fdm.HashAndSignMsg(event_label, t)
-	res, err := FDM.Write(msg, false, 109)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
-		return
-	}
-	db.UpdateLastTicketNumber(tn)
-	go func(res []byte) {
-		pf_response := fdm.ProformaResponse{}
-		response := pf_response.Process(res)
-		err := ej.Log(event_label, t, response)
+	// send positive msg
+	items := splitItemsByVATRates(req.Items, positiveVATs)
+	if len(items) > 0 {
+		err = sendMessage("NS", FDM, req, items)
 		if err != nil {
 			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			return
 		}
-	}(res)
+	}
+	// send negative msg
+	items = splitItemsByVATRates(req.Items, negativeVATs)
+	if len(items) > 0 {
+		err = sendMessage("NR", FDM, req, items)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			return
+		}
+	}
+
 	json.NewEncoder(w).Encode("success")
 }

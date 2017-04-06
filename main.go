@@ -14,6 +14,10 @@ import (
 	"pos-proxy/handlers"
 )
 
+func init() {
+	log.SetFlags(log.LstdFlags)
+}
+
 func main() {
 	port := flag.String("port", "7000", "Port to listen on")
 	server_crt := flag.String("server_crt", "server.crt", "Certificate path")
@@ -30,10 +34,12 @@ func main() {
 	r.HandleFunc("/proxy/fdm/folio", handlers.Folio).Methods("POST")
 	r.HandleFunc("/proxy/fdm/payment", handlers.PayInvoice).Methods("POST")
 
+	// fire a goroutine to send stored electronic journal records
+	// to backend every 10 seconds
 	go func() {
 		for true {
 			ej.PushToBackend()
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 10)
 		}
 	}()
 
