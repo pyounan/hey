@@ -18,7 +18,7 @@ func init() {
 	count, _ := DB.C("metadata").Count()
 	if count == 0 {
 		DB.C("metadata").Insert(bson.M{"key": "last_sequence", "value": 0})
-		DB.C("metadata").Insert(bson.M{"key": "last_ticket_number", "value": 0})
+		//		DB.C("metadata").Insert(bson.M{"key": "last_ticket_number", "value": 0})
 	}
 
 }

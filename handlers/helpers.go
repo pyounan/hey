@@ -3,11 +3,12 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/mgo.v2/bson"
 	"log"
 	"math"
 	"pos-proxy/fdm"
 	"strconv"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"pos-proxy/db"
 	"pos-proxy/ej"
@@ -30,10 +31,10 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 		return nil
 	}
 	VATs := calculateVATs(items)
-	total_amount := calculateTotalAmount(items)
+	totalAmount := calculateTotalAmount(items)
 	t := fdm.Ticket{}
 	t.ID = bson.NewObjectId()
-	tn, err := db.GetNextTicketNumber()
+	tn, err := db.GetNextTicketNumber(req.RCRS)
 	if err != nil {
 		return err
 	}
@@ -47,7 +48,7 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 	t.RCRS = req.RCRS
 	t.InvoiceNumber = req.InvoiceNumber
 	t.Items = items
-	t.TotalAmount = total_amount
+	t.TotalAmount = totalAmount
 	t.PLUHash = fdm.GeneratePLUHash(t.Items)
 	t.VATs = make([]fdm.VAT, 4)
 	t.VATs[0].Percentage = 21
@@ -77,7 +78,7 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 	if err != nil {
 		return err
 	}
-	if err := db.UpdateLastTicketNumber(tn); err != nil {
+	if err := db.UpdateLastTicketNumber(req.RCRS, tn); err != nil {
 		log.Println(err)
 	}
 	pf_response := fdm.ProformaResponse{}

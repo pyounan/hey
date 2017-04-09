@@ -6,9 +6,10 @@ import (
 	"log"
 	// "time"
 
-	"github.com/tarm/serial"
 	"pos-proxy/config"
 	"pos-proxy/db"
+
+	"github.com/tarm/serial"
 )
 
 // FDM is a structure the defines the configuration and the port to the fdm
@@ -35,6 +36,10 @@ func New(RCRS string) (*FDM, error) {
 				}
 			}
 		}
+	}
+	if fdm.c == nil {
+		err := errors.New("there is no fdm configuration for this production number")
+		return nil, err
 	}
 	log.Println("Trying to stablish connection with FDM with configuration ->")
 	log.Printf("Port: %s", fdm.c.Name)
