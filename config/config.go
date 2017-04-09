@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 )
 
+var ProxyToken string = ""
+
 type ConfigHolder struct {
 	BackendURI string      `json:"backend_uri"`
 	TenantID   string      `json:"tenant_id"`
@@ -35,5 +37,18 @@ func Load(file_path string) {
 		log.Println("Failed to decode configuration file:")
 		log.Fatal(err)
 	}
+	log.Println("Loading proxy token from /etc/cloudinn/proxy_token.json")
+	f, err = os.Open("/etc/cloudinn/proxy_token.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	proxyTokenJson := make(map[string]string)
+	decoder = json.NewDecoder(f)
+	err = decoder.Decode(&proxyTokenJson)
+	if err != nil {
+		log.Println("Failed to decode proxy token")
+		log.Fatal(err)
+	}
+	ProxyToken = proxyTokenJson["proxy_token"]
 	log.Println("Configuration loaded successfully...")
 }

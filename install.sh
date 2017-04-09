@@ -76,6 +76,14 @@ cat <<EOM >$FILE
      ]
 }
 EOM
+# make file for proxy token
+FILE=/etc/cloudinn/proxy_token.json
+touch $FILE
+cat <<EOM >$FILE
+{
+	"proxy_token": "$3"
+}
+EOM
 }
 
 if [ "$(id -u)" != "0" ]; then
@@ -90,6 +98,11 @@ fi
 
 if [ "$2" == "" ]; then
 	error "Please provide instance id"
+	exit
+fi
+
+if [ "$3" == "" ]; then
+	error "Please provide proxy token"
 	exit
 fi
 

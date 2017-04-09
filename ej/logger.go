@@ -93,17 +93,20 @@ func PushToBackend() {
 	for _, r := range records {
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(r)
-		uri := fmt.Sprintf("%s/api/pos/ej/?tenant_id=%s", config.Config.BackendURI, config.Config.TenantID)
+		uri := fmt.Sprintf("%s/api/pos/ej/", config.Config.BackendURI)
 		req, err := http.NewRequest("POST", uri, b)
 		if err != nil {
 			log.Println(err.Error())
 		}
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("AUTHENTICATION", fmt.Sprintf("JWT %s", config.ProxyToken))
 		response, err := netClient.Do(req)
+		log.Println("sending electronic journal records to backend")
 		if err != nil {
 			_ = db.DB.C("ej").Update(bson.M{"_id": r["_id"].(bson.ObjectId)}, bson.M{"is_locked": false})
 			log.Println(err.Error())
 		}
+		log.Println(response)
 		if response != nil {
 			err := db.DB.C("ej").RemoveId(r["_id"].(bson.ObjectId))
 			if err != nil {
