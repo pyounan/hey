@@ -19,6 +19,10 @@ type Request struct {
 	RCRS          string            `json:"rcrs"`
 	CashierName   string            `json:"cashier_name"`
 	CashierNumber string            `json:"cashier_number"`
+	// only used for payment
+	Payments     []fdm.Payment `json:"payments"`
+	ChangeAmount float64       `json:"change_amount"`
+	IsClosed     bool          `json:"is_closed,omitempty"`
 }
 
 func FDMStatus(w http.ResponseWriter, r *http.Request) {

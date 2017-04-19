@@ -50,6 +50,9 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 	t.Items = items
 	t.TotalAmount = totalAmount
 	t.PLUHash = fdm.GeneratePLUHash(t.Items)
+	t.Payments = req.Payments
+	t.ChangeAmount = req.ChangeAmount
+	t.IsClosed = req.IsClosed
 	t.VATs = make([]fdm.VAT, 4)
 	t.VATs[0].Percentage = 21
 	t.VATs[0].FixedAmount = math.Abs(VATs["A"])

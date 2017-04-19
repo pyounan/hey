@@ -37,6 +37,9 @@ func Log(event_label string, ticket fdm.Ticket, response map[string]interface{})
 	changes["rcrs"] = ticket.RCRS
 	changes["plu_hash"] = ticket.PLUHash
 	changes["change_type"] = "event"
+	changes["payments"] = ticket.Payments
+	changes["is_closed"] = ticket.IsClosed
+	changes["change_amount"] = ticket.ChangeAmount
 	// calculate totals summary
 	type RateSummary map[string]float64
 	summary := make(map[string]RateSummary)

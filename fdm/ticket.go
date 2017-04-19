@@ -4,6 +4,11 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type Payment struct {
+	PaymentType string  `json:"payment_type" bson:"payment_type"`
+	PaidAmount  float64 `json:"paid_amount" bson:"paid_amount"`
+}
+
 type Ticket struct {
 	ID            bson.ObjectId `json:"-" bson:"_id"`
 	TicketNumber  string        `json:"ticket_number" bson:"ticket_number"`
@@ -19,4 +24,8 @@ type Ticket struct {
 	PLUHash       string        `bson:"plu_hash"`
 	VATs          []VAT         `bson:"vats"`
 	ActionTime    string        `bson:"action_time"`
+	// only for payment, used in ej
+	Payments     []Payment `bson:"payments"`
+	ChangeAmount float64   `bson:"change_amount"`
+	IsClosed     bool      `bson:"is_closed"`
 }
