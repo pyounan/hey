@@ -22,21 +22,20 @@ type FDM struct {
 // New Creates a new fdm connection and returns FDM struct.
 func New(RCRS string) (*FDM, error) {
 	fdm := &FDM{}
-	// find the FDM that is supposed to receive requests from this RCRS number
 	if RCRS == "" {
-		f := config.Config.FDMs[0]
-		fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed}
+		return nil, errors.New("You must specifiy a valid RCRS number")
+	}
 
-	} else {
-		for _, f := range config.Config.FDMs {
-			for _, r := range f.RCRS {
-				if r == RCRS {
-					fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed}
-					break
-				}
+	// find the FDM that is supposed to receive requests from this RCRS number
+	for _, f := range config.Config.FDMs {
+		for _, r := range f.RCRS {
+			if r == RCRS {
+				fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed}
+				break
 			}
 		}
 	}
+
 	if fdm.c == nil {
 		err := errors.New("there is no fdm configuration for this production number")
 		return nil, err

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"pos-proxy/fdm"
 )
 
@@ -26,7 +27,8 @@ type Request struct {
 }
 
 func FDMStatus(w http.ResponseWriter, r *http.Request) {
-	f, err := fdm.New("")
+	vars := mux.Vars(r)
+	f, err := fdm.New(vars["rcrs"])
 	if err != nil {
 		log.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
