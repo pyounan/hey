@@ -10,6 +10,7 @@ import (
 
 type POSLineItem struct {
 	//	UUID          string  `json:"frontend_id" bson:"frontend_id"`
+	ID            float64 `json:"item" bson:"item"`
 	Quantity      float64 `json:"qty" bson:"qty"`
 	Description   string  `json:"description" bson:"description"`
 	UnitPrice     float64 `json:"unit_price" bson:"unit_price"`
@@ -18,6 +19,7 @@ type POSLineItem struct {
 	TaxAmount     float64 `json:"tax_amount" bson:"tax_amount"`
 	VAT           string  `json:"vat_code" bson:"vat_code"`
 	VATPercentage float64 `json:"vat_percentage" bson:"vat_percentage"`
+	LineItemType  string  `json:"lineitem_type" bson:"lineitem_type"`
 }
 
 // String generates a text for a line item in a format for the FDM.
