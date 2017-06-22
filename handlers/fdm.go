@@ -94,7 +94,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	// send positive msg
 	items := splitItemsByVATRates(req.Items, positiveVATs)
 	if len(items) > 0 {
-		err = sendMessage("PS", FDM, req, items)
+		_, err = sendMessage("PS", FDM, req, items)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -105,7 +105,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	// send negative msg
 	items = splitItemsByVATRates(req.Items, negativeVATs)
 	if len(items) > 0 {
-		err = sendMessage("PR", FDM, req, items)
+		_, err = sendMessage("PR", FDM, req, items)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -160,30 +160,37 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// prepare the array of FDM responses
+	responses := []fdm.ProformaResponse{}
+
 	// send positive msg
 	items := splitItemsByVATRates(req.Items, positiveVATs)
 	if len(items) > 0 {
-		err = sendMessage("PS", FDM, req, items)
+		res, err := sendMessage("PS", FDM, req, items)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 			return
 		}
+
+		responses = append(responses, res)
 	}
 	// send negative msg
 	items = splitItemsByVATRates(req.Items, negativeVATs)
 	if len(items) > 0 {
-		err = sendMessage("PR", FDM, req, items)
+		res, err := sendMessage("PR", FDM, req, items)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 			return
 		}
+
+		responses = append(responses, res)
 	}
 
-	json.NewEncoder(w).Encode("success")
+	json.NewEncoder(w).Encode(responses)
 }
 
 func PayInvoice(w http.ResponseWriter, r *http.Request) {
@@ -228,28 +235,35 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// prepare the array of FDM responses
+	responses := []fdm.ProformaResponse{}
+
 	// send positive msg
 	items := splitItemsByVATRates(req.Items, positiveVATs)
 	if len(items) > 0 {
-		err = sendMessage("NS", FDM, req, items)
+		res, err := sendMessage("NS", FDM, req, items)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 			return
 		}
+
+		responses = append(responses, res)
 	}
 	// send negative msg
 	items = splitItemsByVATRates(req.Items, negativeVATs)
 	if len(items) > 0 {
-		err = sendMessage("NR", FDM, req, items)
+		res, err := sendMessage("NR", FDM, req, items)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 			return
 		}
+
+		responses = append(responses, res)
 	}
 
-	json.NewEncoder(w).Encode("success")
+	json.NewEncoder(w).Encode(responses)
 }
