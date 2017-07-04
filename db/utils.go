@@ -2,6 +2,7 @@ package db
 
 import (
 	"gopkg.in/mgo.v2/bson"
+	"sync"
 )
 
 type MetaData struct {
@@ -13,18 +14,25 @@ type MetaData struct {
 // GetNextSequence checks the database for the last used sequence
 // and returns the next one to be used, the counter fallsback to 1
 // if it exceeds 99.
-func GetNextSequence() (int, error) {
+func GetNextSequence(rcrs string) (int, error) {
+	var mutex = &sync.Mutex{}
+	mutex.Lock()
 	var data MetaData
-	err := DB.C("metadata").Find(bson.M{"key": "last_sequence"}).One(&data)
+	q := bson.M{"key": "last_sequence", "rcrs": rcrs}
+	err := DB.C("metadata").Find(q).One(&data)
 	if err != nil {
-		return 0, err
+		// if sequence number doesnt exist for this rcrs, create new one with zero value
+		data = MetaData{}
+		data.Key = "last_sequence"
+		data.Value = 1
+		data.RCRS = rcrs
+		DB.C("metadata").Insert(data)
+	} else if data.Value == 99 {
+		data.Value = 1
+		DB.C("metadata").Update(q, bson.M{"$set": bson.M{"value": data.Value}})
 	}
-
-	if data.Value == 99 {
-		return 1, nil
-	}
-
-	return data.Value + 1, nil
+	mutex.Unlock()
+	return data.Value, nil
 }
 
 // GetNextTicketNumber checks the database for the last ticket number used for the passed RCRS
@@ -53,8 +61,9 @@ func GetNextTicketNumber(rcrs string) (int, error) {
 }
 
 // UpdateLastSequence updates the last used sequence in the database
-func UpdateLastSequence(val int) error {
-	err := DB.C("metadata").Update(bson.M{"key": "last_sequence"},
+func UpdateLastSequence(rcrs string, val int) error {
+	q := bson.M{"key": "last_sequence", "rcrs": rcrs}
+	err := DB.C("metadata").Update(q,
 		bson.M{"$set": bson.M{"value": val}})
 	return err
 }

@@ -161,7 +161,7 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// prepare the array of FDM responses
-	responses := []fdm.ProformaResponse{}
+	responses := []fdm.Response{}
 
 	// send positive msg
 	items := splitItemsByVATRates(req.Items, positiveVATs)
@@ -236,7 +236,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// prepare the array of FDM responses
-	responses := []fdm.ProformaResponse{}
+	responses := []fdm.Response{}
 
 	// send positive msg
 	items := splitItemsByVATRates(req.Items, positiveVATs)

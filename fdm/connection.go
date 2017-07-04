@@ -15,6 +15,7 @@ import (
 // FDM is a structure the defines the configuration and the port to the fdm
 // connection.
 type FDM struct {
+	RCRS string
 	c *serial.Config
 	s *serial.Port
 }
@@ -31,6 +32,7 @@ func New(RCRS string) (*FDM, error) {
 		for _, r := range f.RCRS {
 			if r == RCRS {
 				fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed}
+				fdm.RCRS = RCRS
 				break
 			}
 		}
@@ -55,8 +57,8 @@ func New(RCRS string) (*FDM, error) {
 
 // CheckStatus sends S000 to the FDM and check if its ready.
 func (fdm *FDM) CheckStatus() (bool, error) {
-	n, err := db.GetNextSequence()
-	db.UpdateLastSequence(n)
+	n, err := db.GetNextSequence(fdm.RCRS)
+	// db.UpdateLastSequence(fdm.RCRS, n)
 	if err != nil {
 		return false, err
 	}

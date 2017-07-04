@@ -26,9 +26,9 @@ func fixItemsPrice(items []fdm.POSLineItem) []fdm.POSLineItem {
 	return items
 }
 
-func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSLineItem) (fdm.ProformaResponse, error) {
+func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSLineItem) (fdm.Response, error) {
 	if len(items) == 0 {
-		return fdm.ProformaResponse{}, nil
+		return fdm.Response{}, nil
 	}
 	VATs := calculateVATs(items)
 	totalAmount := calculateTotalAmount(items)
@@ -36,7 +36,7 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 	t.ID = bson.NewObjectId()
 	tn, err := db.GetNextTicketNumber(req.RCRS)
 	if err != nil {
-		return fdm.ProformaResponse{}, err
+		return fdm.Response{}, err
 	}
 	t.ActionTime = req.ActionTime
 	t.TicketNumber = strconv.Itoa(tn)
@@ -68,7 +68,7 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 	// Don't send aything to FDM is there is no new items added
 	err = db.DB.C("tickets").Insert(&t)
 	if err != nil {
-		return fdm.ProformaResponse{}, err
+		return fdm.Response{}, err
 	}
 
 	log.Println("========= PLU Items =========")
@@ -76,19 +76,19 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 		log.Println(i.String())
 	}
 	log.Println("=============================")
-	msg := fdm.HashAndSignMsg(event_label, t)
+	msg := fdm.HashAndSignMsg(FDM.RCRS, event_label, t)
 	res, err := FDM.Write(msg, false, 109)
 	if err != nil {
-		return fdm.ProformaResponse{}, err
+		return fdm.Response{}, err
 	}
 	if err := db.UpdateLastTicketNumber(req.RCRS, tn); err != nil {
 		log.Println(err)
 	}
-	pf_response := fdm.ProformaResponse{}
-	response := pf_response.Process(res)
+	pf_response := fdm.Response{}
+	response := pf_response.Process(res, t)
 	if pf_response.Error2 != "00" && pf_response.Error2 != "01" {
 		err := errors.New(fmt.Sprintf("FDM Response error, error2 code: %s, erro3 code: %s", pf_response.Error2, pf_response.Error3))
-		return fdm.ProformaResponse{}, err
+		return fdm.Response{}, err
 	}
 	// send event to Electrnoic Journal
 	go func() {

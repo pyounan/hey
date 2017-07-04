@@ -6,28 +6,29 @@ import (
 	"time"
 )
 
-type FDMResponse interface {
-	Process(res []byte) map[string]interface{}
+type VATSummary map[string]float64
+
+type Response struct {
+	Identifier         string    `json:"identifier"`
+	Sequence           int       `json:"sequence"`
+	Retry              int       `json:"retry"`
+	Error1             string    `json:"error1"`
+	Error2             string    `json:"error2"`
+	Error3             string    `json:"error3"`
+	ProductionNumber   string    `json:"production_number"`
+	VSC                string    `json:"vsc"`
+	Date               time.Time `json:"date"`
+	TimePeriod         time.Time `json:"time_period"`
+	EventLabel         string    `json:"event_label"`
+	TicketCounter      string    `json:"ticket_counter"`
+	TotalTicketCounter string    `json:"total_ticket_counter"`
+	Signature          string    `json:"signature"`
+	// Attached attributes from ticket
+	PLUHash    string                `json:"plu_hash"`
+	VATSummary map[string]VATSummary `json:"vat_summary"`
 }
 
-type ProformaResponse struct {
-	Identifier         string
-	Sequence           int
-	Retry              int
-	Error1             string
-	Error2             string
-	Error3             string
-	ProductionNumber   string
-	VSC                string
-	Date               time.Time
-	TimePeriod         time.Time
-	EventLabel         string
-	TicketCounter      string
-	TotalTicketCounter string
-	Signature          string
-}
-
-func (r *ProformaResponse) Process(fdm_response []byte) map[string]interface{} {
+func (r *Response) Process(fdm_response []byte, ticket Ticket) map[string]interface{} {
 	log.Println("FDM STRING RESPONSE =========>")
 	str := string(fdm_response[:])
 	log.Println(str)
@@ -60,6 +61,9 @@ func (r *ProformaResponse) Process(fdm_response []byte) map[string]interface{} {
 	r.TotalTicketCounter = str[60:69]
 
 	r.Signature = str[69:109]
+	// Attaching other attributes from ticket and summarized data
+	r.PLUHash = ticket.PLUHash
+	r.VATSummary = SummarizeVAT(&ticket.Items)
 	// make map
 	res := make(map[string]interface{})
 	res["identifier"] = r.Identifier
@@ -77,12 +81,4 @@ func (r *ProformaResponse) Process(fdm_response []byte) map[string]interface{} {
 	res["event_label"] = r.EventLabel
 	res["signature"] = r.Signature
 	return res
-}
-
-type NormalResponse struct {
-	Length int
-}
-
-func (r NormalResponse) Process(fdm_response []byte) {
-
 }
