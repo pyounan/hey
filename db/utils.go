@@ -28,6 +28,9 @@ func GetNextSequence(rcrs string) (int, error) {
 		data.RCRS = rcrs
 		DB.C("metadata").Insert(data)
 	} else if data.Value == 99 {
+		data.Value = 1
+		DB.C("metadata").Update(q, bson.M{"$set": bson.M{"value": data.Value}})
+	} else {
 		data.Value += 1
 		DB.C("metadata").Update(q, bson.M{"$set": bson.M{"value": data.Value}})
 	}
