@@ -88,7 +88,7 @@ func PushToBackend() {
 	_ = db.DB.C("ej").Update(bson.M{"_id": bson.M{"$in": recordIDs}}, bson.M{"is_locked": true})
 
 	var netClient = &http.Client{
-		Timeout: time.Second * 10,
+		Timeout: time.Second * 5,
 	}
 
 	// log.Printf("%d ej records found\n", len(records))

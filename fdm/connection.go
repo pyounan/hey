@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	// "time"
+	"strconv"
 
 	"pos-proxy/config"
 	"pos-proxy/db"
@@ -16,8 +16,8 @@ import (
 // connection.
 type FDM struct {
 	RCRS string
-	c *serial.Config
-	s *serial.Port
+	c    *serial.Config
+	s    *serial.Port
 }
 
 // New Creates a new fdm connection and returns FDM struct.
@@ -29,16 +29,15 @@ func New(RCRS string) (*FDM, error) {
 
 	// find the FDM that is supposed to receive requests from this RCRS number
 	for _, f := range config.Config.FDMs {
-		for _, r := range f.RCRS {
-			if r == RCRS {
-				fdm.c = &serial.Config{Name: f.FDM_Port, Baud: f.FDM_Speed}
-				fdm.RCRS = RCRS
-				break
-			}
+		if f.RCRS == RCRS {
+			baudSpeed, _ := strconv.Atoi(f.BaudSpeed)
+			fdm.c = &serial.Config{Name: f.FDM_Port, Baud: baudSpeed}
+			fdm.RCRS = RCRS
+			break
 		}
 	}
 
-	if fdm.c == nil {
+	if fdm.c == nil || fdm.RCRS == "" {
 		err := errors.New("there is no fdm configuration for this production number")
 		return nil, err
 	}

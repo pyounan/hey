@@ -48,6 +48,7 @@ pull_proxy(){
 
 write_config(){
 # create supervisor configuration file
+sudo supervistorctl stop all
 FILE=/etc/supervisor/conf.d/pos_proxy.conf
 touch $FILE
 cat <<EOM >$FILE
@@ -65,13 +66,12 @@ FILE=/etc/cloudinn/pos_config.json
 touch $FILE
 cat <<EOM >$FILE
 {
-	"backend_uri": "https://staging.cloudinn.net",
-    "tenant_id": "$2",
+    "backend_uri": "https://staging.cloudinn.net",
     "fdms": [
        {
              "fdm_port": "/dev/ttyS0",
-             "fdm_speed": 19200,
-			 "rcrs": []
+             "fdm_speed": "19200",
+	     "rcrs": ""
        }
      ]
 }
@@ -81,7 +81,7 @@ FILE=/etc/cloudinn/proxy_token.json
 touch $FILE
 cat <<EOM >$FILE
 {
-	"proxy_token": "$3"
+	"proxy_token": "$2"
 }
 EOM
 }
@@ -97,11 +97,6 @@ if [ "$1" == "" ]; then
 fi
 
 if [ "$2" == "" ]; then
-	error "Please provide instance id"
-	exit
-fi
-
-if [ "$3" == "" ]; then
 	error "Please provide proxy token"
 	exit
 fi

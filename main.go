@@ -10,7 +10,7 @@ import (
 
 	"pos-proxy/config"
 	_ "pos-proxy/db"
-	"pos-proxy/ej"
+	// "pos-proxy/ej"
 	"pos-proxy/handlers"
 )
 
@@ -37,9 +37,16 @@ func main() {
 
 	// fire a goroutine to send stored electronic journal records
 	// to backend every 10 seconds
-	go func() {
+	/*go func() {
 		for true {
 			ej.PushToBackend()
+			time.Sleep(time.Second * 10)
+		}
+	}()*/
+
+	go func() {
+		for true {
+			config.FetchConfiguration()
 			time.Sleep(time.Second * 10)
 		}
 	}()
