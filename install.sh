@@ -38,7 +38,7 @@ pull_proxy(){
   # fetch the proxy program (binary file)
   gcloud auth activate-service-account --key-file ${GS_KEY}
   
-  gsutil -m cp gs://pos-proxy/staging/bin/pos-proxy .
+  gsutil -m cp gs://pos-proxy/$SUB_DOMAIN/bin/pos-proxy .
   
   mkdir -p /usr/local/bin
   cp ./pos-proxy /usr/local/bin/pos-proxy
@@ -63,25 +63,13 @@ EOM
 # copy the configuration file to/etc/cloudinn/pos_config.json
 mkdir -p /etc/cloudinn || true
 FILE=/etc/cloudinn/pos_config.json
-touch $FILE
-cat <<EOM >$FILE
-{
-    "backend_uri": "https://staging.cloudinn.net",
-    "fdms": [
-       {
-             "fdm_port": "/dev/ttyS0",
-             "fdm_speed": "19200",
-	     "rcrs": ""
-       }
-     ]
-}
-EOM
+curl -o $FILE -H "Authorization: JWT $PROXY_TOKEN" https://$SUB_DOMAIN.cloudinn.net/api/pos/proxy/settings/
 # make file for proxy token
 FILE=/etc/cloudinn/proxy_token.json
 touch $FILE
 cat <<EOM >$FILE
 {
-	"proxy_token": "$2"
+	"proxy_token": "$PROXY_TOKEN"
 }
 EOM
 }
@@ -101,12 +89,19 @@ if [ "$2" == "" ]; then
 	exit
 fi
 
+if [ "$3" == "" ]; then
+	error "Please provide cloudinn subdomain"
+	exit
+fi
+
 if [ ! -f "$1" ]; then
     error "Key not found!"
     exit 1
 fi
 
 GS_KEY=$1
+PROXY_TOKEN=$2
+SUB_DOMAIN=$3
 
 create_crt
 apt-get install curl
