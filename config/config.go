@@ -78,7 +78,7 @@ func FetchConfiguration() {
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("AUTHENTICATION", fmt.Sprintf("JWT %s", ProxyToken))
+	req.Header.Set("Authorization", fmt.Sprintf("JWT %s", ProxyToken))
 	response, err := netClient.Do(req)
 	if err != nil {
 		log.Println(err.Error())
@@ -103,14 +103,13 @@ func FetchConfiguration() {
 		UpdatedAt string      `json:"updated_at"`
 		FDMs      []FDMConfig `json:"fdms"`
 	}
-	dataStr := []ProxySettings{}
+	dataStr := ProxySettings{}
 	err = json.Unmarshal(data, &dataStr)
 	if err != nil {
 		log.Println(err.Error())
 		return
 	}
-	log.Println("DATASTR", dataStr[0])
-	t, err := time.Parse(time.RFC3339, fmt.Sprintf("%s", dataStr[0].UpdatedAt))
+	t, err := time.Parse(time.RFC3339, fmt.Sprintf("%s", dataStr.UpdatedAt))
 	if err != nil {
 		log.Println(err.Error())
 		return
@@ -121,7 +120,7 @@ func FetchConfiguration() {
 		return
 	}
 	log.Println("New configurations found")
-	Config.FDMs = dataStr[0].FDMs
+	Config.FDMs = dataStr.FDMs
 	Config.UpdatedAt = t
 	if err := Config.WriteToFile(); err != nil {
 		log.Println(err.Error())

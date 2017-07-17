@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"pos-proxy/config"
 	"pos-proxy/db"
@@ -31,7 +32,7 @@ func New(RCRS string) (*FDM, error) {
 	for _, f := range config.Config.FDMs {
 		if f.RCRS == RCRS {
 			baudSpeed, _ := strconv.Atoi(f.BaudSpeed)
-			fdm.c = &serial.Config{Name: f.FDM_Port, Baud: baudSpeed}
+			fdm.c = &serial.Config{Name: f.FDM_Port, Baud: baudSpeed, ReadTimeout: time.Second * 5}
 			fdm.RCRS = RCRS
 			break
 		}
@@ -62,7 +63,8 @@ func (fdm *FDM) CheckStatus() (bool, error) {
 		return false, err
 	}
 	msg := fmt.Sprintf("S%s0", FormatSequence(n))
-	if _, err := fdm.Write(msg, false, 21); err != nil {
+	_, err = fdm.Write(msg, false, 21)
+	if err != nil {
 		log.Println("Error: ", err)
 		return false, err
 	}
