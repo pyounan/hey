@@ -3,11 +3,12 @@ package db
 import (
 	"gopkg.in/mgo.v2/bson"
 	"sync"
+	"sync/atomic"
 )
 
 type MetaData struct {
 	Key   string `bson:"key"`
-	Value int    `bson:"value"`
+	Value uint64 `bson:"value"`
 	RCRS  string `bson:"rcrs"`
 }
 
@@ -16,26 +17,34 @@ type MetaData struct {
 // if it exceeds 99.
 func GetNextSequence(rcrs string) (int, error) {
 	var mutex = &sync.Mutex{}
-	mutex.Lock()
 	var data MetaData
-	q := bson.M{"key": "last_sequence", "rcrs": rcrs}
-	err := DB.C("metadata").Find(q).One(&data)
-	if err != nil {
-		// if sequence number doesnt exist for this rcrs, create new one with zero value
-		data = MetaData{}
-		data.Key = "last_sequence"
-		data.Value = 1
-		data.RCRS = rcrs
-		DB.C("metadata").Insert(data)
-	} else if data.Value == 99 {
-		data.Value = 1
-		DB.C("metadata").Update(q, bson.M{"$set": bson.M{"value": data.Value}})
-	} else {
-		data.Value += 1
-		DB.C("metadata").Update(q, bson.M{"$set": bson.M{"value": data.Value}})
-	}
-	mutex.Unlock()
-	return data.Value, nil
+	valChan := make(chan int)
+	go func() {
+		mutex.Lock()
+		q := bson.M{"key": "last_sequence", "rcrs": rcrs}
+		err := DB.C("metadata").Find(q).One(&data)
+		if err != nil {
+			// if sequence number doesnt exist for this rcrs, create new one with zero value
+			data = MetaData{}
+			data.Key = "last_sequence"
+			data.Value = 0
+			atomic.AddUint64(&data.Value, 1)
+			data.RCRS = rcrs
+			DB.C("metadata").Insert(data)
+			valChan <- int(data.Value)
+		} else if data.Value == 99 {
+			data.Value = 0
+			atomic.AddUint64(&data.Value, 1)
+			DB.C("metadata").Update(q, bson.M{"$set": bson.M{"value": data.Value}})
+		} else {
+			atomic.AddUint64(&data.Value, 1)
+			DB.C("metadata").Update(q, bson.M{"$set": bson.M{"value": data.Value}})
+		}
+		valChan <- int(data.Value)
+		mutex.Unlock()
+	}()
+	val := <-valChan
+	return val, nil
 }
 
 // GetNextTicketNumber checks the database for the last ticket number used for the passed RCRS
@@ -59,7 +68,7 @@ func GetNextTicketNumber(rcrs string) (int, error) {
 	if data.Value == 999999 {
 		return 1, nil
 	} else {
-		return data.Value + 1, nil
+		return int(data.Value) + 1, nil
 	}
 }
 

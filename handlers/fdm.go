@@ -94,22 +94,22 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	// send positive msg
 	items := splitItemsByVATRates(req.Items, positiveVATs)
 	if len(items) > 0 {
-		_, err = sendMessage("PS", FDM, req, items)
+		res, err := sendMessage("PS", FDM, req, items)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			json.NewEncoder(w).Encode([]fdm.Response{res})
 			return
 		}
 	}
 	// send negative msg
 	items = splitItemsByVATRates(req.Items, negativeVATs)
 	if len(items) > 0 {
-		_, err = sendMessage("PR", FDM, req, items)
+		res, err := sendMessage("PR", FDM, req, items)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			json.NewEncoder(w).Encode([]fdm.Response{res})
 			return
 		}
 	}
@@ -170,7 +170,7 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			json.NewEncoder(w).Encode([]fdm.Response{res})
 			return
 		}
 
@@ -183,7 +183,7 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			json.NewEncoder(w).Encode([]fdm.Response{res})
 			return
 		}
 
@@ -245,7 +245,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			json.NewEncoder(w).Encode([]fdm.Response{res})
 			return
 		}
 
@@ -258,7 +258,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
+			json.NewEncoder(w).Encode([]fdm.Response{res})
 			return
 		}
 
