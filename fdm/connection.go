@@ -42,12 +42,11 @@ func New(RCRS string) (*FDM, error) {
 		err := errors.New("there is no fdm configuration for this production number")
 		return nil, err
 	}
-	log.Println("Trying to stablish connection with FDM with configuration ->")
-	log.Printf("Port: %s", fdm.c.Name)
+	log.Printf("Trying to stablish connection with port: %s ->\n", fdm.c.Name)
 	s, err := serial.OpenPort(fdm.c)
 	fdm.s = s
 	if err != nil {
-		log.Println("Failed to stablish connection with FDM")
+		log.Println("Failed to stablish connection with port")
 		return nil, err
 	}
 
@@ -77,7 +76,7 @@ func (fdm *FDM) CheckStatus() (bool, error) {
 func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 	// if the response is not valid we try to retry reading the answer again
 	ack := 0x00
-	max_retries := byte('3')
+	max_retries := byte('2')
 	for packet[4] < max_retries && ack != 0x06 {
 		_, err := fdm.s.Write(packet)
 		if err != nil {
@@ -89,7 +88,7 @@ func (fdm *FDM) SendAndWaitForACK(packet []byte) (bool, error) {
 			log.Println(err)
 			return false, err
 		}
-		incrementRetryCounter(packet)
+		incrementRetryCounter(&packet)
 		if res[0] == 0x06 {
 			log.Println("ACK received.")
 			ack = 0x06

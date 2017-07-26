@@ -85,14 +85,14 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 		log.Println(err)
 	}
 	pf_response := fdm.Response{}
-	response := pf_response.Process(res, t)
-	if pf_response.Error2 != "00" && pf_response.Error2 != "01" {
+	strResponse := pf_response.Process(res, t)
+	if pf_response.Error1 != "0" || pf_response.Error2 != "00" {
 		err := errors.New(fmt.Sprintf("FDM Response error, error2 code: %s, erro3 code: %s", pf_response.Error2, pf_response.Error3))
-		return fdm.Response{}, err
+		return pf_response, err
 	}
 	// send event to Electrnoic Journal
 	go func() {
-		err := ej.Log(event_label, t, response)
+		err := ej.Log(event_label, t, strResponse)
 		if err != nil {
 			log.Println(err)
 		}

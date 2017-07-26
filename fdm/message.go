@@ -26,13 +26,12 @@ func calculateLRC(message []byte) byte {
 	return LRC
 }
 
-func incrementRetryCounter(packet []byte) int {
-	s := fmt.Sprint(packet[4])
+func incrementRetryCounter(packet *[]byte) {
+	s := fmt.Sprint((*packet)[4])
 	i, err := strconv.Atoi(s)
 	if err != nil {
 		log.Fatal(err)
 	}
 	i += 1
-	packet[4] = byte(i)
-	return 0
+	(*packet)[4] = byte(i)
 }
