@@ -6,8 +6,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"pos-proxy/fdm"
+
+	"github.com/gorilla/mux"
 )
 
 type Request struct {
@@ -39,14 +40,19 @@ func FDMStatus(w http.ResponseWriter, r *http.Request) {
 		log.Println("closing connection with fdm")
 		f.Close()
 	}()
-	ready, err := f.CheckStatus()
+	res, err := f.CheckStatus()
 	if err != nil {
 		log.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
-	json.NewEncoder(w).Encode(ready)
+	if res.Error1 != "0" {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode([]fdm.Response{res})
+		return
+	}
+	json.NewEncoder(w).Encode([]fdm.Response{res})
 }
 
 func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
@@ -70,12 +76,12 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	defer FDM.Close()
 
 	// check status
-	ok, err := FDM.CheckStatus()
-	if err != nil || ok == false {
+	resp, err := FDM.CheckStatus()
+	if err != nil {
 		log.Println("Failed to get response from FDM")
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Failed to get response from FDM")
+		json.NewEncoder(w).Encode([]fdm.Response{resp})
 		return
 	}
 	req.Items = fixItemsPrice(req.Items)
@@ -139,12 +145,12 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 	defer FDM.Close()
 
 	// check status
-	ok, err := FDM.CheckStatus()
-	if err != nil || ok == false {
+	resp, err := FDM.CheckStatus()
+	if err != nil {
 		log.Println("Failed to get response from FDM")
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Failed to get response from FDM")
+		json.NewEncoder(w).Encode([]fdm.Response{resp})
 		return
 	}
 	req.Items = fixItemsPrice(req.Items)
@@ -214,12 +220,12 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	defer FDM.Close()
 
 	// check status
-	ok, err := FDM.CheckStatus()
-	if err != nil || ok == false {
+	resp, err := FDM.CheckStatus()
+	if err != nil {
 		log.Println("Failed to get response from FDM")
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Failed to get response from FDM")
+		json.NewEncoder(w).Encode([]fdm.Response{resp})
 		return
 	}
 	req.Items = fixItemsPrice(req.Items)

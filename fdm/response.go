@@ -1,7 +1,6 @@
 package fdm
 
 import (
-	"log"
 	"strconv"
 	"time"
 )
@@ -28,10 +27,24 @@ type Response struct {
 	VATSummary map[string]VATSummary `json:"vat_summary"`
 }
 
-func (r *Response) Process(fdm_response []byte, ticket Ticket) map[string]interface{} {
-	log.Println("FDM STRING RESPONSE =========>")
+func (r *Response) ProcessStatus(fdm_response []byte) {
 	str := string(fdm_response[:])
-	log.Println(str)
+	r.Identifier = str[:1]
+	n, _ := strconv.Atoi(str[1:3])
+	r.Sequence = n
+
+	n, _ = strconv.Atoi(str[3:4])
+	r.Retry = n
+
+	r.Error1 = str[4:5]
+	r.Error2 = str[5:7]
+	r.Error3 = str[7:10]
+
+	r.ProductionNumber = str[10:21]
+}
+
+func (r *Response) Process(fdm_response []byte, ticket Ticket) map[string]interface{} {
+	str := string(fdm_response[:])
 
 	r.Identifier = str[:1]
 	n, _ := strconv.Atoi(str[1:3])
@@ -41,11 +54,8 @@ func (r *Response) Process(fdm_response []byte, ticket Ticket) map[string]interf
 	r.Retry = n
 
 	r.Error1 = str[4:5]
-	log.Println("error1", r.Error1)
 	r.Error2 = str[5:7]
-	log.Println("error2", r.Error2)
 	r.Error3 = str[7:10]
-	log.Println("error3", r.Error3)
 
 	r.ProductionNumber = str[10:21]
 

@@ -55,21 +55,23 @@ func New(RCRS string) (*FDM, error) {
 }
 
 // CheckStatus sends S000 to the FDM and check if its ready.
-func (fdm *FDM) CheckStatus() (bool, error) {
+func (fdm *FDM) CheckStatus() (Response, error) {
 	n, err := db.GetNextSequence(fdm.RCRS)
 	// db.UpdateLastSequence(fdm.RCRS, n)
 	if err != nil {
-		return false, err
+		return Response{}, err
 	}
 	msg := fmt.Sprintf("S%s0", FormatSequence(n))
-	_, err = fdm.Write(msg, false, 21)
+	res, err := fdm.Write(msg, false, 21)
 	if err != nil {
 		log.Println("Error: ", err)
-		return false, err
+		return Response{}, err
 	}
 
 	log.Println("FDM is ready.")
-	return true, nil
+	response := Response{}
+	response.ProcessStatus(res)
+	return response, nil
 }
 
 // SendAndWaitForACK sends a message to the FDM and retries until it recievs ACK.
