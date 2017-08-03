@@ -17,9 +17,10 @@ var ProxyToken string = ""
 
 // ConfigHolder struct of the proxy configuration
 type ConfigHolder struct {
-	BackendURI string      `json:"backend_uri"`
-	FDMs       []FDMConfig `json:"fdms"`
-	UpdatedAt  time.Time   `json:"updated_at"`
+	BackendURI   string      `json:"backend_uri"`
+	IsFDMEnabled bool        `json:"is_fdm_enabled"`
+	FDMs         []FDMConfig `json:"fdms"`
+	UpdatedAt    time.Time   `json:"updated_at"`
 }
 
 // FDMConfig struct of each proxy configuration

@@ -12,7 +12,7 @@ import (
 
 	"pos-proxy/config"
 	"pos-proxy/db"
-	"pos-proxy/fdm"
+	"pos-proxy/integrations/fdm"
 )
 
 func Log(event_label string, ticket fdm.Ticket, response map[string]interface{}) error {

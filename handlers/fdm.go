@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"pos-proxy/fdm"
+	"pos-proxy/integrations/fdm"
 
 	"github.com/gorilla/mux"
 )

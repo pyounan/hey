@@ -7,7 +7,7 @@ import (
 )
 
 // HashAndSignMsg is a shortcut function that prepares the string that should be sent to the FDM in case of sales or refund
-func HashAndSignMsg(RCRS string, event_label string, t Ticket) string {
+func hashAndSignMsg(RCRS string, event_label string, t Ticket) string {
 	// format: identifier + sequence + retry + ticket_date + ticket_time_period + user_id + RCRS + string(ticket_number) + event_label + total_amount + 4 vats + plu
 	identifier := "H"
 	ns, _ := db.GetNextSequence(RCRS)
