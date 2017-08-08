@@ -3,9 +3,10 @@ package income
 import (
 	"net/http"
 	"pos-proxy/db"
-	"pos-proxy/handlers"
 
 	"github.com/gorilla/mux"
+
+	"pos-proxy/helpers"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -16,13 +17,13 @@ func ListDepartments(w http.ResponseWriter, r *http.Request) {
 	for key, val := range queryParams {
 		query[key] = val
 	}
-	var departments []map[string]interface{}
+	departments := []map[string]interface{}{}
 	err := db.DB.C("departments").Find(query).All(&departments)
 	if err != nil {
-		handlers.ReturnJSONError(w, err.Error())
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	handlers.ReturnJSONMessage(w, departments)
+	helpers.ReturnSuccessMessage(w, departments)
 }
 
 func GetDepartment(w http.ResponseWriter, r *http.Request) {
@@ -31,11 +32,11 @@ func GetDepartment(w http.ResponseWriter, r *http.Request) {
 	id, _ := vars["id"]
 	q["id"] = id
 
-	var department map[string]interface{}
+	department := make(map[string]interface{})
 	err := db.DB.C("departments").Find(q).One(&department)
 	if err != nil {
-		handlers.ReturnJSONError(w, err.Error())
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	handlers.ReturnJSONMessage(w, department)
+	helpers.ReturnSuccessMessage(w, department)
 }

@@ -3,7 +3,7 @@ package pos
 import (
 	"net/http"
 	"pos-proxy/db"
-	"pos-proxy/handlers"
+	"pos-proxy/helpers"
 	"strconv"
 
 	"gopkg.in/mgo.v2/bson"
@@ -16,7 +16,7 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 		if key == "store" {
 			num, err := strconv.Atoi(val[0])
 			if err != nil {
-				handlers.ReturnJSONError(w, err.Error())
+				helpers.ReturnErrorMessage(w, err.Error())
 				return
 			}
 			query[key] = num
@@ -27,8 +27,12 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 	var terminals []map[string]interface{}
 	err := db.DB.C("terminals").Find(query).All(&terminals)
 	if err != nil {
-		handlers.ReturnJSONError(w, err.Error())
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	handlers.ReturnJSONMessage(w, terminals)
+	helpers.ReturnSuccessMessage(w, terminals)
+}
+
+func UnlockTerminal(w http.ResponseWriter, r *http.Request) {
+
 }

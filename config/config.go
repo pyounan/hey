@@ -122,6 +122,9 @@ func FetchConfiguration() {
 	}
 	log.Println("New configurations found")
 	Config.FDMs = dataStr.FDMs
+	if len(Config.FDMs) > 0 {
+		Config.IsFDMEnabled = true
+	}
 	Config.UpdatedAt = t
 	if err := Config.WriteToFile(); err != nil {
 		log.Println(err.Error())

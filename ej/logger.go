@@ -12,34 +12,33 @@ import (
 
 	"pos-proxy/config"
 	"pos-proxy/db"
-	"pos-proxy/integrations/fdm"
 )
 
-func Log(event_label string, ticket fdm.Ticket, response map[string]interface{}) error {
+func Log(event_label string, response map[string]interface{}) error {
 	record := make(map[string]interface{})
 	// we are using is_locked to determine if this record is
 	// already picked up by a goroutine when sending to backend
 	// so that we don't send a record twice
 	record["is_locked"] = false
-	record["action_time"] = ticket.ActionTime
+	// record["action_time"] = ticket.ActionTime
 	changes := make(map[string]interface{})
 	changes["event_label"] = event_label
 	changes["fdm_response"] = response
-	changes["cashier_name"] = ticket.CashierName
-	changes["cashier_number"] = ticket.CashierNumber
-	changes["invoice_number"] = ticket.InvoiceNumber
-	changes["terminal_name"] = ticket.TerminalName
-	changes["ticket_number"] = ticket.TicketNumber
-	changes["ticket_datetime"] = ticket.ActionTime
-	changes["total_amount"] = ticket.TotalAmount
-	changes["items"] = ticket.Items
-	changes["vats"] = ticket.VATs
-	changes["rcrs"] = ticket.RCRS
-	changes["plu_hash"] = ticket.PLUHash
-	changes["change_type"] = "event"
-	changes["payments"] = ticket.Payments
-	changes["is_closed"] = ticket.IsClosed
-	changes["change_amount"] = ticket.ChangeAmount
+	// changes["cashier_name"] = ticket.CashierName
+	// changes["cashier_number"] = ticket.CashierNumber
+	// changes["invoice_number"] = ticket.InvoiceNumber
+	// changes["terminal_name"] = ticket.TerminalName
+	// changes["ticket_number"] = ticket.TicketNumber
+	// changes["ticket_datetime"] = ticket.ActionTime
+	// changes["total_amount"] = ticket.TotalAmount
+	// changes["items"] = ticket.Items
+	// changes["vats"] = ticket.VATs
+	// changes["rcrs"] = ticket.RCRS
+	// changes["plu_hash"] = ticket.PLUHash
+	// changes["change_type"] = "event"
+	// changes["payments"] = ticket.Payments
+	// changes["is_closed"] = ticket.IsClosed
+	// changes["change_amount"] = ticket.ChangeAmount
 	// calculate totals summary
 	type RateSummary map[string]float64
 	summary := make(map[string]RateSummary)
@@ -54,21 +53,21 @@ func Log(event_label string, ticket fdm.Ticket, response map[string]interface{})
 		summary[r]["vat_amount"] = 0
 		summary[r]["taxable_amount"] = 0
 	}
-	for _, item := range ticket.Items {
-		summary[item.VAT]["net_amount"] += item.NetAmount
-		summary[item.VAT]["vat_amount"] += item.NetAmount * item.VATPercentage / 100
-		summary[item.VAT]["taxable_amount"] += item.Price
-		totals["net_amount"] += item.NetAmount
-		totals["vat_amount"] += item.NetAmount * item.VATPercentage / 100
-		totals["taxable_amount"] += item.Price
-	}
+	// for _, item := range ticket.Items {
+	// 	summary[item.VAT]["net_amount"] += item.NetAmount
+	// 	summary[item.VAT]["vat_amount"] += item.NetAmount * item.VATPercentage / 100
+	// 	summary[item.VAT]["taxable_amount"] += item.Price
+	// 	totals["net_amount"] += item.NetAmount
+	// 	totals["vat_amount"] += item.NetAmount * item.VATPercentage / 100
+	// 	totals["taxable_amount"] += item.Price
+	// }
 	changes["summary"] = summary
 	changes["totals"] = totals
-	if ticket.TableNumber != "" {
-		changes["table_number"] = ticket.TableNumber
-	} else {
-		changes["table_number"] = "takeout"
-	}
+	// if ticket.TableNumber != "" {
+	// changes["table_number"] = ticket.TableNumber
+	// } else {
+	// 	changes["table_number"] = "takeout"
+	// }
 
 	record["changes"] = changes
 	err := db.DB.C("ej").Insert(record)

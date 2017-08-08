@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	_ "pos-proxy/config"
-	"pos-proxy/fdm"
 )
 
 func TestConnection(t *testing.T) {
