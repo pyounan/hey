@@ -22,7 +22,7 @@ add_google_repo(){
 }
 
 install_deps(){
-  apt-get update && apt-get install -y libssl-dev supervisor wget mongodb-server openssl curl google-cloud-sdk 
+  apt-get update && apt-get install -y libssl-dev supervisor wget mongodb-server openssl curl google-cloud-sdk redis-server
 }
 
 pull_proxy(){
