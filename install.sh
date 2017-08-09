@@ -7,15 +7,6 @@ info() {
   printf '\e[34m'; echo "$@"; printf '\E[0m'
 }
 
-create_crt(){
-  mkdir -p /usr/local/certs/
-  if [ ! -f /usr/local/certs/server.crt ]; then
-      info "Generating self signed certificate ..."
-      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /usr/local/certs/server.key -out /usr/local/certs/server.crt
-      info "Certificate created!"
-  fi
-}
-
 
 add_google_repo(){
   # Create an environment variable for the correct distribution
@@ -103,7 +94,6 @@ GS_KEY=$1
 PROXY_TOKEN=$2
 SUB_DOMAIN=$3
 
-create_crt
 apt-get install curl
 add_google_repo
 install_deps
