@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
-	gh "github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"time"
+
+	gh "github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 
 	"pos-proxy/config"
 	_ "pos-proxy/db"
@@ -20,11 +21,9 @@ func init() {
 
 func main() {
 	port := flag.String("port", "7000", "Port to listen on")
-	server_crt := flag.String("server_crt", "server.crt", "Certificate path")
-	server_key := flag.String("server_key", "server.key", "Certificate key path")
-	file_path := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
+	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
 	flag.Parse()
-	config.Load(*file_path)
+	config.Load(*filePath)
 	originsOk := gh.AllowedOrigins([]string{"*"})
 	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
 	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
@@ -52,6 +51,6 @@ func main() {
 	}()
 
 	log.Printf("Listening on http://localhost:%s\n", *port)
-	log.Fatal(http.ListenAndServeTLS(":"+*port, *server_crt, *server_key, gh.CORS(originsOk, headersOk, methodsOk)(r)))
+	log.Fatal(http.ListenAndServe(":"+*port, gh.CORS(originsOk, headersOk, methodsOk)(r)))
 
 }
