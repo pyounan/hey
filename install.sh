@@ -39,12 +39,11 @@ pull_proxy(){
 
 write_config(){
 # create supervisor configuration file
-sudo supervistorctl stop all
 FILE=/etc/supervisor/conf.d/pos_proxy.conf
 touch $FILE
 cat <<EOM >$FILE
 [program:pos-proxy]
-command=/usr/local/bin/pos-proxy -server_crt=/usr/local/certs/server.crt -server_key=/usr/local/certs/server.key
+command=/usr/local/bin/pos-proxy
 autostart=true
 autorestart=true
 stderr_logfile=/var/log/pos_proxy.err.log
@@ -94,6 +93,7 @@ GS_KEY=$1
 PROXY_TOKEN=$2
 SUB_DOMAIN=$3
 
+sudo supervisorctl stop all || true
 apt-get install curl
 add_google_repo
 install_deps
