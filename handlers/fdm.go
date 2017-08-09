@@ -6,8 +6,11 @@ import (
 	"log"
 	"net/http"
 
+	"pos-proxy/db"
 	"pos-proxy/fdm"
+	"time"
 
+	"github.com/bsm/redis-lock"
 	"github.com/gorilla/mux"
 )
 
@@ -27,8 +30,27 @@ type Request struct {
 	IsClosed     bool          `json:"is_closed,omitempty"`
 }
 
+var lockOptions *lock.LockOptions
+
+func init() {
+	lockOptions = &lock.LockOptions{
+		WaitTimeout: 4 * time.Second,
+	}
+}
+
 func FDMStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	lock, err := lock.ObtainLock(db.Redis, fmt.Sprintf("fdm_%s", vars["rcrs"]), lockOptions)
+	if err != nil {
+		log.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	} else if lock == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("FDM connection is locked, try again.")
+		return
+	}
 	f, err := fdm.New(vars["rcrs"])
 	if err != nil {
 		log.Println(err.Error())
@@ -38,6 +60,7 @@ func FDMStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		log.Println("closing connection with fdm")
+		lock.Unlock()
 		f.Close()
 	}()
 	res, err := f.CheckStatus()
@@ -66,6 +89,17 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+	lock, err := lock.ObtainLock(db.Redis, fmt.Sprintf("fdm_%s", req.RCRS), lockOptions)
+	if err != nil {
+		log.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	} else if lock == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("FDM connection is locked, try again.")
+		return
+	}
 	FDM, err := fdm.New(req.RCRS)
 	if err != nil {
 		log.Println(err)
@@ -73,7 +107,10 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 		return
 	}
-	defer FDM.Close()
+	defer func() {
+		lock.Unlock()
+		FDM.Close()
+	}()
 
 	// check status
 	resp, err := FDM.CheckStatus()
@@ -135,6 +172,17 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+	lock, err := lock.ObtainLock(db.Redis, fmt.Sprintf("fdm_%s", req.RCRS), nil)
+	if err != nil {
+		log.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	} else if lock == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("FDM connection is locked, try again.")
+		return
+	}
 	FDM, err := fdm.New(req.RCRS)
 	if err != nil {
 		log.Println(err)
@@ -142,7 +190,10 @@ func Folio(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 		return
 	}
-	defer FDM.Close()
+	defer func() {
+		lock.Unlock()
+		FDM.Close()
+	}()
 
 	// check status
 	resp, err := FDM.CheckStatus()
@@ -210,6 +261,17 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+	lock, err := lock.ObtainLock(db.Redis, fmt.Sprintf("fdm_%s", req.RCRS), nil)
+	if err != nil {
+		log.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	} else if lock == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("FDM connection is locked, try again.")
+		return
+	}
 	FDM, err := fdm.New(req.RCRS)
 	if err != nil {
 		log.Println(err)
@@ -217,7 +279,10 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(fmt.Sprintf("%v", err))
 		return
 	}
-	defer FDM.Close()
+	defer func() {
+		lock.Unlock()
+		FDM.Close()
+	}()
 
 	// check status
 	resp, err := FDM.CheckStatus()

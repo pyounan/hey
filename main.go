@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"pos-proxy/config"
-	_ "pos-proxy/db"
+	"pos-proxy/db"
 	"pos-proxy/ej"
 	"pos-proxy/handlers"
 )
@@ -50,6 +50,8 @@ func main() {
 			time.Sleep(time.Second * 10)
 		}
 	}()
+
+	db.ConnectRedis()
 
 	log.Printf("Listening on http://localhost:%s\n", *port)
 	log.Fatal(http.ListenAndServe(":"+*port, gh.CORS(originsOk, headersOk, methodsOk)(r)))
