@@ -9,12 +9,22 @@ import (
 	gh "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
+<<<<<<< HEAD
 	"pos-proxy/auth"
 	"pos-proxy/config"
 	_ "pos-proxy/db"
 	"pos-proxy/income"
 	"pos-proxy/pos"
 	"pos-proxy/proxy"
+=======
+	gh "github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+
+	"pos-proxy/config"
+	"pos-proxy/db"
+	"pos-proxy/ej"
+	"pos-proxy/handlers"
+>>>>>>> master
 )
 
 func init() {
@@ -22,12 +32,22 @@ func init() {
 }
 
 func main() {
+<<<<<<< HEAD
 	port := flag.String("port", "80", "Port to listen on")
 	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
 	flag.Parse()
 	config.Load(*filePath)
 	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "X-CSRFToken", "Accept", "Accept-Lanuage", "Accept-Encoding"})
 	originsOk := gh.AllowedOrigins([]string{"*"})
+=======
+	port := flag.String("port", "7000", "Port to listen on")
+	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
+	flag.Parse()
+	config.Load(*filePath)
+	originsOk := gh.AllowedOrigins([]string{"*"})
+	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "X-CSRFToken", "Accept", "Accept-Lanuage", "Accept-Encoding", "Authorization"})
+
+>>>>>>> master
 	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 	r := mux.NewRouter()
 	r = r.StrictSlash(true)
@@ -107,8 +127,14 @@ func main() {
 	lr := gh.LoggingHandler(os.Stdout, r)
 	// r = gh.RecoveryHandler()(lr)
 
+	db.ConnectRedis()
+
 	log.Printf("Listening on http://localhost:%s\n", *port)
+<<<<<<< HEAD
 	log.Fatal(http.ListenAndServe(":"+*port,
 		gh.CORS(originsOk, headersOk, methodsOk)(lr)))
+=======
+	log.Fatal(http.ListenAndServe(":"+*port, gh.CORS(originsOk, headersOk, methodsOk)(r)))
+>>>>>>> master
 
 }
