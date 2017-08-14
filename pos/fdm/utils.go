@@ -201,8 +201,8 @@ func CheckFDMError(res models.FDMResponse) error {
 }
 
 func separateCondimentsAndDiscounts(rawItems []models.POSLineItem) []models.POSLineItem {
-	items := []models.POSLineItem{}
-	return items
+	// items := []models.POSLineItem{}
+	return rawItems
 }
 
 func splitItemsByVATRates(items []models.POSLineItem, rates []string) []models.POSLineItem {

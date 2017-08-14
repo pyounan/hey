@@ -87,6 +87,7 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
+	// Fix
 	invoices := []map[string]interface{}{}
 	err = db.DB.C("posinvoices").Find(q).All(&invoices)
 	if err != nil {
@@ -102,7 +103,8 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 
 	resp := bson.M{}
 	resp["posinvoices"] = invoices
+	resp["table"] = table
 	resp["terminal"] = terminal["number"]
-	resp["lockedposinvoices"] = true
+	resp["lockedposinvoices"] = false
 	helpers.ReturnSuccessMessage(w, resp)
 }

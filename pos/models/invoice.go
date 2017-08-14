@@ -1,9 +1,13 @@
 package models
 
+type Event struct {
+	Item POSLineItem `json:"item"`
+}
+
 type Invoice struct {
 	InvoiceNumber string        `json:"invoice_number"`
 	Items         []POSLineItem `json:"posinvoicelineitem_set"`
-	TableNumber   string        `json:"table"`
+	TableNumber   int        `json:"table"`
 
-	Events []map[string]interface{} `json:"events"`
+	Events []Event `json:"events"`
 }

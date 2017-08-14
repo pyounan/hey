@@ -16,10 +16,11 @@ type InvoicePOSTRequest struct {
 	Invoice       Invoice `json:"posinvoice"`
 	RCRS          string  `json:"rcrs"`
 	TerminalID    int     `json:"terminal_id"`
+	TerminalNumber    int     `json:"terminal_number"`
 	TerminalName  string  `json:"terminal_description"`
-	CashierID     string  `json:"cashier_id"`
+	CashierID     int  `json:"cashier_id"`
 	CashierName   string  `json:"cashier_name"`
-	CashierNumber string  `json:"cashier_number"`
+	CashierNumber int  `json:"cashier_number"`
 	// only used for payment
 	Payments     []Payment `json:"postings"`
 	ChangeAmount float64   `json:"change_amount"`

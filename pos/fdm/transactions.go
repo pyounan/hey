@@ -49,9 +49,9 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	t.TicketNumber = strconv.Itoa(tn)
 	t.TerminalName = req.TerminalName
 	t.CashierName = req.CashierName
-	t.CashierNumber = req.CashierNumber
-	t.TableNumber = req.Invoice.TableNumber
-	t.UserID = req.CashierID
+	t.CashierNumber = strconv.Itoa(req.CashierNumber)
+	t.TableNumber = strconv.Itoa(req.Invoice.TableNumber)
+	t.UserID = strconv.Itoa(req.CashierID)
 	t.RCRS = req.RCRS
 	t.InvoiceNumber = req.Invoice.InvoiceNumber
 	t.Items = items
@@ -115,7 +115,8 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 	// req.Items = fixItemsPrice(req.Items)
 	items := []models.POSLineItem{}
 	for _, e := range data.Invoice.Events {
-		items = append(items, e["item"].(models.POSLineItem))
+		log.Printf("ITEM: %v\n", e.Item)
+		items = append(items, e.Item)
 	}
 	// calculate total amount of each VAT rate
 	items = separateCondimentsAndDiscounts(items)
@@ -134,7 +135,8 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
-	if len(items) > 0 {
+	log.Println("positive items", len(positiveItems))
+	if len(positiveItems) > 0 {
 		res, err := sendHashAndSignMessage(fdm, "PS", data, positiveItems)
 		if err != nil {
 			return responses, err
@@ -143,7 +145,7 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 	}
 	// send negative msg
 	negativeItems := splitItemsByVATRates(items, negativeVATs)
-	if len(items) > 0 {
+	if len(negativeItems) > 0 {
 		res, err := sendHashAndSignMessage(fdm, "PR", data, negativeItems)
 		if err != nil {
 			return responses, err
