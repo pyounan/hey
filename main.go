@@ -74,12 +74,14 @@ func main() {
 
 	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoices).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/", pos.SubmitInvoice).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoices/folio/", pos.FolioInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.GetInvoice).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.UpdateInvoice).Methods("PUT")
-	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/folio/", pos.FolioInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/payment/", pos.PayInvoice).Methods("POST")
 
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
+
+	r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
 	// // fire a goroutine to send stored electronic journal records
 	// // to backend every 10 seconds

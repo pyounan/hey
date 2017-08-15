@@ -176,25 +176,26 @@ func prepareHashAndSignMsg(RCRS string, event_label string, t models.FDMTicket) 
 }
 
 func CheckFDMError(res models.FDMResponse) error {
+	log.Println(res.Error1, res.Error2)
 	if res.Error1 != "0" {
 		type FDMErrors map[string]map[string]string
 		var fdmErrors = FDMErrors{}
-		fdmErrors["01"] = make(map[string]string)
-		fdmErrors["01"]["01"] = "FDM Data Storage 90% Full"
-		fdmErrors["01"]["02"] = "Request Already Answered"
-		fdmErrors["01"]["03"] = "No Record"
-		fdmErrors["02"] = make(map[string]string)
-		fdmErrors["02"]["01"] = "No VSC or faulty VSC"
-		fdmErrors["02"]["02"] = "VSC not initialized with pin"
-		fdmErrors["02"]["03"] = "VSC locked"
-		fdmErrors["02"]["04"] = "PIN not valid"
-		fdmErrors["02"]["05"] = "FDM Data Storage Full"
-		fdmErrors["02"]["06"] = "Unkown message identifier"
-		fdmErrors["02"]["07"] = "Invalid data in message"
-		fdmErrors["02"]["08"] = "FDM not operational"
-		fdmErrors["02"]["09"] = "FDM realtime clock corrupted"
-		fdmErrors["02"]["10"] = "VSC version not supported by FDM"
-		fdmErrors["02"]["11"] = "Port 4 not ready"
+		fdmErrors["1"] = make(map[string]string)
+		fdmErrors["1"]["01"] = "FDM Data Storage 90% Full"
+		fdmErrors["1"]["02"] = "Request Already Answered"
+		fdmErrors["1"]["03"] = "No Record"
+		fdmErrors["2"] = make(map[string]string)
+		fdmErrors["2"]["01"] = "No VSC or faulty VSC"
+		fdmErrors["2"]["02"] = "VSC not initialized with pin"
+		fdmErrors["2"]["03"] = "VSC locked"
+		fdmErrors["2"]["04"] = "PIN not valid"
+		fdmErrors["2"]["05"] = "FDM Data Storage Full"
+		fdmErrors["2"]["06"] = "Unkown message identifier"
+		fdmErrors["2"]["07"] = "Invalid data in message"
+		fdmErrors["2"]["08"] = "FDM not operational"
+		fdmErrors["2"]["09"] = "FDM realtime clock corrupted"
+		fdmErrors["2"]["10"] = "VSC version not supported by FDM"
+		fdmErrors["2"]["11"] = "Port 4 not ready"
 		return errors.New(fdmErrors[res.Error1][res.Error2])
 	}
 	return nil

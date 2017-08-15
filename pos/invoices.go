@@ -2,6 +2,7 @@ package pos
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"pos-proxy/config"
 	"pos-proxy/db"
@@ -34,16 +35,20 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 			}
 			q[key] = bson.M{"$gt": t}
 		} else {
-			q[key] = val
+			// q[key] = val
 		}
 	}
-	invoices := []map[string]interface{}{}
+	invoices := []models.Invoice{}
 	err := db.DB.C("posinvoices").Find(q).All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	helpers.ReturnSuccessMessage(w, invoices)
+
+	resp := bson.M{}
+	resp["count"] = len(invoices)
+	resp["results"] = invoices
+	helpers.ReturnSuccessMessage(w, resp)
 }
 
 func GetInvoice(w http.ResponseWriter, r *http.Request) {
@@ -77,12 +82,14 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		// create fdm connection
 		conn, err := fdm.Connect(req.RCRS)
 		if err != nil {
+			log.Println(err)
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
 		defer conn.Close()
 		responses, err := fdm.Submit(conn, req)
 		if err != nil {
+			log.Println(err)
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
@@ -90,17 +97,15 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 	}
 
-	err = req.Submit()
+	invoice, err := req.Submit()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 
-	resp := bson.M{}
-	resp["posinvoice"] = req.Invoice
-	resp["fdm_responses"] = fdmResponses
+	invoice.FDMResponses = fdmResponses
 
-	helpers.ReturnSuccessMessage(w, req.Invoice)
+	helpers.ReturnSuccessMessage(w, invoice)
 }
 
 func UpdateInvoice(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +129,6 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	fdmResponses := []models.FDMResponse{}
 	// if fdm is enabled submit items to fdm first
 	if config.Config.IsFDMEnabled == true {
 		// create fdm connection
@@ -134,20 +138,20 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer conn.Close()
-		responses, err := fdm.Submit(conn, req)
+		_, err = fdm.Submit(conn, req)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
-
-		fdmResponses = append(fdmResponses, responses...)
 	}
 
-	err = req.Submit()
+	invoice, err := req.Submit()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
+
+	fdmResponses := []models.FDMResponse{}
 
 	if config.Config.IsFDMEnabled == true {
 		// create fdm connection
@@ -166,11 +170,9 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 	}
 
-	resp := bson.M{}
-	resp["posinvoice"] = req.Invoice
-	resp["fdm_responses"] = fdmResponses
+	invoice.FDMResponses = fdmResponses
 
-	helpers.ReturnSuccessMessage(w, resp)
+	helpers.ReturnSuccessMessage(w, invoice)
 }
 
 func PayInvoice(w http.ResponseWriter, r *http.Request) {
@@ -184,7 +186,6 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 	fdmResponses := []models.FDMResponse{}
 
-	// if fdm is enabled submit items to fdm first
 	if config.Config.IsFDMEnabled == true {
 		// create fdm connection
 		conn, err := fdm.Connect(req.RCRS)
@@ -193,7 +194,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer conn.Close()
-		responses, err := fdm.Submit(conn, req)
+		responses, err := fdm.Payment(conn, req)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
@@ -201,32 +202,9 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 	}
 
-	err = req.Submit()
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
-		return
-	}
+	// invoice.FDMResponses = fdmResponses
 
-	if config.Config.IsFDMEnabled == true {
-		// create fdm connection
-		conn, err := fdm.Connect(req.RCRS)
-		if err != nil {
-			helpers.ReturnErrorMessage(w, err.Error())
-			return
-		}
-		defer conn.Close()
-		_, err = fdm.Payment(conn, req)
-		if err != nil {
-			helpers.ReturnErrorMessage(w, err.Error())
-			return
-		}
-	}
-
-	resp := bson.M{}
-	resp["posinvoice"] = req.Invoice
-	resp["fdm_responses"] = fdmResponses
-
-	helpers.ReturnSuccessMessage(w, resp)
+	helpers.ReturnSuccessMessage(w, bson.M{})
 }
 
 func RefundInvoice(w http.ResponseWriter, r *http.Request) {

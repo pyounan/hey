@@ -31,21 +31,33 @@ type Discount struct {
 }
 
 type POSLineItem struct {
-	//	UUID          string  `json:"frontend_id" bson:"frontend_id"`
-	ID            float64            `json:"item" bson:"item"`
-	Quantity      float64            `json:"qty" bson:"qty"`
-	Description   string             `json:"description" bson:"description"`
-	UnitPrice     float64            `json:"unit_price" bson:"unit_price"`
-	Price         float64            `json:"price" bson:"price"`
-	NetAmount     float64            `json:"net_amount" bson:"net_amount"`
-	TaxAmount     float64            `json:"tax_amount" bson:"tax_amount"`
-	VAT           string             `json:"vat_code" bson:"vat_code"`
-	VATPercentage float64            `json:"vat_percentage" bson:"vat_percentage"`
-	LineItemType  string             `json:"lineitem_type" bson:"lineitem_type"`
-	IsCondiment   bool               `json:"is_condiment" bson:"is_condiment"`
-	IsDiscount    bool               `json:"is_discount" bson:"is_discount"`
-	Condiments    []Condiment        `json:"condimentlineitem_set" bson:"condimentlineitem_set"`
-	Discounts     []GroupedDiscounts `json:"grouped_applieddiscounts" bson:"grouped_applieddiscounts"`
+	ID                  float64                  `json:"item" bson:"item"`
+	Quantity            float64                  `json:"qty" bson:"qty"`
+	SubmittedQuantity   float64                  `json:"submitted_qty" bson:"submitted_qty"`
+	ReturnedQuantity    float64                  `json:"returned_qty" bson:"returned_qty"`
+	Description         string                   `json:"description" bson:"description"`
+	Comment             string                   `json:"comment" bson:"comment"`
+	UnitPrice           float64                  `json:"unit_price" bson:"unit_price"`
+	Price               float64                  `json:"price" bson:"price"`
+	NetAmount           float64                  `json:"net_amount" bson:"net_amount"`
+	TaxAmount           float64                  `json:"tax_amount" bson:"tax_amount"`
+	VAT                 string                   `json:"vat_code" bson:"vat_code"`
+	VATPercentage       float64                  `json:"vat_percentage" bson:"vat_percentage"`
+	LineItemType        string                   `json:"lineitem_type" bson:"lineitem_type"`
+	IsCondiment         bool                     `json:"is_condiment" bson:"is_condiment"`
+	Condiments          []Condiment              `json:"condimentlineitem_set" bson:"condimentlineitem_set"`
+	CondimentGroup      []map[string]interface{} `json:"itemcondimentgroup_set" bson:"itemcondimentgroup_set"`
+	IsDiscount          bool                     `json:"is_discount" bson:"is_discount"`
+	Discounts           []GroupedDiscounts       `json:"grouped_applieddiscounts" bson:"grouped_applieddiscounts"`
+	AttachedAttributes  map[string]interface{}   `json:"attached_attributes" bson:"attached_attributes"`
+	Course              int                      `json:"course" bson:"course"`
+	StoreMenuItemConfig int                      `json:"storemenuitemconfig" bson:"storemenuitemconfig"`
+	OpenItem            bool                     `json:"open_item" bson:"open_item"`
+	OpenPrice           bool                     `json:"open_price" bson:"open_price"`
+	AppliedDiscounts    []map[string]interface{} `json:"applied_discounts" bson:"applied_discounts"`
+	ReturnedIDs         []int                    `json:"returned_ids" bson:"returned_ids"`
+	FrontendID          string                   `json:"frontend_id" bson:"frontend_id"`
+	UpdatedOn           string                   `json:"updated_on" bson:"updated_on"`
 }
 
 // String generates a text for a line item in a format for the FDM.

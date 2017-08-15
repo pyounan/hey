@@ -19,7 +19,7 @@ func Load() {
 	backendApis["fixeddiscount"] = "api/pos/fixeddiscount/"
 	backendApis["storedetails"] = "api/pos/storedetails/"
 	backendApis["tables"] = "api/pos/tables/"
-	backendApis["posinvoices"] = "api/pos/posinvoices/"
+	backendApis["posinvoices"] = "api/pos/posinvoices/?is_settled=false"
 	backendApis["terminals"] = "api/pos/terminal/"
 	backendApis["condiments"] = "api/pos/condiment/"
 	backendApis["courses"] = "api/pos/course/"
@@ -60,12 +60,23 @@ func Load() {
 			}
 			defer response.Body.Close()
 			log.Printf("-- syncing %s from %s\n", collection, api)
-			var res []map[string]interface{}
-			json.NewDecoder(response.Body).Decode(&res)
-			for _, item := range res {
-				err = db.DB.C(collection).Insert(item)
-				if err != nil {
-					log.Println(err.Error())
+			if api == "api/pos/posinvoices/?is_settled=false" {
+				var res map[string]interface{}
+				json.NewDecoder(response.Body).Decode(&res)
+				for _, item := range res["results"].([]interface{}) {
+					err = db.DB.C(collection).Insert(item)
+					if err != nil {
+						log.Println(err.Error())
+					}
+				}
+			} else {
+				var res []map[string]interface{}
+				json.NewDecoder(response.Body).Decode(&res)
+				for _, item := range res {
+					err = db.DB.C(collection).Insert(item)
+					if err != nil {
+						log.Println(err.Error())
+					}
 				}
 			}
 		}(collection, api)

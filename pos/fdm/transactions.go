@@ -51,7 +51,7 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	t.CashierName = req.CashierName
 	t.CashierNumber = strconv.Itoa(req.CashierNumber)
 	t.TableNumber = strconv.Itoa(req.Invoice.TableNumber)
-	t.UserID = strconv.Itoa(req.CashierID)
+	t.UserID = req.EmployeeID
 	t.RCRS = req.RCRS
 	t.InvoiceNumber = req.Invoice.InvoiceNumber
 	t.Items = items
@@ -91,11 +91,14 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	}
 	if err := db.UpdateLastTicketNumber(req.RCRS, tn); err != nil {
 		log.Println(err)
+		return models.FDMResponse{}, err
 	}
 	pf_response := models.FDMResponse{}
 	stringRes := pf_response.Process(res, t)
 	err = CheckFDMError(pf_response)
+	log.Println("Checking FDM Errors")
 	if err != nil {
+		log.Println(err)
 		return pf_response, err
 	}
 
@@ -115,7 +118,6 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 	// req.Items = fixItemsPrice(req.Items)
 	items := []models.POSLineItem{}
 	for _, e := range data.Invoice.Events {
-		log.Printf("ITEM: %v\n", e.Item)
 		items = append(items, e.Item)
 	}
 	// calculate total amount of each VAT rate
@@ -135,7 +137,6 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
-	log.Println("positive items", len(positiveItems))
 	if len(positiveItems) > 0 {
 		res, err := sendHashAndSignMessage(fdm, "PS", data, positiveItems)
 		if err != nil {
@@ -179,7 +180,7 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
-	if len(items) > 0 {
+	if len(positiveItems) > 0 {
 		res, err := sendHashAndSignMessage(fdm, "PS", data, positiveItems)
 		if err != nil {
 			return responses, err
@@ -188,7 +189,7 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 	}
 	// send negative msg
 	negativeItems := splitItemsByVATRates(items, negativeVATs)
-	if len(items) > 0 {
+	if len(negativeItems) > 0 {
 		res, err := sendHashAndSignMessage(fdm, "PR", data, negativeItems)
 		if err != nil {
 			return responses, err
@@ -222,7 +223,7 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
-	if len(items) > 0 {
+	if len(positiveItems) > 0 {
 		res, err := sendHashAndSignMessage(fdm, "PS", data, positiveItems)
 		if err != nil {
 			return responses, err
@@ -231,7 +232,7 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 	}
 	// send negative msg
 	negativeItems := splitItemsByVATRates(items, negativeVATs)
-	if len(items) > 0 {
+	if len(negativeItems) > 0 {
 		res, err := sendHashAndSignMessage(fdm, "PR", data, negativeItems)
 		if err != nil {
 			return responses, err
