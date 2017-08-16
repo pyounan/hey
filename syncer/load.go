@@ -16,7 +16,7 @@ func Load() {
 	backendApis["stores"] = "api/pos/store/"
 	backendApis["fdm"] = "api/pos/fdm/"
 	backendApis["proxy_settings"] = "api/pos/proxy/settings/"
-	backendApis["fixeddiscount"] = "api/pos/fixeddiscount/"
+	backendApis["fixeddiscounts"] = "api/pos/fixeddiscount/"
 	backendApis["storedetails"] = "api/pos/storedetails/"
 	backendApis["tables"] = "api/pos/tables/"
 	backendApis["posinvoices"] = "api/pos/posinvoices/?is_settled=false"
@@ -55,7 +55,7 @@ func Load() {
 				return
 			}
 			if response.StatusCode != 200 {
-				log.Println("Failed to load api from backend")
+				log.Printf("Failed to load api from backend: %s\n", api)
 				return
 			}
 			defer response.Body.Close()

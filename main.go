@@ -81,6 +81,8 @@ func main() {
 
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
 
+	r.HandleFunc("/api/pos/fixeddiscount/", pos.ListFixedDiscounts).Methods("GET")
+
 	r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
 	// // fire a goroutine to send stored electronic journal records

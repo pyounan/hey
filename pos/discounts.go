@@ -8,17 +8,17 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func ListCourses(w http.ResponseWriter, r *http.Request) {
+func ListFixedDiscounts(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	queryParams := r.URL.Query()
 	for key, val := range queryParams {
 		query[key] = val
 	}
-	courses := []map[string]interface{}{}
-	err := db.DB.C("courses").Find(query).All(&courses)
+	fixedDiscounts := []map[string]interface{}{}
+	err := db.DB.C("fixeddiscounts").Find(query).All(&fixedDiscounts)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	helpers.ReturnSuccessMessage(w, courses)
+	helpers.ReturnSuccessMessage(w, fixedDiscounts)
 }
