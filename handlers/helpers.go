@@ -38,6 +38,7 @@ func sendMessage(event_label string, FDM *fdm.FDM, req Request, items []fdm.POSL
 	if err != nil {
 		return fdm.Response{}, err
 	}
+	log.Println("Action Time: ", req.ActionTime)
 	t.ActionTime = req.ActionTime
 	t.TicketNumber = strconv.Itoa(tn)
 	t.TerminalName = req.TerminalName
