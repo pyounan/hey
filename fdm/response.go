@@ -23,6 +23,7 @@ type Response struct {
 	TotalTicketCounter string    `json:"total_ticket_counter"`
 	Signature          string    `json:"signature"`
 	TicketNumber string `json:"ticket_number"`
+	TicketActionTime string `json:"ticket_datetime"`
 	// Attached attributes from ticket
 	PLUHash    string                `json:"plu_hash"`
 	VATSummary map[string]VATSummary `json:"vat_summary"`
@@ -76,6 +77,7 @@ func (r *Response) Process(fdm_response []byte, ticket Ticket) map[string]interf
 	r.PLUHash = ticket.PLUHash
 	r.VATSummary = SummarizeVAT(&ticket.Items)
 	r.TicketNumber = ticket.TicketNumber
+	r.TicketActionTime = ticket.ActionTime
 	// make map
 	res := make(map[string]interface{})
 	res["identifier"] = r.Identifier
@@ -93,5 +95,6 @@ func (r *Response) Process(fdm_response []byte, ticket Ticket) map[string]interf
 	res["event_label"] = r.EventLabel
 	res["signature"] = r.Signature
 	res["ticket_number"] = r.TicketNumber
+	res["ticket_datetime"] = r.TicketActionTime
 	return res
 }

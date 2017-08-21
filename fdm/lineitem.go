@@ -20,6 +20,7 @@ type POSLineItem struct {
 	VAT           string  `json:"vat_code" bson:"vat_code"`
 	VATPercentage float64 `json:"vat_percentage" bson:"vat_percentage"`
 	LineItemType  string  `json:"lineitem_type" bson:"lineitem_type"`
+	IsCondiment bool `json:"is_condiment" bson:"is_condiment"`
 }
 
 // String generates a text for a line item in a format for the FDM.
