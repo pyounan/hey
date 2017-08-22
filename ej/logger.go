@@ -90,7 +90,6 @@ func PushToBackend() {
 		Timeout: time.Second * 5,
 	}
 
-	// log.Printf("%d ej records found\n", len(records))
 
 	for _, r := range records {
 		b := new(bytes.Buffer)
@@ -108,7 +107,6 @@ func PushToBackend() {
 			_ = db.DB.C("ej").Update(bson.M{"_id": r["_id"].(bson.ObjectId)}, bson.M{"is_locked": false})
 			log.Println(err.Error())
 		}
-		log.Println(response)
 		if response != nil {
 			err := db.DB.C("ej").RemoveId(r["_id"].(bson.ObjectId))
 			if err != nil {

@@ -20,6 +20,8 @@ type FDMResponse struct {
 	TicketCounter      string    `json:"ticket_counter"`
 	TotalTicketCounter string    `json:"total_ticket_counter"`
 	Signature          string    `json:"signature"`
+	TicketNumber string `json:"ticket_number"`
+	TicketActionTime string `json:"ticket_datetime"`
 	// Attached attributes from ticket
 	PLUHash    string                `json:"plu_hash"`
 	VATSummary map[string]VATSummary `json:"vat_summary"`
@@ -72,6 +74,8 @@ func (r *FDMResponse) Process(fdm_response []byte, ticket FDMTicket) map[string]
 	// Attaching other attributes from ticket and summarized data
 	r.PLUHash = ticket.PLUHash
 	r.VATSummary = ticket.VATSummary
+	r.TicketNumber = ticket.TicketNumber
+	r.TicketActionTime = ticket.ActionTime
 	// make map
 	res := make(map[string]interface{})
 	res["identifier"] = r.Identifier
@@ -88,5 +92,7 @@ func (r *FDMResponse) Process(fdm_response []byte, ticket FDMTicket) map[string]
 	res["total_ticket_counter"] = r.TotalTicketCounter
 	res["event_label"] = r.EventLabel
 	res["signature"] = r.Signature
+	res["ticket_number"] = r.TicketNumber
+	res["ticket_datetime"] = r.TicketActionTime
 	return res
 }

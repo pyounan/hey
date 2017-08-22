@@ -23,7 +23,7 @@ type FDMTicket struct {
 	Items         []POSLineItem `json:"items" bson:"items"`
 	PLUHash       string        `bson:"plu_hash"`
 	VATs          []VAT         `bson:"vats"`
-	ActionTime    string        `bson:"action_time"`
+	ActionTime    string        `json:"action_time" bson:"action_time"`
 	// only for payment, used in ej
 	Payments     []Payment `bson:"payments"`
 	ChangeAmount float64   `bson:"change_amount"`
