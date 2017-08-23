@@ -202,7 +202,66 @@ func CheckFDMError(res models.FDMResponse) error {
 }
 
 func separateCondimentsAndDiscounts(rawItems []models.POSLineItem) []models.POSLineItem {
-	// items := []models.POSLineItem{}
+	items := []models.POSLineItem{}
+	for _, item := range rawItems {
+		priceOperator := 1
+		item.LineItemType = "sales"
+		item.TaxAmount = item.Price - item.NetAmount
+		if item.Price < -1 {
+			priceOperator = -1
+			item.LineItemType = "return"
+			if item.NetAmount > 0 {
+				item.NetAmount *= -1
+			}
+		}
+		if item.OpenItem {
+			item.Description = item.Comment
+		}
+		items = append(items, item)
+
+		for _, cond := range item.Condiments {
+			c := models.POSLineItem{}
+			c.LineItemType = item.LineItemType
+			c.IsCondiment = true
+			c.ID = cond.Item
+			c.Price = float64(item.Quantity) * float64(priceOperator) * cond.Price
+			c.Quantity = item.Quantity
+			c.UnitPrice = cond.Price
+			c.VAT = cond.VAT
+			c.VATPercentage = cond.VATPercentage
+			c.NetAmount = cond.NetAmount
+			if c.Price < 0 && c.NetAmount > 0 {
+				c.NetAmount *= -1
+			}
+			c.TaxAmount = c.Price - c.NetAmount
+			items = append(items, c)
+		}
+
+		for _, disc := range item.Discounts {
+			for key, val := range disc {
+				d := models.POSLineItem{}
+				d.ID = item.ID
+				d.LineItemType = "discount"
+				if item.Price < 0 {
+					d.Price = math.Abs(val.Amount)
+				} else {
+					d.Price = -1 * math.Abs(val.Price)
+				}
+				d.UnitPrice = val.Price
+				d.Quantity = item.Quantity
+				if key == "Open" {
+					d.Description = fmt.Sprintf("Discount %2f%", val.Percentage)
+				} else {
+					d.Description = fmt.Sprintf("Fixed Discount %2f%", val.Percentage)
+				}
+				d.VAT = val.VAT
+				d.VATPercentage = val.VATPercentage
+				d.NetAmount = val.NetAmount
+				d.TaxAmount = d.Price - d.NetAmount
+				items = append(items, d)
+			}
+		}
+	}
 	return rawItems
 }
 

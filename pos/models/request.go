@@ -1,7 +1,7 @@
 package models
 
 import (
-	"pos-proxy/config"
+	"log"
 	"pos-proxy/db"
 
 	"gopkg.in/mgo.v2/bson"
@@ -48,11 +48,14 @@ func (req *InvoicePOSTRequest) Submit() (Invoice, error) {
 		return Invoice{}, err
 	}
 
-	if config.Config.IsFDMEnabled == false {
-		// log to ej if fdm is not enabled
-		go func() {
-			// ej.log()
-		}()
+	// update table status
+	table := &Table{}
+	err = db.DB.C("tables").Find(bson.M{"number": req.Invoice.TableNumber}).One(table)
+	if err != nil {
+		log.Println(err)
+	} else {
+		table.UpdateStatus()
 	}
+
 	return req.Invoice, nil
 }

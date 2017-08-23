@@ -9,6 +9,7 @@ import (
 	"pos-proxy/helpers"
 	"pos-proxy/pos/fdm"
 	"pos-proxy/pos/models"
+	"pos-proxy/syncer"
 	"strconv"
 	"time"
 
@@ -104,6 +105,8 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	invoice.FDMResponses = fdmResponses
+	req.Invoice = invoice
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 
 	helpers.ReturnSuccessMessage(w, invoice)
 }
@@ -117,7 +120,14 @@ func LockInvoice(w http.ResponseWriter, r *http.Request) {
 }
 
 func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
-
+	vars := mux.Vars(r)
+	invoiceNumber := vars["invoice_number"]
+	invoice := &models.Invoice{}
+	err := db.DB.C("posinvoices").Find(bson.M{"invoice_number": invoiceNumber}).One(invoice)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+	}
+	helpers.ReturnSuccessMessage(w, true)
 }
 
 func FolioInvoice(w http.ResponseWriter, r *http.Request) {

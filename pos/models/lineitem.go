@@ -10,6 +10,7 @@ import (
 
 type Condiment struct {
 	Description   string  `json:"name" bson:"name"`
+	Item          float64 `json:"item" bson:"item"`
 	UnitPrice     float64 `json:"unit_price" bson:"unit_price"`
 	Price         float64 `json:"price" bson:"price"`
 	NetAmount     float64 `json:"net_amount" bson:"net_amount"`
@@ -26,7 +27,7 @@ type Discount struct {
 	NetAmount     float64 `json:"net_amount" bson:"net_amount"`
 	TaxAmount     float64 `json:"tax_amount" bson:"tax_amount"`
 	VAT           string  `json:"vat_code" bson:"vat_code"`
-	VATPercentage string  `json:"vat_percentage" bson:"vat_percentage"`
+	VATPercentage float64 `json:"vat_percentage" bson:"vat_percentage"`
 	Percentage    float64 `json:"percentage" bson:"percentage"`
 }
 

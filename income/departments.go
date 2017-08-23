@@ -15,7 +15,11 @@ func ListDepartments(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	queryParams := r.URL.Query()
 	for key, val := range queryParams {
-		query[key] = val
+		if key == "pos_payment" {
+			query[key] = true
+		} else {
+			query[key] = val[0]
+		}
 	}
 	departments := []map[string]interface{}{}
 	err := db.DB.C("departments").Find(query).All(&departments)

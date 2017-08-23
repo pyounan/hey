@@ -2,6 +2,7 @@ package pos
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
@@ -26,11 +27,16 @@ func ListTables(w http.ResponseWriter, r *http.Request) {
 func GetTable(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	vars := mux.Vars(r)
-	id, _ := vars["number"]
+	strID, _ := vars["number"]
+	id, err := strconv.Atoi(strID)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
 	q["number"] = id
 
 	table := make(map[string]interface{})
-	err := db.DB.C("tables").Find(q).One(&table)
+	err = db.DB.C("tables").Find(q).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -88,6 +94,8 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Fix
+	q["is_settled"] = false
+	log.Println(q)
 	invoices := []map[string]interface{}{}
 	err = db.DB.C("posinvoices").Find(q).All(&invoices)
 	if err != nil {
@@ -100,6 +108,7 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
+	log.Println("invoices: ", invoices)
 
 	resp := bson.M{}
 	resp["posinvoices"] = invoices

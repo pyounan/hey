@@ -78,6 +78,7 @@ func main() {
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.GetInvoice).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.UpdateInvoice).Methods("PUT")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/payment/", pos.PayInvoice).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/unlock/", pos.UnlockInvoice).Methods("GET")
 
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
 
