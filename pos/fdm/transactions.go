@@ -7,6 +7,7 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/ej"
 	"pos-proxy/libs/libfdm"
+	"pos-proxy/pos/locks"
 	"pos-proxy/pos/models"
 	"strconv"
 
@@ -15,6 +16,11 @@ import (
 
 // CheckStatus sends S000 to the FDM and check if its ready.
 func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
+	l, err := locks.LockFDM(RCRS)
+	if err != nil {
+		return models.FDMResponse{}, err
+	}
+	defer l.Unlock()
 	n, err := db.GetNextSequence(RCRS)
 	if err != nil {
 		return models.FDMResponse{}, err
@@ -115,6 +121,11 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 	if err != nil {
 		return []models.FDMResponse{resp}, err
 	}
+	l, err := locks.LockFDM(data.RCRS)
+	if err != nil {
+		return []models.FDMResponse{}, err
+	}
+	defer l.Unlock()
 	// req.Items = fixItemsPrice(req.Items)
 	items := []models.POSLineItem{}
 	for _, e := range data.Invoice.Events {
@@ -163,6 +174,12 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 		return []models.FDMResponse{resp}, err
 	}
 
+	l, err := locks.LockFDM(data.RCRS)
+	if err != nil {
+		return []models.FDMResponse{}, err
+	}
+	defer l.Unlock()
+
 	responses := []models.FDMResponse{}
 
 	// now send the whole invoice
@@ -206,6 +223,12 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 		return []models.FDMResponse{resp}, err
 	}
 
+	l, err := locks.LockFDM(data.RCRS)
+	if err != nil {
+		return []models.FDMResponse{}, err
+	}
+	defer l.Unlock()
+
 	responses := []models.FDMResponse{}
 
 	// now send the whole invoice
@@ -224,7 +247,7 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
 	if len(positiveItems) > 0 {
-		res, err := sendHashAndSignMessage(fdm, "PS", data, positiveItems)
+		res, err := sendHashAndSignMessage(fdm, "NS", data, positiveItems)
 		if err != nil {
 			return responses, err
 		}
@@ -233,7 +256,7 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 	// send negative msg
 	negativeItems := splitItemsByVATRates(items, negativeVATs)
 	if len(negativeItems) > 0 {
-		res, err := sendHashAndSignMessage(fdm, "PR", data, negativeItems)
+		res, err := sendHashAndSignMessage(fdm, "NR", data, negativeItems)
 		if err != nil {
 			return responses, err
 		}

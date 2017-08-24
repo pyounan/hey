@@ -51,6 +51,7 @@ func main() {
 
 	r.HandleFunc("/income/api/cashier/getposcashier/", income.GetPosCashier).Methods("GET")
 	r.HandleFunc("/income/api/poscashierpermissions/", income.GetCashierPermissions).Methods("GET")
+	r.HandleFunc("/shadowinn/api/auditdate/", income.GetAuditDate).Methods("GET")
 
 	// handle POS requests
 	r.HandleFunc("/api/pos/course/{id}/", pos.ListCourses).Methods("GET")
@@ -77,23 +78,17 @@ func main() {
 	r.HandleFunc("/api/pos/posinvoices/folio/", pos.FolioInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.GetInvoice).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.UpdateInvoice).Methods("PUT")
-	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/payment/", pos.PayInvoice).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/createpostings/", pos.PayInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/unlock/", pos.UnlockInvoice).Methods("GET")
+	r.HandleFunc("/api/pos/posinvoices/changetable/", pos.ChangeTable).Methods("PUT")
+	r.HandleFunc("/api/pos/posinvoices/split/", pos.SplitInvoices).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoicelineitems/wasteandvoid/", pos.WasteAndVoid).Methods("POST")
 
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
 
 	r.HandleFunc("/api/pos/fixeddiscount/", pos.ListFixedDiscounts).Methods("GET")
 
 	r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
-
-	// // fire a goroutine to send stored electronic journal records
-	// // to backend every 10 seconds
-	// go func() {
-	// 	for true {
-	// 		ej.PushToBackend()
-	// 		time.Sleep(time.Second * 10)
-	// 	}
-	// }()
 
 	// go func() {
 	// 	for true {

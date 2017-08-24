@@ -19,7 +19,7 @@ type Table struct {
 func (t *Table) UpdateStatus() error {
 	invoices := &[]Invoice{}
 	q := bson.M{"table": t.Number, "is_settled": false}
-	err := db.DB.C("invoices").Find(q).All(invoices)
+	err := db.DB.C("posinvoices").Find(q).All(invoices)
 	if err != nil {
 		return err
 	}

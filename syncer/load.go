@@ -69,6 +69,13 @@ func Load() {
 						log.Println(err.Error())
 					}
 				}
+			} else if api == "shadowinn/api/auditdate/" {
+				var res map[string]interface{}
+				json.NewDecoder(response.Body).Decode(&res)
+				err = db.DB.C(collection).Insert(res)
+				if err != nil {
+					log.Println(err.Error())
+				}
 			} else {
 				var res []map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)

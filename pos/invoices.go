@@ -212,9 +212,17 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 	}
 
-	// invoice.FDMResponses = fdmResponses
+	req.Invoice.Payments = req.Payments
+	req.Invoice.FDMResponses = fdmResponses
+	req.Invoice.IsSettled = true
+	req.Invoice.PaidAmount = req.Invoice.Total
 
-	helpers.ReturnSuccessMessage(w, bson.M{})
+	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	helpers.ReturnSuccessMessage(w, req)
 }
 
 func RefundInvoice(w http.ResponseWriter, r *http.Request) {
@@ -223,4 +231,70 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 
 func Houseuse(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func ChangeTable(w http.ResponseWriter, r *http.Request) {
+	body := make(map[string]interface{})
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
+
+}
+
+func SplitInvoices(w http.ResponseWriter, r *http.Request) {
+	invoices := []models.Invoice{}
+	newInvoices := []models.Invoice{}
+	for _, i := range invoices {
+		req := models.InvoicePOSTRequest{}
+		req.Invoice = i
+		// if fdm is enabled submit items to fdm first
+		if config.Config.IsFDMEnabled == true {
+			// create fdm connection
+			conn, err := fdm.Connect(req.RCRS)
+			if err != nil {
+				helpers.ReturnErrorMessage(w, err.Error())
+				return
+			}
+			defer conn.Close()
+			_, err = fdm.Submit(conn, req)
+			if err != nil {
+				helpers.ReturnErrorMessage(w, err.Error())
+				return
+			}
+		}
+
+		invoice, err := req.Submit()
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+
+		newInvoices = append(newInvoices, invoice)
+	}
+
+	helpers.ReturnSuccessMessage(w, newInvoices)
+}
+
+func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
+	invoice := models.Invoice{}
+	err := json.NewDecoder(r.Body).Decode(&invoice)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
+
+	lineItem := invoice.Items[len(invoice.Items)-1]
+	lineItem.SubmittedQuantity = lineItem.Quantity
+
+	invoice.Items[len(invoice.Items)-1] = lineItem
+
+	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": invoice.InvoiceNumber}, bson.M{"$set": invoice})
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
+
+	helpers.ReturnSuccessMessage(w, invoice)
 }

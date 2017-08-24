@@ -56,7 +56,7 @@ type POSLineItem struct {
 	OpenItem            bool                     `json:"open_item" bson:"open_item"`
 	OpenPrice           bool                     `json:"open_price" bson:"open_price"`
 	AppliedDiscounts    []map[string]interface{} `json:"applied_discounts" bson:"applied_discounts"`
-	ReturnedIDs         []int                    `json:"returned_ids" bson:"returned_ids"`
+	ReturnedIDs         []string                 `json:"returned_ids" bson:"returned_ids"`
 	FrontendID          string                   `json:"frontend_id" bson:"frontend_id"`
 	UpdatedOn           string                   `json:"updated_on" bson:"updated_on"`
 }
