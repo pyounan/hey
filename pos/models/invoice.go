@@ -4,6 +4,29 @@ type Event struct {
 	Item POSLineItem `json:"item"`
 }
 
+
+type Posting struct {
+	Amount float64 `json:"amount" bson:"amount"`
+	AuditDate string `json:"audit_date" bson:"audit_date"`
+	CashierDetails string `json:"cashier_details" bson:"cashier_details"`
+	CashierID int `json:"cashier_id" bson:"cashier_id"`
+	Comments string `json:"comments" bson:"comments"`
+	Currency int `json:"currency" bson:"currency"`
+	CurrencyDetails string `json"currency_details" bson:"currency_details"`
+	Department int `json:"department" bson:"department"`
+	DepartmentDetails string `json:"department_details" bson:"department_details"`
+	ForeignAmount float64 `json:"foreign_amount" bson:"foreign_amount"`
+	FrontendID string `json:"frontend_id" bson:"frontend_id"`
+	PosinvoiceID int `json:"posinvoice_id" bson:"posinvoice_id"`
+	PostingType string `json:"posting_type" bson:"posting_Type"`
+	Room string `json:"room" bson:"room"`
+	PosPostingInformations []Posting `json:"pospostinginformations" bson:"pospostinginformations"`
+	// pospostinginformatios only
+	Sign string `json:"sign,omitempty" bson:"sign,omitempty"`
+	Type string `json:"type,omitempty" bson:"type,omitempty"`
+	Cancelled bool `json:"cancelled" bson:"cancelled"`
+}
+
 type Invoice struct {
 	InvoiceNumber string        `json:"invoice_number" bson:"invoice_number"`
 	Items         []POSLineItem `json:"posinvoicelineitem_set" bson:"posinvoicelineitem_set"`
@@ -29,7 +52,7 @@ type Invoice struct {
 	TerminalDescription string                 `json:"terminal_description" bson:"terminal_description"`
 	Total               float64                `json:"total" bson:"total"`
 	FDMResponses        []FDMResponse          `json:"fdm_responses" bson:"fdm_responses"`
-	Payments            []Payment              `json:"pospayment" bson:"pospayment"`
+	Postings            []Posting              `json:"pospayment" bson:"pospayment"`
 	RoomID              int                    `json:"room_number" bson:"room_number"`
 	Room                string                 `json:"room" bson:"room"`
 	HouseUse            bool                   `json:"house_use" bson:"house_use"`

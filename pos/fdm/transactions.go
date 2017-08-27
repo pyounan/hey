@@ -63,7 +63,7 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	t.Items = items
 	t.TotalAmount = totalAmount
 	t.PLUHash = generatePLUHash(t.Items)
-	t.Payments = req.Payments
+	t.Postings = req.Postings
 	t.ChangeAmount = req.ChangeAmount
 	t.IsClosed = req.IsClosed
 	t.VATs = make([]models.VAT, 4)

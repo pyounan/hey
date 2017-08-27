@@ -1,7 +1,6 @@
 package models
 
 import (
-	"log"
 	"pos-proxy/db"
 	"time"
 
@@ -9,6 +8,7 @@ import (
 )
 
 type Table struct {
+	ID int `json:"id" bson:"id"`
 	Number     int       `json:"number" bson:"number"`
 	StoreID    int       `json:"store" bson:"store"`
 	Status     string    `json:"status" bson:"status"`
@@ -23,11 +23,11 @@ func (t *Table) UpdateStatus() error {
 	if err != nil {
 		return err
 	}
-	t.Status = "Occupied"
-	log.Println("invoices count: ", len(*invoices))
 	if len(*invoices) > 0 {
+		t.Status = "Occupied"
 		t.HasInvoice = true
 	} else {
+		t.Status = "Vacant"
 		t.HasInvoice = false
 	}
 

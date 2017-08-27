@@ -212,7 +212,10 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 	}
 
-	req.Invoice.Payments = req.Payments
+	req.Postings[0].PosPostingInformations = []models.Posting{}
+	req.Postings[0].PosPostingInformations = append(req.Postings[0].PosPostingInformations, models.Posting{})
+	req.Postings[0].PosPostingInformations[0].Comments = ""
+	req.Invoice.Postings = req.Postings
 	req.Invoice.FDMResponses = fdmResponses
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
@@ -222,6 +225,12 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
+
+	// update table status
+	table := models.Table{}
+	db.DB.C("tables").Find(bson.M{"number": req.Invoice.TableNumber})
+	table.UpdateStatus()
+
 	helpers.ReturnSuccessMessage(w, req)
 }
 
@@ -240,7 +249,42 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
+	oldTable := body["oldtable"]
+	newTable := body["newtable"]
+	invoices := body["posinvoices"].([]models.Invoice)
+	invoiceNumbers := []string{}
+	log.Println("newTable: ", newTable)
+	for _, i := range invoices {
+		invoiceNumbers = append(invoiceNumbers, i.InvoiceNumber)
+	}
 
+	table := models.Table{}
+	err = db.DB.C("tables").Find(bson.M{"number": newTable}).One(&table)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
+	// update invoices in db
+	_, err = db.DB.C("posinvoices").UpdateAll(bson.M{"invoice_number": bson.M{"$in": invoiceNumbers}}, bson.M{"$set": bson.M{"table": newTable, "table_number": table.ID}})
+
+	// Update Status of new Table
+	table.UpdateStatus()
+	// Update Status of old Table
+	err = db.DB.C("tables").Find(bson.M{"number": oldTable}).One(&table)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
+	table.UpdateStatus()
+
+	// get invoices on the new table
+	newInvoices := []models.Invoice{}
+	err = db.DB.C("posinvoices").Find(bson.M{"table": newTable}).All(&newInvoices)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
+	helpers.ReturnSuccessMessage(w, newInvoices)
 }
 
 func SplitInvoices(w http.ResponseWriter, r *http.Request) {
