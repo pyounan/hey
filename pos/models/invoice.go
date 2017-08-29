@@ -19,7 +19,9 @@ type Posting struct {
 	FrontendID string `json:"frontend_id" bson:"frontend_id"`
 	PosinvoiceID int `json:"posinvoice_id" bson:"posinvoice_id"`
 	PostingType string `json:"posting_type" bson:"posting_Type"`
-	Room string `json:"room" bson:"room"`
+	Room int `json:"room" bson:"room"`
+	RoomNumber string `json:"room_number,omitempty" bson:"room_number,omitempty"`
+	RoomDetails string `json:"room_details,omitempty" bson:"room_details,omitempty"`
 	PosPostingInformations []Posting `json:"pospostinginformations" bson:"pospostinginformations"`
 	// pospostinginformatios only
 	Sign string `json:"sign,omitempty" bson:"sign,omitempty"`
@@ -53,8 +55,9 @@ type Invoice struct {
 	Total               float64                `json:"total" bson:"total"`
 	FDMResponses        []FDMResponse          `json:"fdm_responses" bson:"fdm_responses"`
 	Postings            []Posting              `json:"pospayment" bson:"pospayment"`
-	RoomID              int                    `json:"room_number" bson:"room_number"`
-	Room                string                 `json:"room" bson:"room"`
+	Room                int                 `json:"room" bson:"room"`
+	RoomNumber string `json:"room_number,omitempty" bson:"room_number,omitempty"`
+	RoomDetails string `json:"room_details,omitempty" bson:"room_details,omitempty"`
 	HouseUse            bool                   `json:"house_use" bson:"house_use"`
 	PrintCount          int                    `json:"print_count" bson:"print_count"`
 	Taxes               map[string]interface{} `json:"taxes" bson:"taxes"`

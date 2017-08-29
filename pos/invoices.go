@@ -98,6 +98,8 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 	}
 
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	req.Invoice.Events = []models.Event{}
 	invoice, err := req.Submit()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -154,6 +156,9 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	req.Invoice.Events = []models.Event{}
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 
 	invoice, err := req.Submit()
 	if err != nil {
@@ -212,6 +217,9 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 	}
 
+	req.Invoice.Events = []models.Event{}
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+
 	req.Postings[0].PosPostingInformations = []models.Posting{}
 	req.Postings[0].PosPostingInformations = append(req.Postings[0].PosPostingInformations, models.Posting{})
 	req.Postings[0].PosPostingInformations[0].Comments = ""
@@ -228,18 +236,127 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 	// update table status
 	table := models.Table{}
-	db.DB.C("tables").Find(bson.M{"number": req.Invoice.TableNumber})
+	err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
 	table.UpdateStatus()
 
 	helpers.ReturnSuccessMessage(w, req)
 }
 
 func RefundInvoice(w http.ResponseWriter, r *http.Request) {
+	type ReqBody struct {
+		Invoice models.Invoice `json:"posinvoice" bson:"posinvoice"`
+		DepartmentID int `json:"department" bson:"department"`
+		Posintg models.Posting `json:"posting" bson:"posting"`
+		OldInvoiceID int `json:"old_posinvoice" bson:"old_posinvoice"`
+		CashierID int `json:"cashier_id" bson:"cashier_id"`
+		Type string `json:"type" bson:"type"`
+	}
+	body := ReqBody{}
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	terminalIDStr := r.URL.Query().Get("terminal_id")
+	terminalID, _ := strconv.Atoi(terminalIDStr)
+	invoiceNumber, err := models.AdvanceInvoiceNumber(terminalID)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
+	body.Invoice.InvoiceNumber = invoiceNumber
+
+	fdmResponses := []models.FDMResponse{}
+
+	if config.Config.IsFDMEnabled == true {
+		// create fdm connection
+		req := models.InvoicePOSTRequest{}
+		// TOFIX: fix req body values
+		conn, err := fdm.Connect(req.RCRS)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		defer conn.Close()
+		_, err = fdm.Submit(conn, req)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		responses, err := fdm.Payment(conn, req)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		fdmResponses = append(fdmResponses, responses...)
+		body.Invoice.FDMResponses = fdmResponses
+	}
+	body.Invoice.Events = []models.Event{}
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
+
+	type RespBody struct {
+		NewInvoice models.Invoice `json:"new_invoice" bson:"new_invoice"`
+		OldInvoice models.Invoice `json:"old_invoice" bson:"old_invoice"`
+		Postings []models.Posting `json:"postings" bson:"postings"`
+	}
+	resp := &RespBody{}
+	resp.NewInvoice = body.Invoice
+	resp.OldInvoice = models.Invoice{}
+	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OldInvoiceID}).One(&resp.OldInvoice)
+	helpers.ReturnSuccessMessage(w, resp)
 
 }
 
 func Houseuse(w http.ResponseWriter, r *http.Request) {
+	var req models.InvoicePOSTRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	defer r.Body.Close()
 
+	fdmResponses := []models.FDMResponse{}
+
+	if config.Config.IsFDMEnabled == true {
+		// create fdm connection
+		conn, err := fdm.Connect(req.RCRS)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		defer conn.Close()
+		responses, err := fdm.Payment(conn, req)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		fdmResponses = append(fdmResponses, responses...)
+		req.Invoice.FDMResponses = fdmResponses
+	}
+
+	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+
+	// update table status
+	table := models.Table{}
+	err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	table.UpdateStatus()
+
+	helpers.ReturnSuccessMessage(w, req)
 }
 
 func ChangeTable(w http.ResponseWriter, r *http.Request) {
@@ -249,37 +366,42 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
-	oldTable := body["oldtable"]
-	newTable := body["newtable"]
-	invoices := body["posinvoices"].([]models.Invoice)
+	oldTable := int(body["oldtable"].(float64))
+	newTable := int(body["newtable"].(float64))
+	invoices := body["posinvoices"].([]interface{})
 	invoiceNumbers := []string{}
-	log.Println("newTable: ", newTable)
 	for _, i := range invoices {
-		invoiceNumbers = append(invoiceNumbers, i.InvoiceNumber)
+		invoiceNumbers = append(invoiceNumbers, (i).(map[string]interface{})["invoice_number"].(string))
 	}
 
 	table := models.Table{}
-	err = db.DB.C("tables").Find(bson.M{"number": newTable}).One(&table)
+	err = db.DB.C("tables").Find(bson.M{"id": newTable}).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
 	// update invoices in db
-	_, err = db.DB.C("posinvoices").UpdateAll(bson.M{"invoice_number": bson.M{"$in": invoiceNumbers}}, bson.M{"$set": bson.M{"table": newTable, "table_number": table.ID}})
+	_, err = db.DB.C("posinvoices").UpdateAll(bson.M{"invoice_number": bson.M{"$in": invoiceNumbers}}, bson.M{"$set": bson.M{"table": table.Number, "table_number": table.ID}})
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
 
 	// Update Status of new Table
 	table.UpdateStatus()
 	// Update Status of old Table
-	err = db.DB.C("tables").Find(bson.M{"number": oldTable}).One(&table)
+	err = db.DB.C("tables").Find(bson.M{"id": oldTable}).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
 	table.UpdateStatus()
 
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
+
 	// get invoices on the new table
 	newInvoices := []models.Invoice{}
-	err = db.DB.C("posinvoices").Find(bson.M{"table": newTable}).All(&newInvoices)
+	err = db.DB.C("posinvoices").Find(bson.M{"table_number": newTable, "is_settled": false}).All(&newInvoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
 		return
@@ -288,10 +410,34 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 }
 
 func SplitInvoices(w http.ResponseWriter, r *http.Request) {
-	invoices := []models.Invoice{}
+	type ReqBody struct {
+		ActionTime string `json:"action_time" bson:"action_time"`
+		CashierName string `json:"cashier_name" bson:"cashier_name"`
+		CashierNumber int `json:"cashier_number" bson:"cashier_number"`
+		EmployeeID string `json:"employee_id" bson:"employee_id"`
+		Invoices []models.Invoice `json:"posinvoices" bson:"posinvoices"`
+		RCRS string `json:"rcrs" bson:"rcrs"`
+		TerminalDescription string `json:"terminal_description" bson:"terminal_description"`
+		TerminalID int `json:"terminal_id" bson:"terminal_id"`
+		TerminalNumber int `json:"terminal_number" bson:"terminal_number"`
+	}
+	body := ReqBody{}
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
 	newInvoices := []models.Invoice{}
-	for _, i := range invoices {
+	for _, i := range body.Invoices {
 		req := models.InvoicePOSTRequest{}
+		req.ActionTime = body.ActionTime
+		req.CashierName = body.CashierName
+		req.CashierNumber = body.CashierNumber
+		req.EmployeeID = body.EmployeeID
+		req.RCRS = body.RCRS
+		req.TerminalName = body.TerminalDescription
+		req.TerminalID = body.TerminalID
+		req.TerminalNumber = body.TerminalNumber
 		req.Invoice = i
 		// if fdm is enabled submit items to fdm first
 		if config.Config.IsFDMEnabled == true {
@@ -307,6 +453,7 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 				helpers.ReturnErrorMessage(w, err.Error())
 				return
 			}
+			req.Invoice.Events = []models.Event{}
 		}
 
 		invoice, err := req.Submit()
@@ -318,6 +465,8 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 		newInvoices = append(newInvoices, invoice)
 	}
 
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
+
 	helpers.ReturnSuccessMessage(w, newInvoices)
 }
 
@@ -328,6 +477,9 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
+
+
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, invoice)
 
 	lineItem := invoice.Items[len(invoice.Items)-1]
 	lineItem.SubmittedQuantity = lineItem.Quantity

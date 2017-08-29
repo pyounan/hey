@@ -28,7 +28,7 @@ func (req *InvoicePOSTRequest) Submit() (Invoice, error) {
 
 	if req.Invoice.InvoiceNumber == "" {
 		// create a new invoice with a new invoice number
-		invoiceNumber, err := advanceInvoiceNumber(req.TerminalID)
+		invoiceNumber, err := AdvanceInvoiceNumber(req.TerminalID)
 		if err != nil {
 			return Invoice{}, err
 		}

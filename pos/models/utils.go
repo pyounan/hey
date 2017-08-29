@@ -11,7 +11,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func advanceInvoiceNumber(terminalID int) (string, error) {
+func AdvanceInvoiceNumber(terminalID int) (string, error) {
 	// Connect to Redis
 	client := redis.NewClient(&redis.Options{
 		Network: "tcp",

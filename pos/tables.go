@@ -2,9 +2,9 @@ package pos
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"pos-proxy/db"
+	"pos-proxy/pos/models"
 	"pos-proxy/helpers"
 	"strconv"
 
@@ -15,7 +15,7 @@ import (
 func ListTables(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 
-	tables := []map[string]interface{}{}
+	tables := []models.Table{}
 	err := db.DB.C("tables").Find(q).All(&tables)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -35,7 +35,7 @@ func GetTable(w http.ResponseWriter, r *http.Request) {
 	}
 	q["number"] = id
 
-	table := make(map[string]interface{})
+	table := models.Table{}
 	err = db.DB.C("tables").Find(q).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -55,7 +55,7 @@ func UpdateTable(w http.ResponseWriter, r *http.Request) {
 	}
 	q["id"] = val
 
-	var table map[string]interface{}
+	table := models.Table{}
 	err = json.NewDecoder(r.Body).Decode(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -87,7 +87,7 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	table := make(map[string]interface{})
+	table := models.Table{}
 	err = db.DB.C("tables").Find(bson.M{"id": q["table"]}).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -95,8 +95,7 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 	}
 	// Fix
 	q["is_settled"] = false
-	log.Println(q)
-	invoices := []map[string]interface{}{}
+	invoices := []models.Invoice{}
 	err = db.DB.C("posinvoices").Find(q).All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -108,7 +107,6 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	log.Println("invoices: ", invoices)
 
 	resp := bson.M{}
 	resp["posinvoices"] = invoices

@@ -85,7 +85,20 @@ func FetchConfiguration() {
 		log.Println(err.Error())
 		return
 	}
-	log.Println(response)
+	isFDMEnabled := false
+	uri = fmt.Sprintf("%s/api/pos/fdm/", Config.BackendURI)
+	req, err = http.NewRequest("GET", uri, nil)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("JWT %s", ProxyToken))
+	fdmResponse, err := netClient.Do(req)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
 	// open configurations file
 	f, err := os.Open("/etc/cloudinn/pos_config.json")
 	if err != nil {
@@ -99,7 +112,6 @@ func FetchConfiguration() {
 		log.Println(err.Error())
 		return
 	}
-	log.Printf("%s\n", data)
 	type ProxySettings struct {
 		UpdatedAt string      `json:"updated_at"`
 		FDMs      []FDMConfig `json:"fdms"`
@@ -126,6 +138,9 @@ func FetchConfiguration() {
 		Config.IsFDMEnabled = true
 	}
 	Config.UpdatedAt = t
+	json.NewDecoder(fdmResponse.Body).Decode(&isFDMEnabled)
+	Config.IsFDMEnabled = isFDMEnabled
+	// Write conf to file
 	if err := Config.WriteToFile(); err != nil {
 		log.Println(err.Error())
 		return

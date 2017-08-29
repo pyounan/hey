@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	gh "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -15,6 +16,7 @@ import (
 	"pos-proxy/income"
 	"pos-proxy/pos"
 	"pos-proxy/proxy"
+	"pos-proxy/syncer"
 )
 
 func init() {
@@ -76,13 +78,13 @@ func main() {
 	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoices).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/", pos.SubmitInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/folio/", pos.FolioInvoice).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoices/changetable/", pos.ChangeTable).Methods("PUT")
+	r.HandleFunc("/api/pos/posinvoices/split/", pos.SplitInvoices).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoicelineitems/wasteandvoid/", pos.WasteAndVoid).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.GetInvoice).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.UpdateInvoice).Methods("PUT")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/createpostings/", pos.PayInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/unlock/", pos.UnlockInvoice).Methods("GET")
-	r.HandleFunc("/api/pos/posinvoices/changetable/", pos.ChangeTable).Methods("PUT")
-	r.HandleFunc("/api/pos/posinvoices/split/", pos.SplitInvoices).Methods("POST")
-	r.HandleFunc("/api/pos/posinvoicelineitems/wasteandvoid/", pos.WasteAndVoid).Methods("POST")
 
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
 
@@ -90,19 +92,21 @@ func main() {
 
 	r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
-	// go func() {
-	// 	for true {
-	// 		config.FetchConfiguration()
-	// 		time.Sleep(time.Second * 10)
-	// 	}
-	// }()
+	r.NotFoundHandler = http.HandlerFunc(proxy.ProxyToBackend)
 
-	// go func() {
-	// 	for true {
-	// 		syncer.Load()
-	// 		time.Sleep(time.Second * 600)
-	// 	}
-	// }()
+	go func() {
+		for true {
+			syncer.Load()
+			time.Sleep(time.Second * 60)
+		}
+	}()
+
+	go func() {
+		for true {
+			config.FetchConfiguration()
+			time.Sleep(time.Second * 25)
+		}
+	}()
 
 	lr := gh.LoggingHandler(os.Stdout, r)
 	// r = gh.RecoveryHandler()(lr)

@@ -8,14 +8,19 @@ import (
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"time"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // Load data from the backend and insert to mongodb
 func Load() {
+	// Check if there are items int he requests queue, 
+	// if there is don't load new items until the requests queue is empty
+	c, _ := db.DB.C("requests_queue").Find(nil).Count()
+	if c > 0 {
+		return
+	}
 	backendApis := make(map[string]string)
 	backendApis["stores"] = "api/pos/store/"
-	backendApis["fdm"] = "api/pos/fdm/"
-	backendApis["proxy_settings"] = "api/pos/proxy/settings/"
 	backendApis["fixeddiscounts"] = "api/pos/fixeddiscount/"
 	backendApis["storedetails"] = "api/pos/storedetails/"
 	backendApis["tables"] = "api/pos/tables/"
@@ -26,9 +31,6 @@ func Load() {
 	backendApis["printers"] = "api/pos/printer/"
 	backendApis["printersettings"] = "api/pos/printersettings/"
 
-	backendApis["reservations"] = "shadowinn/api/reservations/"
-	backendApis["rooms"] = "shadowinn/api/rooms/"
-	backendApis["users"] = "shadowinn/api/user/"
 	backendApis["company"] = "shadowinn/api/company/"
 	backendApis["audit_date"] = "shadowinn/api/auditdate/"
 
@@ -64,7 +66,7 @@ func Load() {
 				var res map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
 				for _, item := range res["results"].([]interface{}) {
-					err = db.DB.C(collection).Insert(item)
+					_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.(map[string]interface{})["invoice_number"]}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}
