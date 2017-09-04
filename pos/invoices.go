@@ -494,3 +494,7 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 
 	helpers.ReturnSuccessMessage(w, invoice)
 }
+
+func ToggleLocking(w http.ResponseWriter, r *http.Request) {
+	helpers.ReturnSuccessMessage(w, true)
+}

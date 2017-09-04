@@ -6,10 +6,93 @@ import (
 	"log"
 	"net/http"
 	"pos-proxy/config"
+	"pos-proxy/helpers"
+	"pos-proxy/pos/models"
 	"pos-proxy/db"
+	"os"
+	"io/ioutil"
 	"time"
 	"gopkg.in/mgo.v2/bson"
 )
+
+// FetchConfiguration asks CloudInn servers if the conf were updated,
+// if yes update the current configurations and write them to the conf file
+func FetchConfiguration() {
+	uri := fmt.Sprintf("%s/api/pos/proxy/settings/", config.Config.BackendURI)
+	netClient := &http.Client{
+		Timeout: time.Second * 5,
+	}
+	req, err := http.NewRequest("GET", uri, nil)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	req = helpers.PrepareRequestHeaders(req)
+	response, err := netClient.Do(req)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	isFDMEnabled := false
+	uri = fmt.Sprintf("%s/api/pos/fdm/", config.Config.BackendURI)
+	req, err = http.NewRequest("GET", uri, nil)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	req = helpers.PrepareRequestHeaders(req)
+	fdmResponse, err := netClient.Do(req)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	// open configurations file
+	f, err := os.Open("/etc/cloudinn/pos_config.json")
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	defer f.Close()
+	data, err := ioutil.ReadAll(response.Body)
+	defer response.Body.Close()
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	type ProxySettings struct {
+		UpdatedAt string      `json:"updated_at"`
+		FDMs      []config.FDMConfig `json:"fdms"`
+	}
+	dataStr := ProxySettings{}
+	err = json.Unmarshal(data, &dataStr)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	t, err := time.Parse(time.RFC3339, fmt.Sprintf("%s", dataStr.UpdatedAt))
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	// Check the configurations coming from the backend are newer than
+	// the current configuration
+	if (config.Config.UpdatedAt != time.Time{}) && !t.After(config.Config.UpdatedAt) {
+		return
+	}
+	log.Println("New configurations found")
+	config.Config.FDMs = dataStr.FDMs
+	if len(config.Config.FDMs) > 0 {
+		config.Config.IsFDMEnabled = true
+	}
+	config.Config.UpdatedAt = t
+	json.NewDecoder(fdmResponse.Body).Decode(&isFDMEnabled)
+	config.Config.IsFDMEnabled = isFDMEnabled
+	// Write conf to file
+	if err := config.Config.WriteToFile(); err != nil {
+		log.Println(err.Error())
+		return
+	}
+}
 
 // Load data from the backend and insert to mongodb
 func Load() {
@@ -49,8 +132,7 @@ func Load() {
 			if err != nil {
 				log.Println(err.Error())
 			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", fmt.Sprintf("JWT %s", config.ProxyToken))
+			req = helpers.PrepareRequestHeaders(req)
 			response, err := netClient.Do(req)
 			if err != nil {
 				log.Println(err.Error())
@@ -63,10 +145,13 @@ func Load() {
 			defer response.Body.Close()
 			log.Printf("-- syncing %s from %s\n", collection, api)
 			if api == "api/pos/posinvoices/?is_settled=false" {
-				var res map[string]interface{}
+				type Body struct {
+					Results []models.Invoice `json:"results"`
+				}
+				res := Body{}
 				json.NewDecoder(response.Body).Decode(&res)
-				for _, item := range res["results"].([]interface{}) {
-					_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.(map[string]interface{})["invoice_number"]}, item)
+				for _, item := range res.Results {
+					_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}
@@ -74,7 +159,7 @@ func Load() {
 			} else if api == "shadowinn/api/auditdate/" {
 				var res map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
-				err = db.DB.C(collection).Insert(res)
+				_, err = db.DB.C(collection).UpdateAll(nil, bson.M{"$set": res})
 				if err != nil {
 					log.Println(err.Error())
 				}
@@ -82,6 +167,7 @@ func Load() {
 				var res []map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
 				for _, item := range res {
+					delete(item, "_id")
 					err = db.DB.C(collection).Insert(item)
 					if err != nil {
 						log.Println(err.Error())

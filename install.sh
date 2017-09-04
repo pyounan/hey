@@ -53,14 +53,12 @@ EOM
 # copy the configuration file to/etc/cloudinn/pos_config.json
 mkdir -p /etc/cloudinn || true
 FILE=/etc/cloudinn/pos_config.json
-curl -o $FILE -H "Authorization: JWT $PROXY_TOKEN" https://$SUB_DOMAIN.cloudinn.net/api/pos/proxy/settings/
-# make file for proxy token
-FILE=/etc/cloudinn/proxy_token.json
+curl -u $AUTH_USERNAME:$AUTH_PASSWORD https://$SUB_DOMAIN.cloudinn.net/api/pos/proxy/settings/
+# make file for auth credentials
+FILE=/etc/cloudinn/auth_credentials
 touch $FILE
 cat <<EOM >$FILE
-{
-	"proxy_token": "$PROXY_TOKEN"
-}
+$AUTH_USERNAME,$AUTH_PASSWORD
 EOM
 }
 
@@ -75,11 +73,16 @@ if [ "$1" == "" ]; then
 fi
 
 if [ "$2" == "" ]; then
-	error "Please provide proxy token"
+	error "Please provide auth username"
 	exit
 fi
 
 if [ "$3" == "" ]; then
+	error "Please provide auth password"
+	exit
+fi
+
+if [ "$4" == "" ]; then
 	error "Please provide cloudinn subdomain"
 	exit
 fi
@@ -90,8 +93,9 @@ if [ ! -f "$1" ]; then
 fi
 
 GS_KEY=$1
-PROXY_TOKEN=$2
-SUB_DOMAIN=$3
+AUTH_USERNAME=$2
+AUTH_PASSWORD=$3
+SUB_DOMAIN=$4
 
 sudo supervisorctl stop all || true
 apt-get install curl

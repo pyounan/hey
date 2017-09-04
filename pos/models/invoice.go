@@ -30,6 +30,7 @@ type Posting struct {
 }
 
 type Invoice struct {
+	ID int `json:"id" bson:"id"`
 	InvoiceNumber string        `json:"invoice_number" bson:"invoice_number"`
 	Items         []POSLineItem `json:"posinvoicelineitem_set" bson:"posinvoicelineitem_set"`
 	TableNumber   int           `json:"table" bson:"table"`

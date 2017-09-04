@@ -9,6 +9,7 @@ import (
 	"strings"
 	"encoding/json"
 	"pos-proxy/db"
+	"pos-proxy/helpers"
 	"pos-proxy/config"
 	"pos-proxy/pos/models"
 	"gopkg.in/mgo.v2/bson"
@@ -57,8 +58,8 @@ func PushToBackend() {
 			return
 		}
 		req.Header = r.Headers
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("JWT %s", config.ProxyToken))
+		log.Println(req.Header)
+		req = helpers.PrepareRequestHeaders(req)
 		response, err := netClient.Do(req)
 		if err != nil {
 			log.Println(err.Error())

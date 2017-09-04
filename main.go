@@ -21,6 +21,13 @@ import (
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	// read encryption key from environment variables
+	key := os.Getenv("CLOUDINN_ENC_KEY")
+	log.Println(key)
+	err := config.ParseAuthCredentials(key)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func main() {
@@ -80,6 +87,7 @@ func main() {
 	r.HandleFunc("/api/pos/posinvoices/folio/", pos.FolioInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/changetable/", pos.ChangeTable).Methods("PUT")
 	r.HandleFunc("/api/pos/posinvoices/split/", pos.SplitInvoices).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoices/togglelocking/", pos.ToggleLocking).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoicelineitems/wasteandvoid/", pos.WasteAndVoid).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.GetInvoice).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.UpdateInvoice).Methods("PUT")
@@ -96,7 +104,7 @@ func main() {
 
 	go func() {
 		for true {
-			config.FetchConfiguration()
+			syncer.FetchConfiguration()
 			time.Sleep(time.Second * 60)
 		}
 	}()

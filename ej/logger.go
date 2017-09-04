@@ -100,7 +100,6 @@ func PushToBackend() {
 			log.Println(err.Error())
 		}
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("JWT %s", config.ProxyToken))
 		response, err := netClient.Do(req)
 		log.Println("sending electronic journal records to backend")
 		if err != nil {

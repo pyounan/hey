@@ -2,18 +2,16 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+	"strings"
 )
 
-// ProxyToken holds the value of the token used to authorize the
-// proxy requests to CloudInn servers
-var ProxyToken string = ""
+var AuthUsername string
+var AuthPassword string
 
 // ConfigHolder struct of the proxy configuration
 type ConfigHolder struct {
@@ -50,101 +48,26 @@ func Load(file_path string) {
 		log.Println("Failed to decode configuration file:")
 		log.Fatal(err)
 	}
-	log.Println("Loading proxy token from /etc/cloudinn/proxy_token.json")
-	f, err = os.Open("/etc/cloudinn/proxy_token.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	proxyTokenJson := make(map[string]string)
-	decoder = json.NewDecoder(f)
-	err = decoder.Decode(&proxyTokenJson)
-	if err != nil {
-		log.Println("Failed to decode proxy token")
-		log.Fatal(err)
-	}
-	ProxyToken = proxyTokenJson["proxy_token"]
 	log.Println("Configuration loaded successfully...")
 }
 
-// FetchConfiguration asks CloudInn servers if the conf were updated,
-// if yes update the current configurations and write them to the conf file
-func FetchConfiguration() {
-	uri := fmt.Sprintf("%s/api/pos/proxy/settings/", Config.BackendURI)
-	netClient := &http.Client{
-		Timeout: time.Second * 5,
-	}
-	req, err := http.NewRequest("GET", uri, nil)
+// ParseAuthCredentials reads username and password from auth file
+func ParseAuthCredentials(encKey string) error {
+	f, err := ioutil.ReadFile("/etc/cloudinn/auth_credentials")
 	if err != nil {
-		log.Println(err.Error())
-		return
+		log.Fatal(err)
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("JWT %s", ProxyToken))
-	response, err := netClient.Do(req)
+	// decrypt the retrieved data
+	/*f = []byte(strings.TrimSpace(string(f[:])))
+	log.Println("data:", string(f[:]))
+	txt, err := decrypt(f, []byte(encKey))
 	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	isFDMEnabled := false
-	uri = fmt.Sprintf("%s/api/pos/fdm/", Config.BackendURI)
-	req, err = http.NewRequest("GET", uri, nil)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("JWT %s", ProxyToken))
-	fdmResponse, err := netClient.Do(req)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	// open configurations file
-	f, err := os.Open("/etc/cloudinn/pos_config.json")
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	defer f.Close()
-	data, err := ioutil.ReadAll(response.Body)
-	defer response.Body.Close()
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	type ProxySettings struct {
-		UpdatedAt string      `json:"updated_at"`
-		FDMs      []FDMConfig `json:"fdms"`
-	}
-	dataStr := ProxySettings{}
-	err = json.Unmarshal(data, &dataStr)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	t, err := time.Parse(time.RFC3339, fmt.Sprintf("%s", dataStr.UpdatedAt))
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	// Check the configurations coming from the backend are newer than
-	// the current configuration
-	if (Config.UpdatedAt != time.Time{}) && !t.After(Config.UpdatedAt) {
-		return
-	}
-	log.Println("New configurations found")
-	Config.FDMs = dataStr.FDMs
-	if len(Config.FDMs) > 0 {
-		Config.IsFDMEnabled = true
-	}
-	Config.UpdatedAt = t
-	json.NewDecoder(fdmResponse.Body).Decode(&isFDMEnabled)
-	Config.IsFDMEnabled = isFDMEnabled
-	// Write conf to file
-	if err := Config.WriteToFile(); err != nil {
-		log.Println(err.Error())
-		return
-	}
+		return err
+	}*/
+	splitted := strings.Split(string(f), ",")
+	AuthUsername = strings.TrimSpace(splitted[0])
+	AuthPassword = strings.TrimSpace(splitted[1])
+	return nil
 }
 
 func (config *ConfigHolder) WriteToFile() error {

@@ -57,3 +57,6 @@ D
 Length: 14
 Social Security Number
 
+
+#### Encryption & Decryption of auth key
+https://astaxie.gitbooks.io/build-web-application-with-golang/en/09.6.html
