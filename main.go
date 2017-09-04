@@ -20,7 +20,7 @@ import (
 )
 
 func init() {
-	log.SetFlags(log.LstdFlags)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
 func main() {
@@ -96,17 +96,25 @@ func main() {
 
 	go func() {
 		for true {
-			syncer.Load()
+			config.FetchConfiguration()
 			time.Sleep(time.Second * 60)
 		}
 	}()
 
 	go func() {
 		for true {
-			config.FetchConfiguration()
-			time.Sleep(time.Second * 25)
+			syncer.PushToBackend()
+			time.Sleep(time.Second * 20)
 		}
 	}()
+
+	go func() {
+		for true {
+			syncer.Load()
+			time.Sleep(time.Second * 60)
+		}
+	}()
+
 
 	lr := gh.LoggingHandler(os.Stdout, r)
 	// r = gh.RecoveryHandler()(lr)

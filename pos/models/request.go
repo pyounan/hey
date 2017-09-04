@@ -10,7 +10,7 @@ import (
 type InvoicePOSTRequest struct {
 	ActionTime     string  `json:"action_time" bson:"action_time"`
 	Invoice        Invoice `json:"posinvoice" bson:"posinvoice"`
-	RCRS           string  `json:"rcrs" bson:"posinvoice"`
+	RCRS           string  `json:"rcrs" bson:"rcrs"`
 	TerminalID     int     `json:"terminal_id" bson:"terminal_id"`
 	TerminalNumber int     `json:"terminal_number" bson:"terminal_number"`
 	TerminalName   string  `json:"terminal_description" bson:"terminal_description"`
@@ -20,8 +20,8 @@ type InvoicePOSTRequest struct {
 	Postings []Posting `json:"postings" bson:"postings"`
 	// only used for payment
 	//Payments     []Payment `json:"postings"`
-	ChangeAmount float64   `json:"change_amount"`
-	IsClosed     bool      `json:"is_closed,omitempty"`
+	ChangeAmount float64   `json:"change" bson:"change"`
+	IsClosed     bool      `json:"is_closed,omitempty" bson:"is_closed,omitempty"`
 }
 
 func (req *InvoicePOSTRequest) Submit() (Invoice, error) {

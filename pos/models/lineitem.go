@@ -35,7 +35,7 @@ type POSLineItem struct {
 	ID                  float64                  `json:"item" bson:"item"`
 	Quantity            float64                  `json:"qty" bson:"qty"`
 	SubmittedQuantity   float64                  `json:"submitted_qty" bson:"submitted_qty"`
-	ReturnedQuantity    float64                  `json:"returned_qty" bson:"returned_qty"`
+	ReturnedQuantity    float64                  `json:"returned_qty,omitempty" bson:"returned_qty,omitempty"`
 	Description         string                   `json:"description" bson:"description"`
 	Comment             string                   `json:"comment" bson:"comment"`
 	UnitPrice           float64                  `json:"unit_price" bson:"unit_price"`
@@ -49,9 +49,10 @@ type POSLineItem struct {
 	Condiments          []Condiment              `json:"condimentlineitem_set" bson:"condimentlineitem_set"`
 	CondimentGroup      []map[string]interface{} `json:"itemcondimentgroup_set" bson:"itemcondimentgroup_set"`
 	IsDiscount          bool                     `json:"is_discount" bson:"is_discount"`
+	IsVoid          bool                     `json:"is_void,omitempty" bson:"is_void,omitempty"`
 	Discounts           []GroupedDiscounts       `json:"grouped_applieddiscounts" bson:"grouped_applieddiscounts"`
 	AttachedAttributes  map[string]interface{}   `json:"attached_attributes" bson:"attached_attributes"`
-	Course              int                      `json:"course" bson:"course"`
+	Course              int                      `json:"course,omitempty" bson:"course,omitempty"`
 	StoreMenuItemConfig int                      `json:"storemenuitemconfig" bson:"storemenuitemconfig"`
 	OpenItem            bool                     `json:"open_item" bson:"open_item"`
 	OpenPrice           bool                     `json:"open_price" bson:"open_price"`
@@ -59,6 +60,8 @@ type POSLineItem struct {
 	ReturnedIDs         []string                 `json:"returned_ids" bson:"returned_ids"`
 	FrontendID          string                   `json:"frontend_id" bson:"frontend_id"`
 	UpdatedOn           string                   `json:"updated_on" bson:"updated_on"`
+	StoreUnit int `json:"store_unit,omitempty" bson:"store_unit,omitempty"`
+	BaseUnit string `json:"base_unit,omitempty" bson:"base_unit,omitempty"`
 }
 
 // String generates a text for a line item in a format for the FDM.
