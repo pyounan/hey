@@ -159,16 +159,22 @@ func Load() {
 			} else if api == "shadowinn/api/auditdate/" {
 				var res map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
-				_, err = db.DB.C(collection).UpdateAll(nil, bson.M{"$set": res})
+				oldAuditDate := make(map[string]interface{})
+				err := db.DB.C(collection).Find(nil).One(&oldAuditDate)
 				if err != nil {
-					log.Println(err.Error())
+					db.DB.C(collection).Insert(res)
+				} else {
+					err = db.DB.C(collection).Update(bson.M{"_id": oldAuditDate["_id"]}, bson.M{"$set": bson.M{"audit_date": res["audit_date"]}})
+					if err != nil {
+						log.Println(err.Error())
+					}
 				}
 			} else {
 				var res []map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
 				for _, item := range res {
 					delete(item, "_id")
-					err = db.DB.C(collection).Insert(item)
+					_, err = db.DB.C(collection).Upsert(bson.M{"id": item["id"]}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}

@@ -3,10 +3,12 @@ package pos
 import (
 	"net/http"
 	"pos-proxy/db"
+	"pos-proxy/pos/locks"
 	"pos-proxy/helpers"
 	"strconv"
 
 	"gopkg.in/mgo.v2/bson"
+	"github.com/gorilla/mux"
 )
 
 func ListTerminals(w http.ResponseWriter, r *http.Request) {
@@ -34,5 +36,8 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 }
 
 func UnlockTerminal(w http.ResponseWriter, r *http.Request) {
-
+	vars := mux.Vars(r)
+	idStr, _ := vars["id"]
+	locks.UnlockTerminal(idStr)
+	helpers.ReturnSuccessMessage(w, true)
 }
