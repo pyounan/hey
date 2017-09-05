@@ -128,7 +128,7 @@ func Load() {
 	for collection, api := range backendApis {
 		go func(collection string, api string) {
 			var netClient = &http.Client{
-				Timeout: time.Second * 5,
+				Timeout: time.Second * 10,
 			}
 			uri := fmt.Sprintf("%s/%s", config.Config.BackendURI, api)
 			req, err := http.NewRequest("GET", uri, nil)
