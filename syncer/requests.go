@@ -7,6 +7,7 @@ import (
 	"time"
 	"bytes"
 	"strings"
+	"io/ioutil"
 	"encoding/json"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
@@ -69,6 +70,8 @@ func PushToBackend() {
 		log.Println("Sending: ", r.Method, req.URL.Path)
 		if response.StatusCode != 200 && response.StatusCode != 201 {
 			log.Println(response, "Failed to fetch response from backend")
+			res, _ := ioutil.ReadAll(response.Body)
+			log.Println("error response body", string(res))
 			return
 		}
 		if req.URL.Path == "/api/pos/posinvoices/" || strings.Contains(req.URL.Path, "createpostings") {

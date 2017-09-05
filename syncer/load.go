@@ -33,7 +33,6 @@ func FetchConfiguration() {
 		log.Println(err.Error())
 		return
 	}
-	isFDMEnabled := false
 	uri = fmt.Sprintf("%s/api/pos/fdm/", config.Config.BackendURI)
 	req, err = http.NewRequest("GET", uri, nil)
 	if err != nil {
@@ -85,8 +84,12 @@ func FetchConfiguration() {
 		config.Config.IsFDMEnabled = true
 	}
 	config.Config.UpdatedAt = t
-	json.NewDecoder(fdmResponse.Body).Decode(&isFDMEnabled)
-	config.Config.IsFDMEnabled = isFDMEnabled
+	type FDMSettingsResp struct {
+		Data bool `json:"data"`
+	}
+	fdmSettingsResp := FDMSettingsResp{}
+	json.NewDecoder(fdmResponse.Body).Decode(&fdmSettingsResp)
+	config.Config.IsFDMEnabled = fdmSettingsResp.Data
 	// Write conf to file
 	if err := config.Config.WriteToFile(); err != nil {
 		log.Println(err.Error())
@@ -165,6 +168,16 @@ func Load() {
 					db.DB.C(collection).Insert(res)
 				} else {
 					err = db.DB.C(collection).Update(bson.M{"_id": oldAuditDate["_id"]}, bson.M{"$set": bson.M{"audit_date": res["audit_date"]}})
+					if err != nil {
+						log.Println(err.Error())
+					}
+				}
+			} else if api == "income/api/poscashierpermissions/" {
+				var res []map[string]interface{}
+				json.NewDecoder(response.Body).Decode(&res)
+				for _, item := range res {
+					delete(item, "_id")
+					_, err = db.DB.C(collection).Upsert(bson.M{"poscashier_id": item["poscashier_id"]}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}
