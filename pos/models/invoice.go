@@ -23,10 +23,16 @@ type Posting struct {
 	RoomNumber string `json:"room_number,omitempty" bson:"room_number,omitempty"`
 	RoomDetails string `json:"room_details,omitempty" bson:"room_details,omitempty"`
 	PosPostingInformations []Posting `json:"pospostinginformations" bson:"pospostinginformations"`
+	PaymentLog PaymentLog `json:"paymentlog" bson:"paymentlog"`
 	// pospostinginformatios only
 	Sign string `json:"sign,omitempty" bson:"sign,omitempty"`
 	Type string `json:"type,omitempty" bson:"type,omitempty"`
 	Cancelled bool `json:"cancelled,omitempty" bson:"cancelled,omitempty"`
+}
+
+
+type PaymentLog struct {
+
 }
 
 type Invoice struct {
