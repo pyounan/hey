@@ -96,6 +96,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fdmResponses = append(fdmResponses, responses...)
+		req.Invoice.FDMResponses = fdmResponses
 	}
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)

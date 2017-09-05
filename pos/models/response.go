@@ -12,19 +12,19 @@ type FDMResponse struct {
 	Error1             string    `json:"error1"`
 	Error2             string    `json:"error2"`
 	Error3             string    `json:"error3"`
-	ProductionNumber   string    `json:"production_number"`
+	ProductionNumber   string    `json:"production_number" bson:"production_numer"`
 	VSC                string    `json:"vsc"`
 	Date               time.Time `json:"date"`
-	TimePeriod         time.Time `json:"time_period"`
-	EventLabel         string    `json:"event_label"`
-	TicketCounter      string    `json:"ticket_counter"`
-	TotalTicketCounter string    `json:"total_ticket_counter"`
+	TimePeriod         time.Time `json:"time_period" bson:"time_period"`
+	EventLabel         string    `json:"event_label" bson:"event_label"`
+	TicketCounter      string    `json:"ticket_counter" bson:"ticket_counter"`
+	TotalTicketCounter string    `json:"total_ticket_counter" bson:"total_ticket_counter"`
 	Signature          string    `json:"signature"`
-	TicketNumber string `json:"ticket_number"`
-	TicketActionTime string `json:"ticket_datetime"`
+	TicketNumber string `json:"ticket_number" bson:"ticket_number"`
+	TicketActionTime string `json:"ticket_datetime" bson:"ticket_datetime"`
 	// Attached attributes from ticket
-	PLUHash    string                `json:"plu_hash"`
-	VATSummary map[string]VATSummary `json:"vat_summary"`
+	PLUHash    string                `json:"plu_hash" bson:"plu_hash"`
+	VATSummary map[string]VATSummary `json:"vat_summary" bson:"vat_summary"`
 }
 
 func (r *FDMResponse) ProcessStatus(fdm_response []byte) {
