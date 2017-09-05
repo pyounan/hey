@@ -35,7 +35,7 @@ type POSLineItem struct {
 	ID                  float64                  `json:"item" bson:"item"`
 	Quantity            float64                  `json:"qty" bson:"qty"`
 	SubmittedQuantity   float64                  `json:"submitted_qty" bson:"submitted_qty"`
-	ReturnedQuantity    float64                  `json:"returned_qty,omitempty" bson:"returned_qty,omitempty"`
+	ReturnedQuantity    float64                  `json:"returned_qty" bson:"returned_qty"`
 	Description         string                   `json:"description" bson:"description"`
 	Comment             string                   `json:"comment" bson:"comment"`
 	UnitPrice           float64                  `json:"unit_price" bson:"unit_price"`
