@@ -4,8 +4,8 @@ import (
 	"log"
 	"fmt"
 	"net/http"
-	"time"
 	"bytes"
+	"time"
 	"strings"
 	"io/ioutil"
 	"encoding/json"
@@ -22,6 +22,7 @@ type RequestRow struct {
 	Method  string      `bson:"method"`
 	Headers http.Header `bson:"headers"`
 	Payload interface{} `bson:"payload"`
+	ActionTime time.Time `bson:"action_time"`
 }
 
 // QueueRequest insert a request object to a queue that syncs with the backend
@@ -32,6 +33,7 @@ func QueueRequest(uri string, method string, headers http.Header, payload interf
 	body.Method = method
 	body.Headers = headers
 	body.Payload = payload
+	body.ActionTime = time.Now()
 	log.Println("inserting request to queue")
 	err := db.DB.C("requests_queue").Insert(body)
 	if err != nil {
@@ -43,7 +45,7 @@ func QueueRequest(uri string, method string, headers http.Header, payload interf
 
 func PushToBackend() {
 	requests := []RequestRow{}
-	db.DB.C("requests_queue").Find(nil).All(&requests)
+	db.DB.C("requests_queue").Find(nil).Sort("action_time").All(&requests)
 
 	netClient := &http.Client{
 		Timeout: time.Second * 10,

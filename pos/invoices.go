@@ -42,7 +42,7 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	}
 	invoices := []models.Invoice{}
 	err := db.DB.C("posinvoices").Find(q).All(&invoices)
-	if err != nil {
+	if err != nil || len(invoices) == 0 {
 		proxy.ProxyToBackend(w, r)
 		return
 	}
