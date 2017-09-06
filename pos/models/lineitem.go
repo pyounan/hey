@@ -9,6 +9,7 @@ import (
 )
 
 type Condiment struct {
+	Condiment int `json:"condiment" bson:"condiment"`
 	Description   string  `json:"name" bson:"name"`
 	Item          float64 `json:"item" bson:"item"`
 	UnitPrice     float64 `json:"unit_price" bson:"unit_price"`

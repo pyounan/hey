@@ -108,9 +108,9 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 		return pf_response, err
 	}
 
-	go func(eventLabel string, t models.FDMTicket, stringRes map[string]interface{}) {
+	/*go func(eventLabel string, t models.FDMTicket, stringRes map[string]interface{}) {
 		ej.Log(eventLabel, stringRes)
-	}(eventLabel, t, stringRes)
+	}(eventLabel, t, stringRes)*/
 
 	return pf_response, nil
 }
