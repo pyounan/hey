@@ -172,6 +172,13 @@ func Load() {
 						log.Println(err.Error())
 					}
 				}
+			} else if api == "shadowinn/api/company/" {
+				var res map[string]interface{}
+				json.NewDecoder(response.Body).Decode(&res)
+				_, err := db.DB.C(collection).Upsert(bson.M{"_id": res["name"]}, res)
+				if err != nil {
+					db.DB.C(collection).Insert(res)
+				}
 			} else if api == "income/api/poscashierpermissions/" {
 				var res []map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)

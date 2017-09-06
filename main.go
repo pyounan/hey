@@ -61,6 +61,7 @@ func main() {
 	r.HandleFunc("/income/api/cashier/getposcashier/", income.GetPosCashier).Methods("GET")
 	r.HandleFunc("/income/api/poscashierpermissions/", income.GetCashierPermissions).Methods("GET")
 	r.HandleFunc("/shadowinn/api/auditdate/", income.GetAuditDate).Methods("GET")
+	r.HandleFunc("/shadowinn/api/company/", income.GetCompany).Methods("GET")
 
 	// handle POS requests
 	r.HandleFunc("/api/pos/course/{id}/", pos.ListCourses).Methods("GET")
