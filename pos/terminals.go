@@ -35,6 +35,22 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, terminals)
 }
 
+
+func GetTerminal(w http.ResponseWriter, r *http.Request) {
+	query := bson.M{}
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, _ := strconv.Atoi(idStr)
+	query["id"] = id
+	terminal := map[string]interface{}{} 
+	err := db.DB.C("terminals").Find(query).One(&terminal)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	helpers.ReturnSuccessMessage(w, terminal)
+}
+
 func UnlockTerminal(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr, _ := vars["id"]

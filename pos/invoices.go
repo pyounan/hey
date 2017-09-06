@@ -10,6 +10,7 @@ import (
 	"pos-proxy/pos/fdm"
 	"pos-proxy/pos/models"
 	"pos-proxy/syncer"
+	"pos-proxy/proxy"
 	"strconv"
 	"time"
 
@@ -20,6 +21,11 @@ import (
 
 func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
+	isSettled := r.URL.Query().Get("is_settled")
+	if isSettled == "true" {
+		proxy.ProxyToBackend(w, r)
+		return
+	}
 	for key, val := range r.URL.Query() {
 		if key == "store" {
 			num, err := strconv.Atoi(val[0])
@@ -61,7 +67,8 @@ func GetInvoice(w http.ResponseWriter, r *http.Request) {
 	invoice := make(map[string]interface{})
 	err := db.DB.C("posinvoices").Find(q).One(&invoice)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
+		//helpers.ReturnErrorMessage(w, err.Error())
+		proxy.ProxyToBackend(w, r)
 		return
 	}
 	helpers.ReturnSuccessMessage(w, invoice)
@@ -298,8 +305,8 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 		body.Invoice.FDMResponses = fdmResponses
 	}
-	body.Invoice.Events = []models.Event{}
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
+	body.Invoice.Events = []models.Event{}
 
 	type RespBody struct {
 		NewInvoice models.Invoice `json:"new_invoice" bson:"new_invoice"`

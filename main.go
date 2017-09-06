@@ -79,6 +79,7 @@ func main() {
 	r.HandleFunc("/api/pos/printersettings/", pos.ListPrinterSettings).Methods("GET")
 
 	r.HandleFunc("/api/pos/terminal/", pos.ListTerminals).Methods("GET")
+	r.HandleFunc("/api/pos/terminal/:id/", pos.GetTerminal).Methods("GET")
 	r.HandleFunc("/api/pos/terminal/:id/unlockterminal/", pos.UnlockTerminal).Methods("GET")
 
 	r.HandleFunc("/api/pos/course/", pos.ListCourses).Methods("GET")
