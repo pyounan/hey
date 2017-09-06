@@ -54,7 +54,7 @@ type Invoice struct {
 	Pax                 float64                `json:"pax" bson:"pax"`
 	Store               int                    `json:"store" bson:"store"`
 	StoreDescription    string                 `json:"store_description" bson:"store_description"`
-	Subtotal            float64                `json:"subtotal" bson:"Subtotal"`
+	Subtotal            float64                `json:"subtotal" bson:"subtotal"`
 	TableID             int                    `json:"table_number" bson:"table_number"`
 	TakeOut             bool                   `json:"takeout" bson:"takeout"`
 	TerminalID          int                    `json:"terminal_id" bson:"terminal_id"`

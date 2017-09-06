@@ -21,11 +21,6 @@ import (
 
 func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
-	isSettled := r.URL.Query().Get("is_settled")
-	if isSettled == "true" {
-		proxy.ProxyToBackend(w, r)
-		return
-	}
 	for key, val := range r.URL.Query() {
 		if key == "store" {
 			num, err := strconv.Atoi(val[0])
@@ -42,8 +37,25 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 			}
 			q[key] = bson.M{"$gt": t}
 		} else {
-			// q[key] = val
+			q[key] = val[0]
 		}
+	}
+	invoices := []models.Invoice{}
+	err := db.DB.C("posinvoices").Find(q).All(&invoices)
+	if err != nil {
+		proxy.ProxyToBackend(w, r)
+		return
+	}
+
+	helpers.ReturnSuccessMessage(w, invoices)
+}
+
+func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
+	q := bson.M{}
+	isSettled := r.URL.Query().Get("is_settled")
+	if isSettled == "true" {
+		proxy.ProxyToBackend(w, r)
+		return
 	}
 	invoices := []models.Invoice{}
 	err := db.DB.C("posinvoices").Find(q).All(&invoices)
@@ -64,7 +76,7 @@ func GetInvoice(w http.ResponseWriter, r *http.Request) {
 	id, _ := vars["invoice_nubmer"]
 	q["invoice_number"] = id
 
-	invoice := make(map[string]interface{})
+	invoice := models.Invoice{}
 	err := db.DB.C("posinvoices").Find(q).One(&invoice)
 	if err != nil {
 		//helpers.ReturnErrorMessage(w, err.Error())
