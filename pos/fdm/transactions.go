@@ -5,7 +5,6 @@ import (
 	"log"
 	"math"
 	"pos-proxy/db"
-	"pos-proxy/ej"
 	"pos-proxy/libs/libfdm"
 	"pos-proxy/pos/locks"
 	"pos-proxy/pos/models"
@@ -100,17 +99,13 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 		return models.FDMResponse{}, err
 	}
 	pf_response := models.FDMResponse{}
-	stringRes := pf_response.Process(res, t)
+	pf_response.Process(res, t)
 	err = CheckFDMError(pf_response)
 	log.Println("Checking FDM Errors")
 	if err != nil {
 		log.Println(err)
 		return pf_response, err
 	}
-
-	/*go func(eventLabel string, t models.FDMTicket, stringRes map[string]interface{}) {
-		ej.Log(eventLabel, stringRes)
-	}(eventLabel, t, stringRes)*/
 
 	return pf_response, nil
 }
