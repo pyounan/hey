@@ -6,6 +6,7 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/pos/models"
 	"pos-proxy/helpers"
+	"pos-proxy/syncer"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -67,6 +68,8 @@ func UpdateTable(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
+
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, table)
 
 	helpers.ReturnSuccessMessage(w, table)
 }
