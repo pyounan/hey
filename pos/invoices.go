@@ -58,6 +58,7 @@ func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	invoices := []models.Invoice{}
+	q["is_settled"] = false
 	err := db.DB.C("posinvoices").Find(q).All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -237,8 +238,8 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 	}
 
-	req.Invoice.Events = []models.Event{}
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	req.Invoice.Events = []models.Event{}
 
 	req.Postings[0].PosPostingInformations = []models.Posting{}
 	req.Postings[0].PosPostingInformations = append(req.Postings[0].PosPostingInformations, models.Posting{})
