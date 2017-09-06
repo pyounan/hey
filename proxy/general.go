@@ -22,7 +22,7 @@ func ProxyToBackend(w http.ResponseWriter, r *http.Request) {
 	r.SetBasicAuth(config.AuthUsername, config.AuthPassword)
 	r.Header.Del("Access-Control-Allow-Origin")
 	r.Header.Del("Origin")
-	r.Header.Set("Origin", w.Header().Get("Origin"))
+	r.Header.Set("Origin", "https://test.cloudinn.net")
 	w.Header().Del("Access-Control-Allow-Origin")
 	prox.ServeHTTP(w, r)
 }

@@ -106,13 +106,13 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		req.Invoice.FDMResponses = fdmResponses
 	}
 
-	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
-	req.Invoice.Events = []models.Event{}
 	invoice, err := req.Submit()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	req.Invoice.Events = []models.Event{}
 
 	invoice.FDMResponses = fdmResponses
 	req.Invoice = invoice
