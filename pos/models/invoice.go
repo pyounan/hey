@@ -36,10 +36,10 @@ type PaymentLog struct {
 }
 
 type Invoice struct {
-	ID int `json:"id" bson:"id"`
+	ID *int64 `json:"id" bson:"id"`
 	InvoiceNumber string        `json:"invoice_number" bson:"invoice_number"`
 	Items         []POSLineItem `json:"posinvoicelineitem_set" bson:"posinvoicelineitem_set"`
-	TableNumber   int           `json:"table" bson:"table"`
+	TableNumber   *int64           `json:"table" bson:"table"`
 
 	Events []Event `json:"events" bson:"events"`
 
@@ -55,14 +55,14 @@ type Invoice struct {
 	Store               int                    `json:"store" bson:"store"`
 	StoreDescription    string                 `json:"store_description" bson:"store_description"`
 	Subtotal            float64                `json:"subtotal" bson:"subtotal"`
-	TableID             int                    `json:"table_number" bson:"table_number"`
+	TableID             *int64                    `json:"table_number" bson:"table_number"`
 	TakeOut             bool                   `json:"takeout" bson:"takeout"`
 	TerminalID          int                    `json:"terminal_id" bson:"terminal_id"`
 	TerminalDescription string                 `json:"terminal_description" bson:"terminal_description"`
 	Total               float64                `json:"total" bson:"total"`
 	FDMResponses        []FDMResponse          `json:"fdm_responses" bson:"fdm_responses"`
 	Postings            []Posting              `json:"pospayment" bson:"pospayment"`
-	Room                int                 `json:"room,omitempty" bson:"room,omitempty"`
+	Room                *int64                 `json:"room,omitempty" bson:"room,omitempty"`
 	RoomNumber string `json:"room_number,omitempty" bson:"room_number,omitempty"`
 	RoomDetails string `json:"room_details,omitempty" bson:"room_details,omitempty"`
 	HouseUse            bool                   `json:"house_use" bson:"house_use"`

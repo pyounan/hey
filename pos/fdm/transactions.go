@@ -55,7 +55,9 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	t.TerminalName = req.TerminalName
 	t.CashierName = req.CashierName
 	t.CashierNumber = strconv.Itoa(req.CashierNumber)
-	t.TableNumber = strconv.Itoa(req.Invoice.TableNumber)
+	if req.Invoice.TableNumber != nil {
+		t.TableNumber = strconv.Itoa(int(*req.Invoice.TableNumber))
+	}
 	t.UserID = req.EmployeeID
 	t.RCRS = req.RCRS
 	t.InvoiceNumber = req.Invoice.InvoiceNumber

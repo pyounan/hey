@@ -8,6 +8,10 @@ import (
 	"github.com/bsm/redis-lock"
 )
 
+func LockInvoices(invoices []models.Invoice, terminalID string) error {
+	return nil
+}
+
 func UnlockInvoices(invoices []models.Invoice) error {
 	for _, i := range invoices {
 		l, err := lock.ObtainLock(db.Redis, fmt.Sprintf("posinvoice_%f", i.InvoiceNumber), nil)
