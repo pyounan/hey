@@ -41,7 +41,7 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	invoices := []models.Invoice{}
-	err := db.DB.C("posinvoices").Find(q).All(&invoices)
+	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
 	if err != nil || len(invoices) == 0 {
 		proxy.ProxyToBackend(w, r)
 		return
@@ -59,7 +59,7 @@ func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 	}
 	invoices := []models.Invoice{}
 	q["is_settled"] = false
-	err := db.DB.C("posinvoices").Find(q).All(&invoices)
+	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

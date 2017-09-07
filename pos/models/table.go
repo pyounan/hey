@@ -28,7 +28,7 @@ func (t *Table) UpdateStatus() error {
 		t.Status = "Occupied"
 		t.HasInvoice = true
 	} else {
-		t.Status = "Vacant"
+		t.Status = "Occupied"
 		t.HasInvoice = false
 	}
 	updateQuery := bson.M{"updated_on": time.Now().UTC().Format("2006-01-02T15:04:05-0700"), "status": t.Status, "has_invoice": t.HasInvoice, "invoices_count": len(*invoices)}
