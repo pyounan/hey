@@ -22,7 +22,8 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	q["store_set"] = store
 	err := db.DB.C("cashiers").Find(q).One(&cashier)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
+		resp := bson.M{"ok": false, "details": "No matching PIN code to selected store."}
+		helpers.ReturnSuccessMessage(w, resp)
 		return
 	}
 
@@ -30,8 +31,8 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println(err)
 		if err.Error() == "Couldn't obtain terminal lock." {
-			resp := bson.M{"ok": false, "details": err.Error()}
-			helpers.ReturnErrorMessage(w, resp)
+			resp := bson.M{"ok": false, "details": "Terminal is locked."}
+			helpers.ReturnSuccessMessage(w, resp)
 			return
 		}
 		helpers.ReturnErrorMessage(w, err.Error())

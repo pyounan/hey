@@ -19,7 +19,7 @@ type Condiment struct {
 	VAT           string  `json:"vat_code" bson:"vat_code"`
 	VATPercentage float64 `json:"vat_percentage" bson:"vat_percentage"`
 	AttachedAttributes map[string]interface{} `json:"attached_attributes" bson:"attached_attributes"`
-	StoreMenuItemConfig int `json:"storemenuitemconfig" bson:"storemenuitemconfig"`
+	StoreMenuItemConfig *int64 `json:"storemenuitemconfig" bson:"storemenuitemconfig"`
 }
 
 type GroupedDiscounts map[string]Discount
