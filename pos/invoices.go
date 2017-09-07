@@ -177,10 +177,8 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	req.Invoice.Events = []models.Event{}
-	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 
-	invoice, err := req.Submit()
+	req.Invoice, err = req.Submit()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -203,11 +201,17 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fdmResponses = append(fdmResponses, responses...)
+		req.Invoice.FDMResponses = fdmResponses
 	}
 
-	invoice.FDMResponses = fdmResponses
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	req.Invoice.Events = []models.Event{}
 
-	helpers.ReturnSuccessMessage(w, invoice)
+	req.Invoice.PrintCount += 1
+
+	db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+
+	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
 func PayInvoice(w http.ResponseWriter, r *http.Request) {
@@ -235,10 +239,11 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fdmResponses = append(fdmResponses, responses...)
+		req.Invoice.FDMResponses = fdmResponses
+		log.Println(req.Invoice.FDMResponses)
 	}
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
-	req.Invoice.Events = []models.Event{}
 
 	for i := 0; i < len(req.Postings); i++ {
 		req.Postings[i].PosPostingInformations = []models.Posting{}
@@ -246,7 +251,6 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		req.Postings[i].PosPostingInformations[0].Comments = ""
 	}
 	req.Invoice.Postings = req.Postings
-	req.Invoice.FDMResponses = fdmResponses
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 
