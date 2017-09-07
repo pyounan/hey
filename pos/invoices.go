@@ -13,6 +13,8 @@ import (
 	"pos-proxy/proxy"
 	"strconv"
 	"time"
+	"fmt"
+	"io/ioutil"
 
 	"github.com/gorilla/mux"
 
@@ -44,7 +46,41 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
 	if err != nil || len(invoices) == 0 {
 		// if invoice is settled, get it from the backend & save it to mongo
-		proxy.ProxyToBackend(w, r)
+		if _, ok := q["invoice_number"]; ok {
+			netClient := &http.Client{
+				Timeout: time.Second * 10,
+			}
+
+			uri := fmt.Sprintf("%s%s", config.Config.BackendURI, r.RequestURI)
+			req, err := http.NewRequest(r.Method, uri, r.Body)
+			req = helpers.PrepareRequestHeaders(req)
+			resp, err := netClient.Do(req)
+			if err != nil {
+				log.Println(err.Error())
+				helpers.ReturnErrorMessage(w, err)
+				return
+			}
+			respbody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				log.Println(err.Error())
+				helpers.ReturnErrorMessage(w, err)
+				return
+			}
+			defer resp.Body.Close()
+			invoices := []models.Invoice{}
+			err = json.Unmarshal(respbody, &invoices)
+			if err != nil {
+				log.Println(err.Error())
+				helpers.ReturnErrorMessage(w, err)
+				return
+			}
+			if len(invoices) > 0 {
+				db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoices[0].InvoiceNumber}, invoices[0])
+			}
+			w.Write(respbody)
+		} else {
+			proxy.ProxyToBackend(w, r)
+		}
 		return
 	}
 
