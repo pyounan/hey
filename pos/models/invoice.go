@@ -75,4 +75,5 @@ type Invoice struct {
 	PrintCount          int                    `json:"print_count" bson:"print_count"`
 	Taxes               map[string]interface{} `json:"taxes" bson:"taxes"`
 	VoidReason string `json:"void_reasoni,omitempty" bson:"void_reason,omitempty"`
+	Change float64 `json:"change,omitempty" bson:"change,omitempty"`
 }

@@ -290,6 +290,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice.Postings = req.Postings
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
+	req.Invoice.Change = req.ChangeAmount
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
