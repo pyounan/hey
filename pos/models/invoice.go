@@ -68,4 +68,5 @@ type Invoice struct {
 	HouseUse            bool                   `json:"house_use" bson:"house_use"`
 	PrintCount          int                    `json:"print_count" bson:"print_count"`
 	Taxes               map[string]interface{} `json:"taxes" bson:"taxes"`
+	VoidReason string `json:"void_reason" bson:"void_reason"`
 }

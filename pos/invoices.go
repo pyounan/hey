@@ -59,6 +59,7 @@ func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 	}
 	invoices := []models.Invoice{}
 	q["is_settled"] = false
+	q["store"], _ = strconv.Atoi(r.URL.Query().Get("store"))
 	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())

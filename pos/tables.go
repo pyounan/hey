@@ -90,7 +90,7 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	q["table"] = val
+	q["table_number"] = val
 	terminalID, err := strconv.Atoi(r.URL.Query().Get("terminal_id"))
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -98,7 +98,7 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 	}
 
 	table := models.Table{}
-	err = db.DB.C("tables").Find(bson.M{"id": q["table"]}).One(&table)
+	err = db.DB.C("tables").Find(bson.M{"id": q["table_number"]}).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
