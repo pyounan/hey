@@ -240,7 +240,7 @@ func separateCondimentsAndDiscounts(rawItems []models.POSLineItem) []models.POSL
 		for _, disc := range item.Discounts {
 			for key, val := range disc {
 				d := models.POSLineItem{}
-				d.ID = item.ID
+				d.Item = item.Item
 				d.LineItemType = "discount"
 				if item.Price < 0 {
 					d.Price = math.Abs(val.Amount)

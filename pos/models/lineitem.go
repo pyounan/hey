@@ -9,6 +9,7 @@ import (
 )
 
 type Condiment struct {
+	ID int `json:"id,omitempty" bson:"id,omitempty"`
 	Condiment int `json:"condiment" bson:"condiment"`
 	Description   string  `json:"name" bson:"name"`
 	// Item          *int64 `json:"item" bson:"item"`
@@ -35,7 +36,8 @@ type Discount struct {
 }
 
 type POSLineItem struct {
-	ID                  float64                  `json:"item" bson:"item"`
+	ID int `json:"id,omitempty" bson:"id,omitempty"`
+	Item                  int                  `json:"item" bson:"item"`
 	Quantity            float64                  `json:"qty" bson:"qty"`
 	SubmittedQuantity   float64                  `json:"submitted_qty" bson:"submitted_qty"`
 	ReturnedQuantity    float64                  `json:"returned_qty" bson:"returned_qty"`
@@ -66,10 +68,11 @@ type POSLineItem struct {
 	StoreUnit int `json:"store_unit,omitempty" bson:"store_unit,omitempty"`
 	BaseUnit string `json:"base_unit,omitempty" bson:"base_unit,omitempty"`
 	OriginalFrontendId *string `json:"original_frontend_id" bson:"original_frontend_id"`
-	OriginalLineItemId *string `json:"original_lineitem_id" bson:"original_lineitem_id"`
+	OriginalLineItemId *int64 `json:"original_line_item_id" bson:"original_line_item_id"`
 	// used for waste
 	PosinvoiceID *int64 `json:"posinvoice,omitempty" bson:"posinvoice,omitempty"`
 	CashierID *int64 `json:"cashier,omitempty" bson:"cashier,omitempty"`
+	Reason string `json:"reason,omitempty" bson:"reason,omitempty"`
 }
 
 // String generates a text for a line item in a format for the FDM.

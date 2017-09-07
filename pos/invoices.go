@@ -43,6 +43,7 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	invoices := []models.Invoice{}
 	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
 	if err != nil || len(invoices) == 0 {
+		// if invoice is settled, get it from the backend & save it to mongo
 		proxy.ProxyToBackend(w, r)
 		return
 	}
@@ -277,25 +278,60 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	type ReqBody struct {
+		RCRS string `json:"rcrs" bson:"rcrs"`
+		TerminalID     int     `json:"terminal_id" bson:"terminal_id"`
+		TerminalNumber int     `json:"terminal_number" bson:"terminal_number"`
+		TerminalName   string  `json:"terminal_description" bson:"terminal_description"`
+		EmployeeID     string  `json:"employee_id" bson:"employee_id"`
 		Invoice models.Invoice `json:"posinvoice" bson:"posinvoice"`
+		OriginalInvoiceNumber string `json:"original_invoice_number" bson:"original_invoice_number"`
 		DepartmentID int `json:"department" bson:"department"`
-		Posintg models.Posting `json:"posting" bson:"posting"`
-		OldInvoiceID int `json:"old_posinvoice" bson:"old_posinvoice"`
+		Posting models.Posting `json:"posting" bson:"posting"`
 		CashierID int `json:"cashier_id" bson:"cashier_id"`
+		CashierName    string  `json:"cashier_name" bson:"cashier_name"`
+		CashierNumber  int     `json:"cashier_number" bson:"cashier_number"`
 		Type string `json:"type" bson:"type"`
+		ActionTime string  `json:"action_time" bson:"action_time"`
 	}
+	/*b, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+		    http.Error(w, "Error reading body", 400)
+		    return
+		}
+
+	h := ReqBody{}
+	if err := json.Unmarshal(b, &h); err != nil {
+            var msg string
+            switch t := err.(type) {
+            case *json.SyntaxError:
+                jsn := string(b[0:t.Offset])
+                jsn += "<--(Invalid Character)"
+                msg = fmt.Sprintf("Invalid character at offset %v\n %s", t.Offset, jsn)
+            case *json.UnmarshalTypeError:
+                jsn := string(b[0:t.Offset])
+                jsn += "<--(Invalid Type)"
+                msg = fmt.Sprintf("Invalid value at offset %v\n %s", t.Offset, jsn)
+            default:
+                msg = err.Error()
+            }
+            http.Error(w, msg, 400)
+            return
+        }*/
 	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
+		log.Println("########ERRRORRRRR#####", err.Error())
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
 	defer r.Body.Close()
 
+	log.Println("succed in decoding request body")
 	terminalIDStr := r.URL.Query().Get("terminal_id")
 	terminalID, _ := strconv.Atoi(terminalIDStr)
 	invoiceNumber, err := models.AdvanceInvoiceNumber(terminalID)
 	if err != nil {
+		log.Println("refund error", err.Error())
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
@@ -303,10 +339,21 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 
 	fdmResponses := []models.FDMResponse{}
 
+	req := models.InvoicePOSTRequest{}
+	req.RCRS = body.RCRS
+	req.EmployeeID = body.EmployeeID
+	req.Invoice = body.Invoice
+	req.TerminalID = body.TerminalID
+	req.TerminalNumber = body.TerminalNumber
+	req.TerminalName = body.TerminalName
+	req.CashierName = body.CashierName
+	req.CashierNumber = body.CashierNumber
+	req.IsClosed = true
+	req.ChangeAmount = 0
+	req.ActionTime = body.ActionTime
+	log.Println("succed in making invoicePOSTRequest")
 	if config.Config.IsFDMEnabled == true {
 		// create fdm connection
-		req := models.InvoicePOSTRequest{}
-		// TOFIX: fix req body values
 		conn, err := fdm.Connect(req.RCRS)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
@@ -326,18 +373,25 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 		body.Invoice.FDMResponses = fdmResponses
 	}
+	log.Println("pushed to fdm")
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
-	body.Invoice.Events = []models.Event{}
+	req.Invoice.PaidAmount = req.Invoice.Total
+
+	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.Invoice.InvoiceNumber}, body.Invoice)
 
 	type RespBody struct {
 		NewInvoice models.Invoice `json:"new_invoice" bson:"new_invoice"`
-		OldInvoice models.Invoice `json:"old_invoice" bson:"old_invoice"`
+		OriginalInvoice models.Invoice `json:"original_invoice" bson:"original_invoice"`
 		Postings []models.Posting `json:"postings" bson:"postings"`
 	}
 	resp := &RespBody{}
-	resp.NewInvoice = body.Invoice
-	resp.OldInvoice = models.Invoice{}
-	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OldInvoiceID}).One(&resp.OldInvoice)
+	resp.NewInvoice = req.Invoice
+	resp.OriginalInvoice = models.Invoice{}
+	resp.Postings = []models.Posting{}
+	body.Posting.PosPostingInformations = []models.Posting{}
+	body.Posting.PosPostingInformations =  append(body.Posting.PosPostingInformations, models.Posting{})
+	resp.Postings = append(resp.Postings, body.Posting)
+	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OriginalInvoiceNumber}).One(&resp.OriginalInvoice)
 	helpers.ReturnSuccessMessage(w, resp)
 
 }

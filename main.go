@@ -89,6 +89,7 @@ func main() {
 	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoices).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/", pos.SubmitInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/folio/", pos.FolioInvoice).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoices/refund/", pos.RefundInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/changetable/", pos.ChangeTable).Methods("PUT")
 	r.HandleFunc("/api/pos/posinvoices/split/", pos.SplitInvoices).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/togglelocking/", pos.ToggleLocking).Methods("GET")
@@ -116,14 +117,14 @@ func main() {
 	go func() {
 		for true {
 			syncer.PushToBackend()
-			time.Sleep(time.Second * 20)
+			time.Sleep(time.Second * 5)
 		}
 	}()
 
 	go func() {
 		for true {
 			syncer.Load()
-			time.Sleep(time.Second * 60)
+			time.Sleep(time.Second * 30)
 		}
 	}()
 
