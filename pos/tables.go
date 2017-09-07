@@ -17,6 +17,12 @@ import (
 func ListTables(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 
+	storeStr := r.URL.Query().Get("store")
+	if storeStr != "" {
+		storeID, _ := strconv.Atoi(storeStr)
+		q["store_id"] = storeID
+	}
+
 	tables := []models.Table{}
 	err := db.DB.C("tables").Find(q).All(&tables)
 	if err != nil {
