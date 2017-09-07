@@ -7,6 +7,7 @@ import (
 	"pos-proxy/pos/models"
 	"pos-proxy/helpers"
 	"pos-proxy/syncer"
+	"pos-proxy/pos/locks"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -96,7 +97,6 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	// Fix
 	q["is_settled"] = false
 	invoices := []models.Invoice{}
 	err = db.DB.C("posinvoices").Find(q).All(&invoices)
@@ -104,17 +104,23 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	terminal := make(map[string]interface{})
+	terminal := models.Terminal{}
 	err = db.DB.C("terminals").Find(bson.M{"id": terminalID}).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 
+	invoicesLocked := false
+	err = locks.LockInvoices(invoices, terminal.ID)
+	if err != nil {
+		invoicesLocked = true
+	}
+
 	resp := bson.M{}
 	resp["posinvoices"] = invoices
 	resp["table"] = table
-	resp["terminal"] = terminal["number"]
-	resp["lockedposinvoices"] = false
+	resp["terminal"] = terminal.Number
+	resp["lockedposinvoices"] = invoicesLocked
 	helpers.ReturnSuccessMessage(w, resp)
 }

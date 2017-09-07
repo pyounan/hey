@@ -36,7 +36,7 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			q[key] = bson.M{"$gt": t}
-		} else {
+		} else if key == "invoice_number" {
 			q[key] = val[0]
 		}
 	}
@@ -121,17 +121,15 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 
 	invoice, err := req.Submit()
 	if err != nil {
+		log.Println(err)
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	req.Invoice = invoice
 	req.Invoice.Events = []models.Event{}
 
-	invoice.FDMResponses = fdmResponses
-	req.Invoice = invoice
-	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
-
-	helpers.ReturnSuccessMessage(w, invoice)
+	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
 func UpdateInvoice(w http.ResponseWriter, r *http.Request) {
@@ -249,20 +247,23 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 
-	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
+	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
+		log.Println("failed to find posinvoice with this invoice number")
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 
 	// update table status
-	table := models.Table{}
-	err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
-		return
+	if req.Invoice.TableID != nil{
+		table := models.Table{}
+		err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		table.UpdateStatus()
 	}
-	table.UpdateStatus()
 
 	helpers.ReturnSuccessMessage(w, req)
 }

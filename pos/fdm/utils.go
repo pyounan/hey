@@ -223,10 +223,10 @@ func separateCondimentsAndDiscounts(rawItems []models.POSLineItem) []models.POSL
 			c := models.POSLineItem{}
 			c.LineItemType = item.LineItemType
 			c.IsCondiment = true
-			c.ID = cond.Item
+			// c.ID = cond.Item
+			c.UnitPrice = cond.Price
 			c.Price = float64(item.Quantity) * float64(priceOperator) * cond.Price
 			c.Quantity = item.Quantity
-			c.UnitPrice = cond.Price
 			c.VAT = cond.VAT
 			c.VATPercentage = cond.VATPercentage
 			c.NetAmount = cond.NetAmount

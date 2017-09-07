@@ -11,13 +11,15 @@ import (
 type Condiment struct {
 	Condiment int `json:"condiment" bson:"condiment"`
 	Description   string  `json:"name" bson:"name"`
-	Item          float64 `json:"item" bson:"item"`
-	UnitPrice     float64 `json:"unit_price" bson:"unit_price"`
+	// Item          *int64 `json:"item" bson:"item"`
+	UnitPrice     float64 `json:"unit_price,omitempty" bson:"unit_price,omitempty"`
 	Price         float64 `json:"price" bson:"price"`
 	NetAmount     float64 `json:"net_amount" bson:"net_amount"`
 	TaxAmount     float64 `json:"tax_amount" bson:"tax_amount"`
 	VAT           string  `json:"vat_code" bson:"vat_code"`
 	VATPercentage float64 `json:"vat_percentage" bson:"vat_percentage"`
+	AttachedAttributes map[string]interface{} `json:"attached_attributes" bson:"attached_attributes"`
+	StoreMenuItemConfig int `json:"storemenuitemconfig" bson:"storemenuitemconfig"`
 }
 
 type GroupedDiscounts map[string]Discount

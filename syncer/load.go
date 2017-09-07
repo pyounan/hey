@@ -148,8 +148,12 @@ func Load() {
 			defer response.Body.Close()
 			log.Printf("-- syncing %s from %s\n", collection, api)
 			if api == "api/pos/posinvoices/?is_settled=false" {
+				type Links struct {
+					Next *string `json:"next"`
+				}
 				type Body struct {
 					Results []models.Invoice `json:"results"`
+					Links Links `json:"links"`
 				}
 				res := Body{}
 				json.NewDecoder(response.Body).Decode(&res)
@@ -157,6 +161,30 @@ func Load() {
 					_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
 					if err != nil {
 						log.Println(err.Error())
+					}
+				}
+				for res.Links.Next != nil {
+					req, err = http.NewRequest("GET", *res.Links.Next, nil)
+					if err != nil {
+						log.Println(err.Error())
+					}
+					req = helpers.PrepareRequestHeaders(req)
+					paginationresponse, err := netClient.Do(req)
+					if err != nil {
+						log.Println(err.Error())
+						return
+					}
+					if paginationresponse.StatusCode != 200 {
+						log.Printf("Failed to load api from backend: %s\n", api)
+						return
+					}
+					defer paginationresponse.Body.Close()
+					json.NewDecoder(paginationresponse.Body).Decode(&res)
+					for _, item := range res.Results {
+						_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
+						if err != nil {
+							log.Println(err.Error())
+						}
 					}
 				}
 			} else if api == "shadowinn/api/auditdate/" {
