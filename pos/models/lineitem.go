@@ -67,6 +67,9 @@ type POSLineItem struct {
 	BaseUnit string `json:"base_unit,omitempty" bson:"base_unit,omitempty"`
 	OriginalFrontendId *string `json:"original_frontend_id" bson:"original_frontend_id"`
 	OriginalLineItemId *string `json:"original_lineitem_id" bson:"original_lineitem_id"`
+	// used for waste
+	PosinvoiceID *int64 `json:"posinvoice,omitempty" bson:"posinvoice,omitempty"`
+	CashierID *int64 `json:"cashier,omitempty" bson:"cashier,omitempty"`
 }
 
 // String generates a text for a line item in a format for the FDM.

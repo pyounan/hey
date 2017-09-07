@@ -240,9 +240,11 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice.Events = []models.Event{}
 
-	req.Postings[0].PosPostingInformations = []models.Posting{}
-	req.Postings[0].PosPostingInformations = append(req.Postings[0].PosPostingInformations, models.Posting{})
-	req.Postings[0].PosPostingInformations[0].Comments = ""
+	for i := 0; i < len(req.Postings); i++ {
+		req.Postings[i].PosPostingInformations = []models.Posting{}
+		req.Postings[i].PosPostingInformations = append(req.Postings[i].PosPostingInformations, models.Posting{})
+		req.Postings[i].PosPostingInformations[0].Comments = ""
+	}
 	req.Invoice.Postings = req.Postings
 	req.Invoice.FDMResponses = fdmResponses
 	req.Invoice.IsSettled = true
