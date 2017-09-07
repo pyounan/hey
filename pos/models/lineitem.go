@@ -65,6 +65,7 @@ type POSLineItem struct {
 	UpdatedOn           string                   `json:"updated_on" bson:"updated_on"`
 	StoreUnit int `json:"store_unit,omitempty" bson:"store_unit,omitempty"`
 	BaseUnit string `json:"base_unit,omitempty" bson:"base_unit,omitempty"`
+	OriginalFrontendId *string `json:"original_frontend_id" bson:"original_frontend_id"`
 }
 
 // String generates a text for a line item in a format for the FDM.
