@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"pos-proxy/db"
-	"pos-proxy/pos/models"
 	"pos-proxy/helpers"
-	"pos-proxy/syncer"
 	"pos-proxy/pos/locks"
+	"pos-proxy/pos/models"
+	"pos-proxy/syncer"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -118,7 +118,7 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 	}
 
 	invoicesLocked := false
-	err = locks.LockInvoices(invoices, terminal.ID)
+	otherTerminal, err := locks.LockInvoices(invoices, terminal.ID)
 	if err != nil {
 		invoicesLocked = true
 	}
@@ -126,7 +126,7 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 	resp := bson.M{}
 	resp["posinvoices"] = invoices
 	resp["table"] = table
-	resp["terminal"] = terminal.Number
+	resp["terminal"] = otherTerminal
 	resp["lockedposinvoices"] = invoicesLocked
 	helpers.ReturnSuccessMessage(w, resp)
 }
