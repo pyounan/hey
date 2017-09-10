@@ -62,13 +62,9 @@ func LockInvoices(invoices []models.Invoice, terminalID int) (int64, error) {
 	return otherTerminal, err
 }
 
-func UnlockInvoices(invoices []models.Invoice) error {
+func UnlockInvoices(invoices []models.Invoice) {
+	client := db.Redis
 	for _, i := range invoices {
-		l, err := lock.ObtainLock(db.Redis, fmt.Sprintf("posinvoice_%f", i.InvoiceNumber), nil)
-		if err != nil {
-			return err
-		}
-		l.Unlock()
+		client.Del("invoice_" + i.InvoiceNumber)
 	}
-	return nil
 }
