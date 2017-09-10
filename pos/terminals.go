@@ -3,14 +3,17 @@ package pos
 import (
 	"net/http"
 	"pos-proxy/db"
-	"pos-proxy/pos/locks"
 	"pos-proxy/helpers"
+	"pos-proxy/pos/locks"
+	"pos-proxy/pos/models"
 	"strconv"
 
-	"gopkg.in/mgo.v2/bson"
 	"github.com/gorilla/mux"
+	"gopkg.in/mgo.v2/bson"
 )
 
+// ListTerminals returns a json response with list of terminals,
+// could be queries by store
 func ListTerminals(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	queryParams := r.URL.Query()
@@ -26,7 +29,7 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 			query[key] = val
 		}
 	}
-	var terminals []map[string]interface{}
+	terminals := []models.Terminal{}
 	err := db.DB.C("terminals").Find(query).All(&terminals)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -35,14 +38,14 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, terminals)
 }
 
-
+// GetTerminal returns a json response with the specified terminal id
 func GetTerminal(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	vars := mux.Vars(r)
 	idStr := vars["id"]
 	id, _ := strconv.Atoi(idStr)
 	query["id"] = id
-	terminal := map[string]interface{}{} 
+	terminal := []models.Terminal{}
 	err := db.DB.C("terminals").Find(query).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -51,6 +54,8 @@ func GetTerminal(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, terminal)
 }
 
+// UnlockTerminal removes the terminal redis key and make the terminal
+// available for other cashiers again
 func UnlockTerminal(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr, _ := vars["id"]

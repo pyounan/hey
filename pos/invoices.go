@@ -2,19 +2,21 @@ package pos
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
 	"pos-proxy/pos/fdm"
+	"pos-proxy/pos/locks"
 	"pos-proxy/pos/models"
-	"pos-proxy/syncer"
 	"pos-proxy/proxy"
+	"pos-proxy/syncer"
 	"strconv"
+	"strings"
 	"time"
-	"fmt"
-	"io/ioutil"
 
 	"github.com/gorilla/mux"
 
@@ -174,10 +176,6 @@ func UpdateInvoice(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func LockInvoice(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	invoiceNumber := vars["invoice_number"]
@@ -214,7 +212,6 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-
 	req.Invoice, err = req.Submit()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -244,7 +241,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice.Events = []models.Event{}
 
-	req.Invoice.PrintCount += 1
+	req.Invoice.PrintCount++
 
 	db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 
@@ -300,7 +297,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update table status
-	if req.Invoice.TableID != nil{
+	if req.Invoice.TableID != nil {
 		table := models.Table{}
 		err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
 		if err != nil {
@@ -315,45 +312,45 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	type ReqBody struct {
-		RCRS string `json:"rcrs" bson:"rcrs"`
-		TerminalID     int     `json:"terminal_id" bson:"terminal_id"`
-		TerminalNumber int     `json:"terminal_number" bson:"terminal_number"`
-		TerminalName   string  `json:"terminal_description" bson:"terminal_description"`
-		EmployeeID     string  `json:"employee_id" bson:"employee_id"`
-		Invoice models.Invoice `json:"posinvoice" bson:"posinvoice"`
-		OriginalInvoiceNumber string `json:"original_invoice_number" bson:"original_invoice_number"`
-		DepartmentID int `json:"department" bson:"department"`
-		Posting models.Posting `json:"posting" bson:"posting"`
-		CashierID int `json:"cashier_id" bson:"cashier_id"`
-		CashierName    string  `json:"cashier_name" bson:"cashier_name"`
-		CashierNumber  int     `json:"cashier_number" bson:"cashier_number"`
-		Type string `json:"type" bson:"type"`
-		ActionTime string  `json:"action_time" bson:"action_time"`
+		RCRS                  string         `json:"rcrs" bson:"rcrs"`
+		TerminalID            int            `json:"terminal_id" bson:"terminal_id"`
+		TerminalNumber        int            `json:"terminal_number" bson:"terminal_number"`
+		TerminalName          string         `json:"terminal_description" bson:"terminal_description"`
+		EmployeeID            string         `json:"employee_id" bson:"employee_id"`
+		Invoice               models.Invoice `json:"posinvoice" bson:"posinvoice"`
+		OriginalInvoiceNumber string         `json:"original_invoice_number" bson:"original_invoice_number"`
+		DepartmentID          int            `json:"department" bson:"department"`
+		Posting               models.Posting `json:"posting" bson:"posting"`
+		CashierID             int            `json:"cashier_id" bson:"cashier_id"`
+		CashierName           string         `json:"cashier_name" bson:"cashier_name"`
+		CashierNumber         int            `json:"cashier_number" bson:"cashier_number"`
+		Type                  string         `json:"type" bson:"type"`
+		ActionTime            string         `json:"action_time" bson:"action_time"`
 	}
 	/*b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-		    http.Error(w, "Error reading body", 400)
-		    return
-		}
+			if err != nil {
+			    http.Error(w, "Error reading body", 400)
+			    return
+			}
 
-	h := ReqBody{}
-	if err := json.Unmarshal(b, &h); err != nil {
-            var msg string
-            switch t := err.(type) {
-            case *json.SyntaxError:
-                jsn := string(b[0:t.Offset])
-                jsn += "<--(Invalid Character)"
-                msg = fmt.Sprintf("Invalid character at offset %v\n %s", t.Offset, jsn)
-            case *json.UnmarshalTypeError:
-                jsn := string(b[0:t.Offset])
-                jsn += "<--(Invalid Type)"
-                msg = fmt.Sprintf("Invalid value at offset %v\n %s", t.Offset, jsn)
-            default:
-                msg = err.Error()
-            }
-            http.Error(w, msg, 400)
-            return
-        }*/
+		h := ReqBody{}
+		if err := json.Unmarshal(b, &h); err != nil {
+	            var msg string
+	            switch t := err.(type) {
+	            case *json.SyntaxError:
+	                jsn := string(b[0:t.Offset])
+	                jsn += "<--(Invalid Character)"
+	                msg = fmt.Sprintf("Invalid character at offset %v\n %s", t.Offset, jsn)
+	            case *json.UnmarshalTypeError:
+	                jsn := string(b[0:t.Offset])
+	                jsn += "<--(Invalid Type)"
+	                msg = fmt.Sprintf("Invalid value at offset %v\n %s", t.Offset, jsn)
+	            default:
+	                msg = err.Error()
+	            }
+	            http.Error(w, msg, 400)
+	            return
+	        }*/
 	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
@@ -417,16 +414,16 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.Invoice.InvoiceNumber}, body.Invoice)
 
 	type RespBody struct {
-		NewInvoice models.Invoice `json:"new_invoice" bson:"new_invoice"`
-		OriginalInvoice models.Invoice `json:"original_invoice" bson:"original_invoice"`
-		Postings []models.Posting `json:"postings" bson:"postings"`
+		NewInvoice      models.Invoice   `json:"new_invoice" bson:"new_invoice"`
+		OriginalInvoice models.Invoice   `json:"original_invoice" bson:"original_invoice"`
+		Postings        []models.Posting `json:"postings" bson:"postings"`
 	}
 	resp := &RespBody{}
 	resp.NewInvoice = req.Invoice
 	resp.OriginalInvoice = models.Invoice{}
 	resp.Postings = []models.Posting{}
 	body.Posting.PosPostingInformations = []models.Posting{}
-	body.Posting.PosPostingInformations =  append(body.Posting.PosPostingInformations, models.Posting{})
+	body.Posting.PosPostingInformations = append(body.Posting.PosPostingInformations, models.Posting{})
 	resp.Postings = append(resp.Postings, body.Posting)
 	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OriginalInvoiceNumber}).One(&resp.OriginalInvoice)
 	helpers.ReturnSuccessMessage(w, resp)
@@ -531,15 +528,15 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 
 func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 	type ReqBody struct {
-		ActionTime string `json:"action_time" bson:"action_time"`
-		CashierName string `json:"cashier_name" bson:"cashier_name"`
-		CashierNumber int `json:"cashier_number" bson:"cashier_number"`
-		EmployeeID string `json:"employee_id" bson:"employee_id"`
-		Invoices []models.Invoice `json:"posinvoices" bson:"posinvoices"`
-		RCRS string `json:"rcrs" bson:"rcrs"`
-		TerminalDescription string `json:"terminal_description" bson:"terminal_description"`
-		TerminalID int `json:"terminal_id" bson:"terminal_id"`
-		TerminalNumber int `json:"terminal_number" bson:"terminal_number"`
+		ActionTime          string           `json:"action_time" bson:"action_time"`
+		CashierName         string           `json:"cashier_name" bson:"cashier_name"`
+		CashierNumber       int              `json:"cashier_number" bson:"cashier_number"`
+		EmployeeID          string           `json:"employee_id" bson:"employee_id"`
+		Invoices            []models.Invoice `json:"posinvoices" bson:"posinvoices"`
+		RCRS                string           `json:"rcrs" bson:"rcrs"`
+		TerminalDescription string           `json:"terminal_description" bson:"terminal_description"`
+		TerminalID          int              `json:"terminal_id" bson:"terminal_id"`
+		TerminalNumber      int              `json:"terminal_number" bson:"terminal_number"`
 	}
 	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
@@ -598,7 +595,6 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, invoice)
 
 	lineItem := invoice.Items[len(invoice.Items)-1]
@@ -616,5 +612,40 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 }
 
 func ToggleLocking(w http.ResponseWriter, r *http.Request) {
+	numbers := strings.Split(r.URL.Query().Get("id"), ",")
+	terminalIDStr := r.URL.Query().Get("terminal_id")
+	terminalID, _ := strconv.Atoi(terminalIDStr)
+	target := r.URL.Query().Get("target")
+
+	invoices := []models.Invoice{}
+	err := db.DB.C("posinvoices").Find(bson.M{"invoice_number": bson.M{"$in": numbers}}).All(&invoices)
+	if err != nil {
+		helpers.ReturnSuccessMessage(w, err.Error())
+		return
+	}
+
+	if target == "lock" {
+		otherTerminal, err := locks.LockInvoices(invoices, terminalID)
+		if err != nil {
+			helpers.ReturnErrorMessageWithStatus(w, 409, fmt.Sprintf("Invoices locked by Terminal %d", otherTerminal))
+			return
+		}
+	} else {
+		locks.UnlockInvoices(invoices)
+	}
+
+	helpers.ReturnSuccessMessage(w, true)
+}
+
+func GetInvoiceLatestChanges(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	terminalID, _ := strconv.Atoi(params["terminal_id"][0])
+	invoiceNumber, _ := mux.Vars(r)["invoice_number"]
+	invoice := models.Invoice{InvoiceNumber: invoiceNumber}
+	otherTerminal, err := locks.LockInvoices([]models.Invoice{invoice}, terminalID)
+	if err != nil {
+		helpers.ReturnErrorMessageWithStatus(w, 409, fmt.Sprintf("Invoice is locked by Terminal %d otherTerminal", otherTerminal))
+		return
+	}
 	helpers.ReturnSuccessMessage(w, true)
 }
