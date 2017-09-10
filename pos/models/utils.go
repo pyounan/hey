@@ -11,6 +11,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// AdvanceInvoiceNumber increases the terminal.last_invoice_id by one and
+// returns a new invoice number.
 func AdvanceInvoiceNumber(terminalID int) (string, error) {
 	// Connect to Redis
 	client := redis.NewClient(&redis.Options{
@@ -44,4 +46,28 @@ func AdvanceInvoiceNumber(terminalID int) (string, error) {
 		return "", err
 	}
 	return invoiceNumber, nil
+}
+
+// SummarizeVAT calculates the total net_amount and vat_amount of each
+// VAT rate
+func SummarizeVAT(items *[]POSLineItem) map[string]VATSummary {
+	summary := make(map[string]VATSummary)
+	rates := []string{"A", "B", "C", "D", "Total"}
+	for _, r := range rates {
+		summary[r] = VATSummary{}
+		summary[r]["net_amount"] = 0
+		summary[r]["vat_amount"] = 0
+		summary[r]["taxable_amount"] = 0
+	}
+	for _, item := range *items {
+		summary[item.VAT]["net_amount"] += item.NetAmount
+		summary[item.VAT]["vat_amount"] += item.NetAmount * item.VATPercentage / 100
+		summary[item.VAT]["taxable_amount"] += item.Price
+
+		summary["Total"]["net_amount"] += item.NetAmount
+		summary["Total"]["vat_amount"] += item.NetAmount * item.VATPercentage / 100
+		summary["Total"]["taxable_amount"] += item.Price
+	}
+
+	return summary
 }

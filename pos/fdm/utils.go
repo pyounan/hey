@@ -38,9 +38,9 @@ func formatSequence(val int) string {
 	return str
 }
 
-func formatAmount(old_val float64) string {
-	old_val = math.Abs(old_val)
-	amount := strconv.FormatFloat(old_val, 'f', 2, 64)
+func formatAmount(oldVal float64) string {
+	oldVal = math.Abs(oldVal)
+	amount := strconv.FormatFloat(oldVal, 'f', 2, 64)
 	amount = strings.Replace(amount, ".", "", 1)
 	// make sure total amount is 11 length, 9.2
 	for len(amount) < 11 {
@@ -50,48 +50,24 @@ func formatAmount(old_val float64) string {
 	return amount
 }
 
-func formatTicketNumber(old_val string) string {
-	tn := old_val
+func formatTicketNumber(oldVal string) string {
+	tn := oldVal
 	for len(tn) < 6 {
 		tn = " " + tn
 	}
 	return tn
 }
 
-func formatDate(old_val string) string {
-	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", old_val)
+func formatDate(oldVal string) string {
+	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", oldVal)
 	str := t.Format("20060102")
 	return str
 }
 
-func formatTime(old_val string) string {
-	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", old_val)
+func formatTime(oldVal string) string {
+	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", oldVal)
 	str := t.Format("150405")
 	return str
-}
-
-// summarizeVAT calculates the total net_amount and vat_amount of each
-// VAT rate
-func summarizeVAT(items *[]models.POSLineItem) map[string]models.VATSummary {
-	summary := make(map[string]models.VATSummary)
-	rates := []string{"A", "B", "C", "D", "Total"}
-	for _, r := range rates {
-		summary[r] = models.VATSummary{}
-		summary[r]["net_amount"] = 0
-		summary[r]["vat_amount"] = 0
-		summary[r]["taxable_amount"] = 0
-	}
-	for _, item := range *items {
-		summary[item.VAT]["net_amount"] += item.NetAmount
-		summary[item.VAT]["vat_amount"] += item.NetAmount * item.VATPercentage / 100
-		summary[item.VAT]["taxable_amount"] += item.Price
-
-		summary["Total"]["net_amount"] += item.NetAmount
-		summary["Total"]["vat_amount"] += item.NetAmount * item.VATPercentage / 100
-		summary["Total"]["taxable_amount"] += item.Price
-	}
-
-	return summary
 }
 
 func calculateVATs(items []models.POSLineItem) map[string]float64 {
@@ -130,7 +106,7 @@ func generateLowLevelMessage(message string) []byte {
 }
 
 func calculateLRC(message []byte) byte {
-	var LRC byte = byte(0)
+	var LRC = byte(0)
 	for _, rune := range message {
 		LRC = (LRC + rune) & 0xFF
 	}
@@ -144,13 +120,13 @@ func incrementRetryCounter(packet *[]byte) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	i += 1
+	i++
 	(*packet)[4] = byte(i)
 }
 
 // prepareHashAndSignMsg is a shortcut function that prepares the string that should be sent to the FDM in case of sales or refund
-func prepareHashAndSignMsg(RCRS string, event_label string, t models.FDMTicket) string {
-	// format: identifier + sequence + retry + ticket_date + ticket_time_period + user_id + RCRS + string(ticket_number) + event_label + total_amount + 4 vats + plu
+func prepareHashAndSignMsg(RCRS string, eventLabel string, t models.FDMTicket) string {
+	// format: identifier + sequence + retry + ticket_date + ticket_time_period + user_id + RCRS + string(ticket_number) + eventLabel + total_amount + 4 vats + plu
 	identifier := "H"
 	ns, _ := db.GetNextSequence(RCRS)
 	// db.UpdateLastSequence(ns)
@@ -161,7 +137,7 @@ func prepareHashAndSignMsg(RCRS string, event_label string, t models.FDMTicket) 
 	amount := formatAmount(t.TotalAmount)
 	tn := formatTicketNumber(t.TicketNumber)
 
-	msg := identifier + sequence + retry + dt + period + t.UserID + t.RCRS + tn + event_label + amount
+	msg := identifier + sequence + retry + dt + period + t.UserID + t.RCRS + tn + eventLabel + amount
 	// add VATs
 	for _, v := range t.VATs {
 		// make sure that every vat percentage is formatted as 4 numerical letters: yy.xx
@@ -175,6 +151,7 @@ func prepareHashAndSignMsg(RCRS string, event_label string, t models.FDMTicket) 
 	return msg
 }
 
+// CheckFDMError parses the error values of fdm response and converts them to human readable error
 func CheckFDMError(res models.FDMResponse) error {
 	log.Println(res.Error1, res.Error2)
 	if res.Error1 != "0" {
@@ -201,9 +178,12 @@ func CheckFDMError(res models.FDMResponse) error {
 	return nil
 }
 
-func separateCondimentsAndDiscounts(rawItems []models.POSLineItem) []models.POSLineItem {
+func separateCondimentsAndDiscounts(rawItems []models.POSLineItem, submitMode bool) []models.POSLineItem {
 	items := []models.POSLineItem{}
 	for _, item := range rawItems {
+		if submitMode == true && item.Quantity == item.SubmittedQuantity {
+			continue
+		}
 		priceOperator := 1
 		item.LineItemType = "sales"
 		item.TaxAmount = item.Price - item.NetAmount
@@ -217,13 +197,18 @@ func separateCondimentsAndDiscounts(rawItems []models.POSLineItem) []models.POSL
 		if item.OpenItem {
 			item.Description = item.Comment
 		}
-		items = append(items, item)
+		if submitMode == false {
+			items = append(items, item)
+		}
 
-		for _, cond := range item.Condiments {
+		for _, cond := range item.CondimentLineItems {
+			if cond.Price == 0 {
+				continue
+			}
 			c := models.POSLineItem{}
+			c.Description = cond.Description
 			c.LineItemType = item.LineItemType
 			c.IsCondiment = true
-			// c.ID = cond.Item
 			c.UnitPrice = cond.Price
 			c.Price = float64(item.Quantity) * float64(priceOperator) * cond.Price
 			c.Quantity = item.Quantity
@@ -258,11 +243,14 @@ func separateCondimentsAndDiscounts(rawItems []models.POSLineItem) []models.POSL
 				d.VATPercentage = val.VATPercentage
 				d.NetAmount = val.NetAmount
 				d.TaxAmount = d.Price - d.NetAmount
-				items = append(items, d)
+				// only add discounts if mode is not submit, because we already add discoutns from events
+				if submitMode == false {
+					items = append(items, d)
+				}
 			}
 		}
 	}
-	return rawItems
+	return items
 }
 
 func splitItemsByVATRates(items []models.POSLineItem, rates []string) []models.POSLineItem {

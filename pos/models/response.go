@@ -73,7 +73,7 @@ func (r *FDMResponse) Process(fdm_response []byte, ticket FDMTicket) map[string]
 	r.Signature = str[69:109]
 	// Attaching other attributes from ticket and summarized data
 	r.PLUHash = ticket.PLUHash
-	r.VATSummary = ticket.VATSummary
+	r.VATSummary = SummarizeVAT(&ticket.Items)
 	r.TicketNumber = ticket.TicketNumber
 	r.TicketActionTime = ticket.ActionTime
 	// make map
@@ -94,5 +94,6 @@ func (r *FDMResponse) Process(fdm_response []byte, ticket FDMTicket) map[string]
 	res["signature"] = r.Signature
 	res["ticket_number"] = r.TicketNumber
 	res["ticket_datetime"] = r.TicketActionTime
+	res["vat_summary"] = r.VATSummary
 	return res
 }

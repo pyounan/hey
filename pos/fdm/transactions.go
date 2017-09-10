@@ -79,7 +79,6 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 
 	t.VATs[3].Percentage = 0
 	t.VATs[3].FixedAmount = math.Abs(VATs["D"])
-	t.VATSummary = summarizeVAT(&t.Items)
 	// Don't send aything to FDM if is there is no new items added
 	err = db.DB.C("tickets").Insert(&t)
 	if err != nil {
@@ -100,18 +99,20 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 		log.Println(err)
 		return models.FDMResponse{}, err
 	}
-	pf_response := models.FDMResponse{}
-	pf_response.Process(res, t)
-	err = CheckFDMError(pf_response)
+	pfResponse := models.FDMResponse{}
+	pfResponse.Process(res, t)
+	err = CheckFDMError(pfResponse)
 	log.Println("Checking FDM Errors")
 	if err != nil {
 		log.Println(err)
-		return pf_response, err
+		return pfResponse, err
 	}
 
-	return pf_response, nil
+	return pfResponse, nil
 }
 
+// Submit loops over the events of the invoice, condiments and discounts of unsubmitted items and
+// sends them to FDM.
 func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMResponse, error) {
 	// check status
 	resp, err := CheckStatus(fdm, data.RCRS)
@@ -129,7 +130,8 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 		items = append(items, e.Item)
 	}
 	// calculate total amount of each VAT rate
-	items = separateCondimentsAndDiscounts(items)
+	condimentsAndDiscounts := separateCondimentsAndDiscounts(data.Invoice.Items, true)
+	items = append(items, condimentsAndDiscounts...)
 	vats := calculateVATs(items)
 	positiveVATs := []string{}
 	negativeVATs := []string{}
@@ -165,6 +167,7 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 	return responses, nil
 }
 
+// Folio sends PS or PR with the whole invoice to the FDM
 func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMResponse, error) {
 	resp, err := CheckStatus(fdm, data.RCRS)
 	if err != nil {
@@ -180,7 +183,7 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 	responses := []models.FDMResponse{}
 
 	// now send the whole invoice
-	items := separateCondimentsAndDiscounts(data.Invoice.Items)
+	items := separateCondimentsAndDiscounts(data.Invoice.Items, false)
 	vats := calculateVATs(items)
 	positiveVATs := []string{}
 	negativeVATs := []string{}
@@ -214,6 +217,7 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 	return responses, nil
 }
 
+//Payment adds NS or NR to fdm
 func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMResponse, error) {
 	resp, err := CheckStatus(fdm, data.RCRS)
 	if err != nil {
@@ -229,7 +233,10 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 	responses := []models.FDMResponse{}
 
 	// now send the whole invoice
-	items := separateCondimentsAndDiscounts(data.Invoice.Items)
+	items := separateCondimentsAndDiscounts(data.Invoice.Items, false)
+	for _, i := range items {
+		log.Println(i.Description, i.Price, i.NetAmount)
+	}
 	vats := calculateVATs(items)
 	positiveVATs := []string{}
 	negativeVATs := []string{}

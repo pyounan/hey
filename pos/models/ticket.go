@@ -4,11 +4,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-/*type Payment struct {
-	PaymentType string  `json:"payment_type" bson:"payment_type"`
-	PaidAmount  float64 `json:"paid_amount" bson:"paid_amount"`
-}*/
-
 type FDMTicket struct {
 	ID            bson.ObjectId `json:"-" bson:"_id"`
 	TicketNumber  string        `json:"ticket_number" bson:"ticket_number"`
@@ -28,6 +23,4 @@ type FDMTicket struct {
 	Postings     []Posting `bson:"postings"`
 	ChangeAmount float64   `bson:"change_amount"`
 	IsClosed     bool      `bson:"is_closed"`
-	// VATSummary
-	VATSummary map[string]VATSummary `bson:"vat_summary"`
 }
