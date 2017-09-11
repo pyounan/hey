@@ -2,6 +2,7 @@ package pos
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
@@ -120,6 +121,7 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 	invoicesLocked := false
 	otherTerminal, err := locks.LockInvoices(invoices, terminal.ID)
 	if err != nil {
+		log.Println(err.Error())
 		invoicesLocked = true
 	}
 
