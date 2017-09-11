@@ -6,14 +6,15 @@ import (
 	"log"
 	"pos-proxy/db"
 	"pos-proxy/pos/models"
+	"strconv"
 
 	"github.com/bsm/redis-lock"
 	"github.com/go-redis/redis"
 )
 
-func LockInvoices(invoices []models.Invoice, terminalID int) (int64, error) {
+func LockInvoices(invoices []models.Invoice, terminalID int) (int, error) {
 	lockName := fmt.Sprintf("posinvoices_lock")
-	var otherTerminal int64 = 0
+	var otherTerminal int
 	client := db.Redis
 	l, err := lock.ObtainLock(client, lockName, nil)
 	if err != nil {
@@ -42,24 +43,41 @@ func LockInvoices(invoices []models.Invoice, terminalID int) (int64, error) {
 
 		for _, key := range keys {
 			_, err = tx.Pipelined(func(pipe redis.Pipeliner) error {
-				n, err := pipe.Get(key).Int64()
+				log.Println("PIPELINE KEY", key)
+				val, err := tx.Get(key).Result()
 				if err != nil && err != redis.Nil {
 					return err
-				} else if n != int64(terminalID) {
-					otherTerminal = n
-					return errors.New("Invoice key already exists!!")
 				}
-				pipe.Set(key, terminalID, 0)
+				log.Println("REDIS VALUE", val)
+				if val == "" {
+					log.Println("INVOICE IS NOT LOCKED")
+					pipe.Set(key, terminalID, 0)
+					return nil
+				}
+				n, err := strconv.Atoi(val)
+				if err != nil {
+					log.Println("SOME ERROR", err, n, int64(terminalID))
+					return err
+				} else if n != terminalID {
+					otherTerminal = n
+					log.Println("PIPELINE TERMINAL IS LOCKED")
+					return errors.New("invoice key already exists")
+				}
 				return nil
 			})
-			if err != nil {
+			if err != nil && err != redis.Nil {
+				log.Println("PIPELINE ERROR", err)
 				return err
 			}
 		}
 		return nil
 	}, keys...)
 
-	return otherTerminal, err
+	log.Println("WATCH ERR", err)
+	if err != nil && err != redis.Nil {
+		return otherTerminal, err
+	}
+	return otherTerminal, nil
 }
 
 func UnlockInvoices(invoices []models.Invoice) {

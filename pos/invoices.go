@@ -644,8 +644,11 @@ func GetInvoiceLatestChanges(w http.ResponseWriter, r *http.Request) {
 	invoice := models.Invoice{InvoiceNumber: invoiceNumber}
 	otherTerminal, err := locks.LockInvoices([]models.Invoice{invoice}, terminalID)
 	if err != nil {
-		helpers.ReturnErrorMessageWithStatus(w, 409, fmt.Sprintf("Invoice is locked by Terminal %d otherTerminal", otherTerminal))
+		log.Println(err)
+		res := bson.M{"terminal": otherTerminal, "lockedposinvoices": true, "posinvoice": invoice}
+		helpers.ReturnErrorMessageWithStatus(w, 409, res)
 		return
 	}
-	helpers.ReturnSuccessMessage(w, true)
+	res := bson.M{"terminal": nil, "lockedposinvoices": false, "posinvoice": invoice}
+	helpers.ReturnSuccessMessage(w, res)
 }
