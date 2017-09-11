@@ -45,7 +45,7 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	if err != nil && ((cashierHashExists && otherCashier == cashier.ID) || otherCashier != cashier.ID) {
 		log.Println(err)
 		resp := bson.M{"ok": false, "details": "Terminal is locked."}
-		helpers.ReturnErrorMessage(w, resp)
+		helpers.ReturnSuccessMessage(w, resp)
 		return
 	}
 
