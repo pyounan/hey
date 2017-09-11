@@ -12,6 +12,8 @@ import (
 	"github.com/go-redis/redis"
 )
 
+// LockInvoices creates keys in Redis for given invoices and lock
+// them to the passed terminal id.
 func LockInvoices(invoices []models.Invoice, terminalID int) (int, error) {
 	lockName := fmt.Sprintf("posinvoices_lock")
 	var otherTerminal int
@@ -27,7 +29,6 @@ func LockInvoices(invoices []models.Invoice, terminalID int) (int, error) {
 	}
 	log.Println("obtain invoice lock", lockName)
 	ok, err := l.Lock()
-	defer l.Unlock()
 	if err != nil {
 		log.Println("failed to renew invoice lock", lockName)
 		return otherTerminal, err
@@ -35,6 +36,8 @@ func LockInvoices(invoices []models.Invoice, terminalID int) (int, error) {
 		log.Println("failed to renew invoice lock", lockName)
 		return otherTerminal, errors.New("failed to renew lock")
 	}
+	defer l.Unlock()
+
 	keys := []string{}
 	for _, i := range invoices {
 		keys = append(keys, "invoice_"+i.InvoiceNumber)
@@ -80,6 +83,9 @@ func LockInvoices(invoices []models.Invoice, terminalID int) (int, error) {
 	return otherTerminal, nil
 }
 
+// UnlockInvoices deletes keys of given invoices from Redis,
+// and make the invoices available again to be picked up by
+// other terminals.
 func UnlockInvoices(invoices []models.Invoice) {
 	client := db.Redis
 	for _, i := range invoices {

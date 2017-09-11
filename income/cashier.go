@@ -8,16 +8,25 @@ import (
 	"pos-proxy/pos/locks"
 	"strconv"
 
-	"gopkg.in/mgo.v2/bson"
 	"log"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
+type Cashier struct {
+	ID         int    `json:"id" bson:"id"`
+	Name       string `json:"name" bson:"name"`
+	Number     int    `json:"number" bson:"number"`
+	EmployeeID string `json:"employee_id" bson:"employee_id"`
+}
+
 func GetPosCashier(w http.ResponseWriter, req *http.Request) {
-	cashier := make(map[string]interface{})
+	cashier := Cashier{}
 	q := bson.M{}
 	store, _ := strconv.Atoi(req.URL.Query().Get("store"))
 	pin := req.URL.Query().Get("pin")
 	terminal := req.URL.Query().Get("terminal")
+	terminalID, _ := strconv.Atoi(terminal)
 	q["pin"] = pin
 	q["store_set"] = store
 	err := db.DB.C("cashiers").Find(q).One(&cashier)
@@ -27,21 +36,22 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = locks.LockTerminal(terminal)
+	cashierHashExists := true
+	_, err = req.Cookie("cashier_hash")
 	if err != nil {
+		cashierHashExists = false
+	}
+	otherCashier, err := locks.LockTerminal(terminalID, cashier.ID)
+	if err != nil && ((cashierHashExists && otherCashier == cashier.ID) || otherCashier != cashier.ID) {
 		log.Println(err)
-		if err.Error() == "Couldn't obtain terminal lock." {
-			resp := bson.M{"ok": false, "details": "Terminal is locked."}
-			helpers.ReturnSuccessMessage(w, resp)
-			return
-		}
-		helpers.ReturnErrorMessage(w, err.Error())
+		resp := bson.M{"ok": false, "details": "Terminal is locked."}
+		helpers.ReturnErrorMessage(w, resp)
 		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "cashier_id",
-		Value: fmt.Sprintf("%s", cashier["id"]),
+		Value: fmt.Sprintf("%d", cashier.ID),
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:  "cashier_hash",

@@ -59,6 +59,7 @@ func GetTerminal(w http.ResponseWriter, r *http.Request) {
 func UnlockTerminal(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr, _ := vars["id"]
-	locks.UnlockTerminal(idStr)
+	id, _ := strconv.Atoi(idStr)
+	locks.UnlockTerminal(id)
 	helpers.ReturnSuccessMessage(w, true)
 }
