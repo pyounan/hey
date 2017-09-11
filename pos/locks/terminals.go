@@ -34,7 +34,7 @@ func LockTerminal(terminalID int, cashierID int) (int, error) {
 	}
 	defer lock.Lock()
 
-	key := fmt.Sprintf("temrinal_%d", terminalID)
+	key := fmt.Sprintf("terminal_%d", terminalID)
 	otherCashier := 0
 	err = db.Redis.Watch(func(tx *redis.Tx) error {
 		_, err = tx.Pipelined(func(pipe redis.Pipeliner) error {
@@ -70,6 +70,6 @@ func LockTerminal(terminalID int, cashierID int) (int, error) {
 // UnlockTerminal deletes terminal key from redis
 // and makes this terminal available for other cashiers
 func UnlockTerminal(terminalID int) {
-	key := fmt.Sprintf("temrinal_%d", terminalID)
+	key := fmt.Sprintf("terminal_%d", terminalID)
 	db.Redis.Del(key)
 }
