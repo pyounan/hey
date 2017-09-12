@@ -228,11 +228,11 @@ func separateCondimentsAndDiscounts(rawItems []models.POSLineItem, submitMode bo
 				d.Item = item.Item
 				d.LineItemType = "discount"
 				if item.Price < 0 {
-					d.Price = math.Abs(val.Amount)
+					d.Price = math.Abs(val.Price)
 				} else {
 					d.Price = -1 * math.Abs(val.Price)
 				}
-				d.UnitPrice = val.Price
+				d.UnitPrice = d.Price
 				d.Quantity = item.Quantity
 				if key == "Open" {
 					d.Description = fmt.Sprintf("Discount %2f%", val.Percentage)
@@ -242,6 +242,9 @@ func separateCondimentsAndDiscounts(rawItems []models.POSLineItem, submitMode bo
 				d.VAT = val.VAT
 				d.VATPercentage = val.VATPercentage
 				d.NetAmount = val.NetAmount
+				if item.Price > 0 {
+					d.NetAmount = -1 * math.Abs(val.NetAmount)
+				}
 				d.TaxAmount = d.Price - d.NetAmount
 				// only add discounts if mode is not submit, because we already add discoutns from events
 				if submitMode == false {

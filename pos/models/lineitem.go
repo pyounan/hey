@@ -30,8 +30,7 @@ type GroupedDiscounts map[string]Discount
 
 // Discount maps a discount of posinvoicelineitem
 type Discount struct {
-	Price         float64 `json:"price" bson:"price"`
-	Amount        float64 `json:"amount" bson:"amount"`
+	Price         float64 `json:"amount" bson:"amount"`
 	NetAmount     float64 `json:"net_amount" bson:"net_amount"`
 	TaxAmount     float64 `json:"tax_amount" bson:"tax_amount"`
 	VAT           string  `json:"vat_code" bson:"vat_code"`
@@ -60,13 +59,13 @@ type POSLineItem struct {
 	CondimentGroup      []map[string]interface{} `json:"itemcondimentgroup_set" bson:"itemcondimentgroup_set"`
 	IsDiscount          bool                     `json:"is_discount" bson:"is_discount"`
 	IsVoid              bool                     `json:"is_void,omitempty" bson:"is_void,omitempty"`
+	AppliedDiscounts    []map[string]interface{} `json:"applied_discounts" bson:"applied_discounts"`
 	Discounts           []GroupedDiscounts       `json:"grouped_applieddiscounts" bson:"grouped_applieddiscounts"`
 	AttachedAttributes  map[string]interface{}   `json:"attached_attributes" bson:"attached_attributes"`
 	Course              int                      `json:"course,omitempty" bson:"course,omitempty"`
 	StoreMenuItemConfig int                      `json:"storemenuitemconfig" bson:"storemenuitemconfig"`
 	OpenItem            bool                     `json:"open_item" bson:"open_item"`
 	OpenPrice           bool                     `json:"open_price" bson:"open_price"`
-	AppliedDiscounts    []map[string]interface{} `json:"applied_discounts" bson:"applied_discounts"`
 	ReturnedIDs         []string                 `json:"returned_ids" bson:"returned_ids"`
 	FrontendID          string                   `json:"frontend_id" bson:"frontend_id"`
 	UpdatedOn           string                   `json:"updated_on" bson:"updated_on"`
