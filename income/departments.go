@@ -17,6 +17,8 @@ func ListDepartments(w http.ResponseWriter, r *http.Request) {
 	for key, val := range queryParams {
 		if key == "pos_payment" {
 			query[key] = true
+		} else if key == "type" && (val[0] == "waste" || val[0] == "revenue") {
+			query[key] = "debit"
 		} else {
 			query[key] = val[0]
 		}
