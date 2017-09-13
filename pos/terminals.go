@@ -37,13 +37,13 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	for _, terminal := range terminals {
-		key := fmt.Sprintf("terminal_%d", terminal.ID)
+	for i := 0; i < len(terminals); i++ {
+		key := fmt.Sprintf("terminal_%d", terminals[i].ID)
 		_, err := db.Redis.Get(key).Result()
 		if err == redis.Nil {
-			terminal.IsLocked = false
+			terminals[i].IsLocked = false
 		} else {
-			terminal.IsLocked = true
+			terminals[i].IsLocked = true
 		}
 	}
 	helpers.ReturnSuccessMessage(w, terminals)
