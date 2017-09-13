@@ -52,7 +52,7 @@ func LockInvoices(invoices []models.Invoice, terminalID int) (int, error) {
 					return err
 				}
 				log.Println("REDIS VALUE", val)
-				if val == "" {
+				if err == redis.Nil {
 					log.Println("INVOICE IS NOT LOCKED")
 					pipe.Set(key, terminalID, 0)
 					return nil

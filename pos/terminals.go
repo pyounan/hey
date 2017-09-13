@@ -9,6 +9,7 @@ import (
 	"pos-proxy/pos/models"
 	"strconv"
 
+	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -38,8 +39,8 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, terminal := range terminals {
 		key := fmt.Sprintf("terminal_%d", terminal.ID)
-		val, _ := db.Redis.Get(key).Result()
-		if val == "" {
+		_, err := db.Redis.Get(key).Result()
+		if err == redis.Nil {
 			terminal.IsLocked = false
 		} else {
 			terminal.IsLocked = true
