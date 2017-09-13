@@ -45,7 +45,7 @@ func GetTerminal(w http.ResponseWriter, r *http.Request) {
 	idStr := vars["id"]
 	id, _ := strconv.Atoi(idStr)
 	query["id"] = id
-	terminal := []models.Terminal{}
+	terminal := models.Terminal{}
 	err := db.DB.C("terminals").Find(query).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
