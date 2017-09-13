@@ -1,6 +1,7 @@
 package pos
 
 import (
+	"fmt"
 	"net/http"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
@@ -34,6 +35,15 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
+	}
+	for _, terminal := range terminals {
+		key := fmt.Sprintf("terminal_%d", terminal.ID)
+		val, _ := db.Redis.Get(key).Result()
+		if val == "" {
+			terminal.IsLocked = false
+		} else {
+			terminal.IsLocked = true
+		}
 	}
 	helpers.ReturnSuccessMessage(w, terminals)
 }
