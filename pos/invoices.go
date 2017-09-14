@@ -289,7 +289,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		req.Postings[i].PosPostingInformations = append(req.Postings[i].PosPostingInformations, models.Posting{})
 		req.Postings[i].PosPostingInformations[0].Comments = ""
 	}
-	req.Invoice.Postings = req.Postings
+	req.Invoice.Postings = append(req.Invoice.Postings, req.Postings...)
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 	req.Invoice.Change = req.ChangeAmount
