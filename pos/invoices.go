@@ -329,7 +329,8 @@ func CancelPostings(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	invoiceNumber := mux.Vars(r)["invoice_number"]
+	vars := mux.Vars(r)
+	invoiceNumber, _ := vars["invoice_number"]
 	invoice := models.Invoice{}
 	log.Println("invoice number:", invoiceNumber)
 	err = db.DB.C("posinvoices").Find(bson.M{"invoice_number": invoiceNumber}).One(&invoice)
