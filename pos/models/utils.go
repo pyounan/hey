@@ -50,7 +50,7 @@ func AdvanceInvoiceNumber(terminalID int) (string, error) {
 
 // SummarizeVAT calculates the total net_amount and vat_amount of each
 // VAT rate
-func SummarizeVAT(items *[]POSLineItem) map[string]VATSummary {
+func SummarizeVAT(items *[]EJEvent) map[string]VATSummary {
 	summary := make(map[string]VATSummary)
 	rates := []string{"A", "B", "C", "D", "Total"}
 	for _, r := range rates {
@@ -60,9 +60,9 @@ func SummarizeVAT(items *[]POSLineItem) map[string]VATSummary {
 		summary[r]["taxable_amount"] = 0
 	}
 	for _, item := range *items {
-		summary[item.VAT]["net_amount"] += item.NetAmount
-		summary[item.VAT]["vat_amount"] += item.NetAmount * item.VATPercentage / 100
-		summary[item.VAT]["taxable_amount"] += item.Price
+		summary[item.VATCode]["net_amount"] += item.NetAmount
+		summary[item.VATCode]["vat_amount"] += item.NetAmount * item.VATPercentage / 100
+		summary[item.VATCode]["taxable_amount"] += item.Price
 
 		summary["Total"]["net_amount"] += item.NetAmount
 		summary["Total"]["vat_amount"] += item.NetAmount * item.VATPercentage / 100

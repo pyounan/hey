@@ -171,7 +171,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice = invoice
-	req.Invoice.Events = []models.Event{}
+	req.Invoice.Events = []models.EJEvent{}
 	locks.LockInvoices([]models.Invoice{invoice}, invoice.TerminalID)
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
@@ -243,7 +243,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
-	req.Invoice.Events = []models.Event{}
+	req.Invoice.Events = []models.EJEvent{}
 
 	req.Invoice.PrintCount++
 
@@ -399,30 +399,6 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 		Type                  string         `json:"type" bson:"type"`
 		ActionTime            string         `json:"action_time" bson:"action_time"`
 	}
-	/*b, err := ioutil.ReadAll(r.Body)
-			if err != nil {
-			    http.Error(w, "Error reading body", 400)
-			    return
-			}
-
-		h := ReqBody{}
-		if err := json.Unmarshal(b, &h); err != nil {
-	            var msg string
-	            switch t := err.(type) {
-	            case *json.SyntaxError:
-	                jsn := string(b[0:t.Offset])
-	                jsn += "<--(Invalid Character)"
-	                msg = fmt.Sprintf("Invalid character at offset %v\n %s", t.Offset, jsn)
-	            case *json.UnmarshalTypeError:
-	                jsn := string(b[0:t.Offset])
-	                jsn += "<--(Invalid Type)"
-	                msg = fmt.Sprintf("Invalid value at offset %v\n %s", t.Offset, jsn)
-	            default:
-	                msg = err.Error()
-	            }
-	            http.Error(w, msg, 400)
-	            return
-	        }*/
 	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
@@ -645,7 +621,7 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 				helpers.ReturnErrorMessage(w, err.Error())
 				return
 			}
-			req.Invoice.Events = []models.Event{}
+			req.Invoice.Events = []models.EJEvent{}
 		}
 
 		invoice, err := req.Submit()
