@@ -222,34 +222,28 @@ func separateCondimentsAndDiscounts(rawItems []models.POSLineItem, submitMode bo
 			items = append(items, c)
 		}
 
-		for _, disc := range item.Discounts {
-			for key, val := range disc {
-				d := models.POSLineItem{}
-				d.Item = item.Item
-				d.LineItemType = "discount"
-				if item.Price < 0 {
-					d.Price = math.Abs(val.Price)
-				} else {
-					d.Price = -1 * math.Abs(val.Price)
-				}
-				d.UnitPrice = d.Price
-				d.Quantity = item.Quantity
-				if key == "Open" {
-					d.Description = fmt.Sprintf("Discount %2f%", val.Percentage)
-				} else {
-					d.Description = fmt.Sprintf("Fixed Discount %2f%", val.Percentage)
-				}
-				d.VAT = val.VAT
-				d.VATPercentage = val.VATPercentage
-				d.NetAmount = val.NetAmount
-				if item.Price > 0 {
-					d.NetAmount = -1 * math.Abs(val.NetAmount)
-				}
-				d.TaxAmount = d.Price - d.NetAmount
-				// only add discounts if mode is not submit, because we already add discoutns from events
-				if submitMode == false {
-					items = append(items, d)
-				}
+		for _, disc := range item.GroupedAppliedDiscounts {
+			d := models.POSLineItem{}
+			//d.Item = item.Item
+			d.LineItemType = "discount"
+			if item.Price < 0 {
+				d.Price = math.Abs(disc.Amount)
+			} else {
+				d.Price = -1 * math.Abs(disc.Amount)
+			}
+			d.UnitPrice = d.Price
+			d.Quantity = item.Quantity
+			d.Description = fmt.Sprintf("Discount %2f%", disc.Percentage)
+			d.VAT = disc.VAT
+			d.VATPercentage = disc.VATPercentage
+			d.NetAmount = disc.NetAmount
+			if item.Price > 0 {
+				d.NetAmount = -1 * math.Abs(disc.NetAmount)
+			}
+			d.TaxAmount = d.Price - d.NetAmount
+			// only add discounts if mode is not submit, because we already add discoutns from events
+			if submitMode == false {
+				items = append(items, d)
 			}
 		}
 	}
