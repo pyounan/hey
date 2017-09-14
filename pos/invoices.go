@@ -168,7 +168,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice = invoice
 	req.Invoice.Events = []models.Event{}
-
+	locks.LockInvoices([]models.Invoice{invoice}, invoice.TerminalID)
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
@@ -179,11 +179,12 @@ func UpdateInvoice(w http.ResponseWriter, r *http.Request) {
 func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	invoiceNumber := vars["invoice_number"]
-	invoice := &models.Invoice{}
-	err := db.DB.C("posinvoices").Find(bson.M{"invoice_number": invoiceNumber}).One(invoice)
+	invoice := models.Invoice{}
+	err := db.DB.C("posinvoices").Find(bson.M{"invoice_number": invoiceNumber}).One(&invoice)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
 	}
+	locks.UnlockInvoices([]models.Invoice{invoice})
 	helpers.ReturnSuccessMessage(w, true)
 }
 
