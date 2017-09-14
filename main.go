@@ -37,7 +37,7 @@ func main() {
 	config.Load(*filePath)
 	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "X-CSRFToken", "Accept", "Accept-Lanuage", "Accept-Encoding", "Authorization"})
 	originsOk := gh.AllowedOrigins([]string{"*"})
-	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 	r := mux.NewRouter()
 	r = r.StrictSlash(true)
 	r.HandleFunc("/proxy/test/", proxy.Status).Methods("GET")
