@@ -23,6 +23,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// ListInvoices lists open invoices
 func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	for key, val := range r.URL.Query() {
@@ -89,6 +90,8 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, invoices)
 }
 
+// ListInvoicesPaginated retrieves list of settled or open invoices
+// the settled invoices are being proxied to backend
 func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	isSettled := r.URL.Query().Get("is_settled")
@@ -111,6 +114,7 @@ func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, resp)
 }
 
+// GetInvoice fetches invoice from the database by invoice number
 func GetInvoice(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	vars := mux.Vars(r)
@@ -172,10 +176,8 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
-func UpdateInvoice(w http.ResponseWriter, r *http.Request) {
-
-}
-
+// UnlockInvoice removes invoice_number key from redis and make
+// the invoice available to be picked up again by cashiers
 func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	invoiceNumber := vars["invoice_number"]
@@ -188,6 +190,7 @@ func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, true)
 }
 
+// FolioInvoice sends invoice lineitems to FDM and increase printing counter
 func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -249,6 +252,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
+// PayInvoice creates pospayments and pospostinginformations on invoice
 func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -311,6 +315,73 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req)
 }
 
+// CancelPostings cancels payments of a paid invocie based on postings frontend ids
+func CancelPostings(w http.ResponseWriter, r *http.Request) {
+	type CancelPostingsRequest struct {
+		PostingsIDs []string `json:"frontend_ids" bson:"frontend_ids"`
+		CashierID   int      `json:"poscashier_id" bson:"poscashier_id"`
+	}
+	req := CancelPostingsRequest{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	invoiceNumber := mux.Vars(r)["invoice_number"]
+	invoice := models.Invoice{}
+	log.Println("invoice number:", invoiceNumber)
+	err = db.DB.C("posinvoices").Find(bson.M{"invoice_number": invoiceNumber}).One(&invoice)
+	if err != nil {
+		log.Println("failed to find posinvoice with this invoice number")
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+
+	newPayments := []models.Posting{}
+	for i := 0; i < len(req.PostingsIDs); i++ {
+		for j := 0; j < len(invoice.Postings); j++ {
+			if req.PostingsIDs[i] == invoice.Postings[j].FrontendID {
+				newPayment := models.Posting{}
+				newPayment.Amount = -1 * invoice.Postings[j].Amount
+				newPayment.ForeignAmount = -1 * invoice.Postings[j].ForeignAmount
+				newPayment.AuditDate = invoice.Postings[j].AuditDate
+				newPayment.PostingType = invoice.Postings[j].PostingType
+				if invoice.Postings[j].Room != nil {
+					newPayment.Room = invoice.Postings[j].Room
+					newPayment.RoomNumber = invoice.Postings[j].RoomNumber
+					newPayment.RoomDetails = invoice.Postings[j].RoomDetails
+				}
+				newPayment.PaymentLog = invoice.Postings[j].PaymentLog
+				if invoice.Postings[j].Sign == "+" {
+					newPayment.Sign = "-"
+				} else {
+					newPayment.Sign = "+"
+				}
+				newPayment.Type = invoice.Postings[j].Type
+
+				newPayment.PosPostingInformations = []models.Posting{}
+				newPayment.PosPostingInformations = append(newPayment.PosPostingInformations, models.Posting{Comments: ""})
+				newPayments = append(newPayments, newPayment)
+				break
+			}
+		}
+	}
+	invoice.Postings = append(invoice.Postings, newPayments...)
+
+	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
+	if err != nil {
+		log.Println("failed to find posinvoice with this invoice number")
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	helpers.ReturnSuccessMessage(w, invoice.Postings)
+}
+
+// RefundInvoice handles the refund scenario
 func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	type ReqBody struct {
 		RCRS                  string         `json:"rcrs" bson:"rcrs"`
@@ -431,6 +502,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Houseuse pay the invoice as house use
 func Houseuse(w http.ResponseWriter, r *http.Request) {
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -477,6 +549,7 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req)
 }
 
+// ChangeTable moves the selected invoices from table to another table
 func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	body := make(map[string]interface{})
 	err := json.NewDecoder(r.Body).Decode(&body)
@@ -527,6 +600,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, newInvoices)
 }
 
+// SplitInvoices splits invoice to new invoices
 func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 	type ReqBody struct {
 		ActionTime          string           `json:"action_time" bson:"action_time"`
@@ -588,6 +662,7 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, newInvoices)
 }
 
+// WasteAndVoid wastes a lineitem
 func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 	invoice := models.Invoice{}
 	err := json.NewDecoder(r.Body).Decode(&invoice)
@@ -612,6 +687,7 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, invoice)
 }
 
+// ToggleLocking toggle locking of invoices
 func ToggleLocking(w http.ResponseWriter, r *http.Request) {
 	numbers := strings.Split(r.URL.Query().Get("id"), ",")
 	terminalIDStr := r.URL.Query().Get("terminal_id")
@@ -638,6 +714,7 @@ func ToggleLocking(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, true)
 }
 
+// GetInvoiceLatestChanges gets the invoice and checks if it's locked or not
 func GetInvoiceLatestChanges(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	terminalID, _ := strconv.Atoi(params["terminal_id"][0])
