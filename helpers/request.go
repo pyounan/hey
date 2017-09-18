@@ -1,8 +1,10 @@
 package helpers
 
 import (
+	"net"
 	"net/http"
 	"pos-proxy/config"
+	"time"
 )
 
 func PrepareRequestHeaders(req *http.Request) *http.Request {
@@ -10,4 +12,19 @@ func PrepareRequestHeaders(req *http.Request) *http.Request {
 	req.Header.Del("Authorization")
 	req.SetBasicAuth(config.AuthUsername, config.AuthPassword)
 	return req
+}
+
+func NewNetClient() *http.Client {
+	c := &http.Client{
+		Transport: &http.Transport{
+			Dial: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).Dial,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ResponseHeaderTimeout: 10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
+	}
+	return c
 }

@@ -1,13 +1,12 @@
 package proxy
 
 import (
-	"time"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"pos-proxy/config"
 	"pos-proxy/helpers"
-	"net/http"
-	"io/ioutil"
 	//"net/http/httputil"
 	//"net/url"
 )
@@ -29,9 +28,7 @@ func Status(w http.ResponseWriter, r *http.Request) {
 
 func ProxyToBackend(w http.ResponseWriter, r *http.Request) {
 	// backendURI, _ := url.Parse(config.Config.BackendURI)
-	netClient := &http.Client{
-		Timeout: time.Second * 10,
-	}
+	netClient := helpers.NewNetClient()
 
 	uri := fmt.Sprintf("%s%s", config.Config.BackendURI, r.RequestURI)
 	req, err := http.NewRequest(r.Method, uri, r.Body)

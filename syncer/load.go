@@ -3,15 +3,16 @@ package syncer
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"pos-proxy/config"
+	"pos-proxy/db"
 	"pos-proxy/helpers"
 	"pos-proxy/pos/models"
-	"pos-proxy/db"
-	"os"
-	"io/ioutil"
 	"time"
+
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -19,9 +20,7 @@ import (
 // if yes update the current configurations and write them to the conf file
 func FetchConfiguration() {
 	uri := fmt.Sprintf("%s/api/pos/proxy/settings/", config.Config.BackendURI)
-	netClient := &http.Client{
-		Timeout: time.Second * 5,
-	}
+	netClient := helpers.NewNetClient()
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
 		log.Println(err.Error())
@@ -59,7 +58,7 @@ func FetchConfiguration() {
 		return
 	}
 	type ProxySettings struct {
-		UpdatedAt string      `json:"updated_at"`
+		UpdatedAt string             `json:"updated_at"`
 		FDMs      []config.FDMConfig `json:"fdms"`
 	}
 	dataStr := ProxySettings{}
@@ -99,7 +98,7 @@ func FetchConfiguration() {
 
 // Load data from the backend and insert to mongodb
 func Load() {
-	// Check if there are items int he requests queue, 
+	// Check if there are items int he requests queue,
 	// if there is don't load new items until the requests queue is empty
 	c, _ := db.DB.C("requests_queue").Find(nil).Count()
 	if c > 0 {
@@ -125,11 +124,9 @@ func Load() {
 	backendApis["permissions"] = "income/api/poscashierpermissions/"
 	backendApis["cashiers"] = "income/api/cashier/sync/"
 
+	netClient := helpers.NewNetClient()
 	for collection, api := range backendApis {
 		go func(collection string, api string) {
-			var netClient = &http.Client{
-				Timeout: time.Second * 10,
-			}
 			uri := fmt.Sprintf("%s/%s", config.Config.BackendURI, api)
 			req, err := http.NewRequest("GET", uri, nil)
 			if err != nil {
@@ -153,7 +150,7 @@ func Load() {
 				}
 				type Body struct {
 					Results []models.Invoice `json:"results"`
-					Links Links `json:"links"`
+					Links   Links            `json:"links"`
 				}
 				res := Body{}
 				json.NewDecoder(response.Body).Decode(&res)

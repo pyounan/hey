@@ -1,28 +1,29 @@
 package syncer
 
 import (
-	"log"
-	"fmt"
-	"net/http"
 	"bytes"
-	"time"
-	"strings"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
-	"pos-proxy/config"
 	"pos-proxy/pos/models"
+	"strings"
+	"time"
+
 	"gopkg.in/mgo.v2/bson"
 )
 
 type RequestRow struct {
-	ID bson.ObjectId `bson:"_id,omitempty"`
-	URI     string      `bson:"uri"`
-	Method  string      `bson:"method"`
-	Headers http.Header `bson:"headers"`
-	Payload interface{} `bson:"payload"`
-	ActionTime time.Time `bson:"action_time"`
+	ID         bson.ObjectId `bson:"_id,omitempty"`
+	URI        string        `bson:"uri"`
+	Method     string        `bson:"method"`
+	Headers    http.Header   `bson:"headers"`
+	Payload    interface{}   `bson:"payload"`
+	ActionTime time.Time     `bson:"action_time"`
 }
 
 // QueueRequest insert a request object to a queue that syncs with the backend
@@ -47,9 +48,7 @@ func PushToBackend() {
 	requests := []RequestRow{}
 	db.DB.C("requests_queue").Find(nil).Sort("action_time").All(&requests)
 
-	netClient := &http.Client{
-		Timeout: time.Second * 10,
-	}
+	netClient := helpers.NewNetClient()
 	for _, r := range requests {
 		uri := fmt.Sprintf("%s%s", config.Config.BackendURI, r.URI)
 
@@ -107,7 +106,7 @@ func PushToBackend() {
 			}
 		} else if strings.Contains(req.URL.Path, "refund") {
 			type RespBody struct {
-				NewInvoice models.Invoice `json:"new_posinvoice" bson:"new_posinvoice"`
+				NewInvoice      models.Invoice `json:"new_posinvoice" bson:"new_posinvoice"`
 				OriginalInvoice models.Invoice `json:"original_posinvoice" bson:"original_posinvoice"`
 			}
 			res := RespBody{}

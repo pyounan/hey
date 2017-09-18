@@ -50,9 +50,7 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	if err != nil || len(invoices) == 0 {
 		// if invoice is settled, get it from the backend & save it to mongo
 		if _, ok := q["invoice_number"]; ok {
-			netClient := &http.Client{
-				Timeout: time.Second * 10,
-			}
+			netClient := helpers.NewNetClient()
 
 			uri := fmt.Sprintf("%s%s", config.Config.BackendURI, r.RequestURI)
 			req, err := http.NewRequest(r.Method, uri, r.Body)
