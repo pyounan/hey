@@ -15,6 +15,7 @@ type Table struct {
 	HasInvoice    bool      `json:"has_invoice" bson:"has_invoice"`
 	UpdatedOn     time.Time `json:"updated_on" bson:"updated_on"`
 	InvoicesCount int       `json:"invoices_count" bson:"invoices_count"`
+	IsActive      bool      `json:"is_active" bson:"is_active"`
 }
 
 func (t *Table) UpdateStatus() error {

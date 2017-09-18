@@ -100,12 +100,12 @@ func main() {
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/cancelpostings/", pos.CancelPostings).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/unlock/", pos.UnlockInvoice).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/getlatestchanges/", pos.GetInvoiceLatestChanges).Methods("POST")
-
+	r.HandleFunc("/api/pos/fixeddiscount/{id}/", pos.DeleteFixedDiscount).Methods("DELETE")
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
 
 	r.HandleFunc("/api/pos/fixeddiscount/", pos.ListFixedDiscounts).Methods("GET")
 
-	r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
+	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
 	r.NotFoundHandler = http.HandlerFunc(proxy.ProxyToBackend)
 
