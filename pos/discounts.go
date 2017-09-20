@@ -4,7 +4,10 @@ import (
 	"net/http"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
+	"pos-proxy/syncer"
 	"strconv"
+
+	"github.com/gorilla/mux"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -29,4 +32,18 @@ func ListFixedDiscounts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	helpers.ReturnSuccessMessage(w, fixedDiscounts)
+}
+
+// DeleteFixedDiscount deletes a fixed discount by id from mongodb
+// then proxy the request to the backend
+func DeleteFixedDiscount(w http.ResponseWriter, r *http.Request) {
+	idStr, _ := mux.Vars(r)["id"]
+	id, _ := strconv.Atoi(idStr)
+	err := db.DB.C("fixeddiscounts").Remove(bson.M{"id": id})
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, nil)
+	helpers.ReturnSuccessMessage(w, true)
 }

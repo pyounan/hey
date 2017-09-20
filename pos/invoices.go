@@ -287,7 +287,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		req.Postings[i].PosPostingInformations = append(req.Postings[i].PosPostingInformations, models.Posting{})
 		req.Postings[i].PosPostingInformations[0].Comments = ""
 	}
-	req.Invoice.Postings = req.Postings
+	req.Invoice.Postings = append(req.Invoice.Postings, req.Postings...)
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 	req.Invoice.Change = req.ChangeAmount
@@ -327,7 +327,8 @@ func CancelPostings(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	invoiceNumber := mux.Vars(r)["invoice_number"]
+	vars := mux.Vars(r)
+	invoiceNumber, _ := vars["invoice_number"]
 	invoice := models.Invoice{}
 	log.Println("invoice number:", invoiceNumber)
 	err = db.DB.C("posinvoices").Find(bson.M{"invoice_number": invoiceNumber}).One(&invoice)
@@ -406,7 +407,6 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	log.Println("succed in decoding request body")
 	terminalIDStr := r.URL.Query().Get("terminal_id")
 	terminalID, _ := strconv.Atoi(terminalIDStr)
 	invoiceNumber, err := models.AdvanceInvoiceNumber(terminalID)
@@ -431,7 +431,6 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	req.IsClosed = true
 	req.ChangeAmount = 0
 	req.ActionTime = body.ActionTime
-	log.Println("succed in making invoicePOSTRequest")
 	if config.Config.IsFDMEnabled == true {
 		// create fdm connection
 		conn, err := fdm.Connect(req.RCRS)
@@ -453,8 +452,13 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 		body.Invoice.FDMResponses = fdmResponses
 	}
-	log.Println("pushed to fdm")
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
+	invoice, err := req.Submit()
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	req.Invoice = invoice
 	req.Invoice.PaidAmount = req.Invoice.Total
 
 	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.Invoice.InvoiceNumber}, body.Invoice)
@@ -504,6 +508,19 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 		req.Invoice.FDMResponses = fdmResponses
 	}
+
+	invoice, err := req.Submit()
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	req.Invoice = invoice
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	req.Invoice.PaidAmount = req.Invoice.Total
+	postings := []models.Posting{}
+	posting := models.Posting{PostingType: "houseuse", Amount: req.Invoice.Total}
+	postings = append(postings, posting)
+	req.Postings = postings
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
 	if err != nil {
