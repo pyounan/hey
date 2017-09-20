@@ -48,9 +48,7 @@ func PushToBackend() {
 	requests := []RequestRow{}
 	db.DB.C("requests_queue").Find(nil).Sort("action_time").All(&requests)
 
-	netClient := &http.Client{
-		Timeout: time.Second * 10,
-	}
+	netClient := helpers.NewNetClient()
 	for _, r := range requests {
 		uri := fmt.Sprintf("%s%s", config.Config.BackendURI, r.URI)
 

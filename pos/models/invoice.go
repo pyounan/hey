@@ -1,19 +1,16 @@
 package models
 
-type Event struct {
-	Item POSLineItem `json:"item"`
-}
-
 type PaymentLog struct {
 }
 
 type Invoice struct {
-	ID            *int64        `json:"id" bson:"id"`
-	InvoiceNumber string        `json:"invoice_number" bson:"invoice_number"`
-	Items         []POSLineItem `json:"posinvoicelineitem_set" bson:"posinvoicelineitem_set"`
-	TableNumber   *int64        `json:"table" bson:"table"`
+	ID               *int64        `json:"id" bson:"id"`
+	InvoiceNumber    string        `json:"invoice_number" bson:"invoice_number"`
+	Items            []POSLineItem `json:"posinvoicelineitem_set" bson:"posinvoicelineitem_set"`
+	GroupedLineItems []EJEvent     `json:"grouped_lineitems" bson:"grouped_lineitems"`
+	TableNumber      *int64        `json:"table" bson:"table"`
 
-	Events []Event `json:"events" bson:"events"`
+	Events []EJEvent `json:"events" bson:"events"`
 
 	AuditDate           string                 `json:"audit_date" bson:"audit_date"`
 	Cashier             int                    `json:"cashier" bson:"cashier"`

@@ -38,7 +38,7 @@ func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
 }
 
 func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
-	req models.InvoicePOSTRequest, items []models.POSLineItem) (models.FDMResponse, error) {
+	req models.InvoicePOSTRequest, items []models.EJEvent) (models.FDMResponse, error) {
 	if len(items) == 0 {
 		return models.FDMResponse{}, nil
 	}
@@ -124,14 +124,7 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 		return []models.FDMResponse{}, err
 	}
 	defer l.Unlock()
-	// req.Items = fixItemsPrice(req.Items)
-	items := []models.POSLineItem{}
-	for _, e := range data.Invoice.Events {
-		items = append(items, e.Item)
-	}
-	// calculate total amount of each VAT rate
-	condimentsAndDiscounts := separateCondimentsAndDiscounts(data.Invoice.Items, true)
-	items = append(items, condimentsAndDiscounts...)
+	items := data.Invoice.Events
 	vats := calculateVATs(items)
 	positiveVATs := []string{}
 	negativeVATs := []string{}
@@ -183,7 +176,7 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 	responses := []models.FDMResponse{}
 
 	// now send the whole invoice
-	items := separateCondimentsAndDiscounts(data.Invoice.Items, false)
+	items := data.Invoice.GroupedLineItems
 	vats := calculateVATs(items)
 	positiveVATs := []string{}
 	negativeVATs := []string{}
@@ -232,11 +225,7 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 
 	responses := []models.FDMResponse{}
 
-	// now send the whole invoice
-	items := separateCondimentsAndDiscounts(data.Invoice.Items, false)
-	for _, i := range items {
-		log.Println(i.Description, i.Price, i.NetAmount)
-	}
+	items := data.Invoice.GroupedLineItems
 	vats := calculateVATs(items)
 	positiveVATs := []string{}
 	negativeVATs := []string{}

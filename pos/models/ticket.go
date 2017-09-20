@@ -15,7 +15,7 @@ type FDMTicket struct {
 	RCRS          string        `json:"rcrs" bson:"rcrs"`
 	UserID        string        `json:"user_id" bson:"user_id"`
 	TotalAmount   float64       `json:"total_amount" bson:"total_amount"`
-	Items         []POSLineItem `json:"items" bson:"items"`
+	Items         []EJEvent     `json:"items" bson:"items"`
 	PLUHash       string        `bson:"plu_hash"`
 	VATs          []VAT         `bson:"vats"`
 	ActionTime    string        `json:"action_time" bson:"action_time"`

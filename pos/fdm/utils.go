@@ -21,7 +21,7 @@ func applySHA1(text string) string {
 	return fmt.Sprintf("%x", bs)
 }
 
-func generatePLUHash(items []models.POSLineItem) string {
+func generatePLUHash(items []models.EJEvent) string {
 	text := ""
 	for _, i := range items {
 		text += fmt.Sprintf("%s", i.String())
@@ -70,7 +70,7 @@ func formatTime(oldVal string) string {
 	return str
 }
 
-func calculateVATs(items []models.POSLineItem) map[string]float64 {
+func calculateVATs(items []models.EJEvent) map[string]float64 {
 	VATs := make(map[string]float64)
 	VATs["A"] = 0
 	VATs["B"] = 0
@@ -78,13 +78,13 @@ func calculateVATs(items []models.POSLineItem) map[string]float64 {
 	VATs["D"] = 0
 
 	for _, i := range items {
-		VATs[i.VAT] += i.NetAmount
+		VATs[i.VATCode] += i.NetAmount
 	}
 
 	return VATs
 }
 
-func calculateTotalAmount(items []models.POSLineItem) float64 {
+func calculateTotalAmount(items []models.EJEvent) float64 {
 	total := 0.0
 
 	for _, i := range items {
@@ -178,8 +178,9 @@ func CheckFDMError(res models.FDMResponse) error {
 	return nil
 }
 
-func separateCondimentsAndDiscounts(rawItems []models.POSLineItem, submitMode bool) []models.POSLineItem {
-	items := []models.POSLineItem{}
+/*
+func separateCondimentsAndDiscounts(rawItems []models.EJEvent, submitMode bool) []models.EJEvent {
+	items := []models.EJEvent{}
 	for _, item := range rawItems {
 		if submitMode == true && item.Quantity == item.SubmittedQuantity {
 			continue
@@ -248,13 +249,13 @@ func separateCondimentsAndDiscounts(rawItems []models.POSLineItem, submitMode bo
 		}
 	}
 	return items
-}
+}*/
 
-func splitItemsByVATRates(items []models.POSLineItem, rates []string) []models.POSLineItem {
-	result := []models.POSLineItem{}
+func splitItemsByVATRates(items []models.EJEvent, rates []string) []models.EJEvent {
+	result := []models.EJEvent{}
 	for _, item := range items {
 		for _, rate := range rates {
-			if item.VAT == rate {
+			if item.VATCode == rate {
 				result = append(result, item)
 			}
 		}
