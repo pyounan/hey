@@ -156,6 +156,14 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
+		if req.Invoice.VoidReason != "" {
+			responses, err = fdm.EmptyPLUHash(conn, req)
+			if err != nil {
+				log.Println(err)
+				helpers.ReturnErrorMessage(w, err.Error())
+				return
+			}
+		}
 
 		fdmResponses = append(fdmResponses, responses...)
 		req.Invoice.FDMResponses = fdmResponses
