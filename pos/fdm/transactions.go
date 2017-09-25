@@ -39,7 +39,8 @@ func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
 
 func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	req models.InvoicePOSTRequest, items []models.EJEvent) (models.FDMResponse, error) {
-	if len(items) == 0 {
+	// If invoice is not void and there is no new items to add, then return
+	if req.Invoice.VoidReason == "" && len(items) == 0 {
 		return models.FDMResponse{}, nil
 	}
 	VATs := calculateVATs(items)
@@ -79,7 +80,6 @@ func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 
 	t.VATs[3].Percentage = 0
 	t.VATs[3].FixedAmount = math.Abs(VATs["D"])
-	// Don't send aything to FDM if is there is no new items added
 	err = db.DB.C("tickets").Insert(&t)
 	if err != nil {
 		return models.FDMResponse{}, err
@@ -255,6 +255,25 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 		}
 		responses = append(responses, res)
 	}
+
+	return responses, nil
+}
+
+// EmptyPLUHash sends NS ticket with an empty plu hash to fdm
+func EmptyPLUHash(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMResponse, error) {
+	l, err := locks.LockFDM(data.RCRS)
+	if err != nil {
+		return []models.FDMResponse{}, err
+	}
+	defer l.Unlock()
+
+	responses := []models.FDMResponse{}
+
+	res, err := sendHashAndSignMessage(fdm, "NS", data, []models.EJEvent{})
+	if err != nil {
+		return responses, err
+	}
+	responses = append(responses, res)
 
 	return responses, nil
 }
