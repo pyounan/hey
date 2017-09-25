@@ -70,7 +70,7 @@ type POSLineItem struct {
 	OriginalFrontendID      *string                  `json:"original_frontend_id" bson:"original_frontend_id"`
 	OriginalLineItemID      *int64                   `json:"original_line_item_id" bson:"original_line_item_id"`
 	// used for waste
-	PosinvoiceID *int64 `json:"posinvoice,omitempty" bson:"posinvoice,omitempty"`
+	PosinvoiceID *int64 `json:"posinvoice" bson:"posinvoice"`
 	CashierID    *int64 `json:"cashier,omitempty" bson:"cashier,omitempty"`
 	Reason       string `json:"reason,omitempty" bson:"reason,omitempty"`
 }

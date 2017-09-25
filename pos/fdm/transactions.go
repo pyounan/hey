@@ -37,7 +37,8 @@ func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
 	return response, nil
 }
 
-func sendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
+// SendHashAndSignMessage send a message to FDM and creates new ticket number
+func SendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	req models.InvoicePOSTRequest, items []models.EJEvent) (models.FDMResponse, error) {
 	// If invoice is not void and there is no new items to add, then return
 	if req.Invoice.VoidReason == "" && len(items) == 0 {
@@ -141,7 +142,7 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
 	if len(positiveItems) > 0 {
-		res, err := sendHashAndSignMessage(fdm, "PS", data, positiveItems)
+		res, err := SendHashAndSignMessage(fdm, "PS", data, positiveItems)
 		if err != nil {
 			return responses, err
 		}
@@ -150,7 +151,7 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 	// send negative msg
 	negativeItems := splitItemsByVATRates(items, negativeVATs)
 	if len(negativeItems) > 0 {
-		res, err := sendHashAndSignMessage(fdm, "PR", data, negativeItems)
+		res, err := SendHashAndSignMessage(fdm, "PR", data, negativeItems)
 		if err != nil {
 			return responses, err
 		}
@@ -191,7 +192,7 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
 	if len(positiveItems) > 0 {
-		res, err := sendHashAndSignMessage(fdm, "PS", data, positiveItems)
+		res, err := SendHashAndSignMessage(fdm, "PS", data, positiveItems)
 		if err != nil {
 			return responses, err
 		}
@@ -200,7 +201,7 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 	// send negative msg
 	negativeItems := splitItemsByVATRates(items, negativeVATs)
 	if len(negativeItems) > 0 {
-		res, err := sendHashAndSignMessage(fdm, "PR", data, negativeItems)
+		res, err := SendHashAndSignMessage(fdm, "PR", data, negativeItems)
 		if err != nil {
 			return responses, err
 		}
@@ -240,7 +241,7 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
 	if len(positiveItems) > 0 {
-		res, err := sendHashAndSignMessage(fdm, "NS", data, positiveItems)
+		res, err := SendHashAndSignMessage(fdm, "NS", data, positiveItems)
 		if err != nil {
 			return responses, err
 		}
@@ -249,7 +250,7 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 	// send negative msg
 	negativeItems := splitItemsByVATRates(items, negativeVATs)
 	if len(negativeItems) > 0 {
-		res, err := sendHashAndSignMessage(fdm, "NR", data, negativeItems)
+		res, err := SendHashAndSignMessage(fdm, "NR", data, negativeItems)
 		if err != nil {
 			return responses, err
 		}
@@ -269,7 +270,7 @@ func EmptyPLUHash(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDM
 
 	responses := []models.FDMResponse{}
 
-	res, err := sendHashAndSignMessage(fdm, "NS", data, []models.EJEvent{})
+	res, err := SendHashAndSignMessage(fdm, "NS", data, []models.EJEvent{})
 	if err != nil {
 		return responses, err
 	}

@@ -663,27 +663,51 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 
 // WasteAndVoid wastes a lineitem
 func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
-	invoice := models.Invoice{}
-	err := json.NewDecoder(r.Body).Decode(&invoice)
+	req := models.InvoicePOSTRequest{}
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
 
-	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, invoice)
+	terminalIDStr := r.URL.Query().Get("terminal_id")
+	terminalID, _ := strconv.Atoi(terminalIDStr)
+	terminal := models.Terminal{}
+	err = db.DB.C("terminals").Find(bson.M{"id": terminalID}).One(&terminal)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
 
-	lineItem := invoice.Items[len(invoice.Items)-1]
-	lineItem.SubmittedQuantity = lineItem.Quantity
+	lineitem := req.Invoice.Items[len(req.Invoice.Items)-1]
+	lineitem.SubmittedQuantity = lineitem.Quantity
 
-	invoice.Items[len(invoice.Items)-1] = lineItem
+	req.Invoice.Items[len(req.Invoice.Items)-1] = lineitem
 
-	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": invoice.InvoiceNumber}, bson.M{"$set": invoice})
+	if config.Config.IsFDMEnabled == true {
+		// create fdm connection
+		conn, err := fdm.Connect(terminal.RCRS)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		defer conn.Close()
+		responses, err := fdm.Submit(conn, req)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		req.Invoice.FDMResponses = append(req.Invoice.FDMResponses, responses...)
+	}
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+
+	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
 
-	helpers.ReturnSuccessMessage(w, invoice)
+	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
 // ToggleLocking toggle locking of invoices
