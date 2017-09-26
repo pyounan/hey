@@ -32,18 +32,6 @@ func FetchConfiguration() {
 		log.Println(err.Error())
 		return
 	}
-	uri = fmt.Sprintf("%s/api/pos/fdm/", config.Config.BackendURI)
-	req, err = http.NewRequest("GET", uri, nil)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	req = helpers.PrepareRequestHeaders(req)
-	fdmResponse, err := netClient.Do(req)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
 	// open configurations file
 	f, err := os.Open("/etc/cloudinn/pos_config.json")
 	if err != nil {
@@ -83,12 +71,6 @@ func FetchConfiguration() {
 		config.Config.IsFDMEnabled = true
 	}
 	config.Config.UpdatedAt = t
-	type FDMSettingsResp struct {
-		Data bool `json:"data"`
-	}
-	fdmSettingsResp := FDMSettingsResp{}
-	json.NewDecoder(fdmResponse.Body).Decode(&fdmSettingsResp)
-	config.Config.IsFDMEnabled = fdmSettingsResp.Data
 	// Write conf to file
 	if err := config.Config.WriteToFile(); err != nil {
 		log.Println(err.Error())
@@ -138,11 +120,11 @@ func Load() {
 				log.Println(err.Error())
 				return
 			}
+			defer response.Body.Close()
 			if response.StatusCode != 200 {
 				log.Printf("Failed to load api from backend: %s\n", api)
 				return
 			}
-			defer response.Body.Close()
 			log.Printf("-- syncing %s from %s\n", collection, api)
 			if api == "api/pos/posinvoices/?is_settled=false" {
 				type Links struct {

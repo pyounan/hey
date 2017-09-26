@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
 	"strings"
+	"time"
 )
 
 var AuthUsername string
@@ -17,6 +17,7 @@ var AuthPassword string
 type ConfigHolder struct {
 	BackendURI   string      `json:"backend_uri"`
 	IsFDMEnabled bool        `json:"is_fdm_enabled"`
+	InstanceName string      `json:"instance_name"`
 	FDMs         []FDMConfig `json:"fdms"`
 	UpdatedAt    time.Time   `json:"updated_at"`
 }
