@@ -178,6 +178,11 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice = invoice
 	req.Invoice.Events = []models.EJEvent{}
+	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(req.Invoice.Events)
 	locks.LockInvoices([]models.Invoice{invoice}, invoice.TerminalID)
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
@@ -697,9 +702,10 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
-		req.Invoice.FDMResponses = append(req.Invoice.FDMResponses, responses...)
+		req.Invoice.FDMResponses = responses
 	}
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	req.Invoice.Events = []models.EJEvent{}
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
 	if err != nil {
