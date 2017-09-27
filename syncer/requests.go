@@ -60,14 +60,17 @@ func PushToBackend() {
 			return
 		}
 		req.Header = r.Headers
-		log.Println(req.Header)
 		req = helpers.PrepareRequestHeaders(req)
+		log.Println("Openning connection for", req.URL)
 		response, err := netClient.Do(req)
 		if err != nil {
 			log.Println(err.Error())
 			return
 		}
-		defer response.Body.Close()
+		defer func () {
+			log.Println("Closing connection of", req.URL)
+			response.Body.Close()
+		}()
 		log.Println("Sending: ", r.Method, req.URL.Path)
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
 			log.Println(response, "Failed to fetch response from backend")

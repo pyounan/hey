@@ -61,13 +61,13 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 				helpers.ReturnErrorMessage(w, err)
 				return
 			}
+			defer resp.Body.Close()
 			respbody, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				log.Println(err.Error())
 				helpers.ReturnErrorMessage(w, err)
 				return
 			}
-			defer resp.Body.Close()
 			invoices := []models.Invoice{}
 			err = json.Unmarshal(respbody, &invoices)
 			if err != nil {
@@ -561,6 +561,8 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
+	defer r.Body.Close()
+
 	oldTable := int(body["oldtable"].(float64))
 	newTable := int(body["newtable"].(float64))
 	invoices := body["posinvoices"].([]interface{})
@@ -623,6 +625,8 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
+	defer r.Body.Close()
+
 	newInvoices := []models.Invoice{}
 	for _, i := range body.Invoices {
 		req := models.InvoicePOSTRequest{}
@@ -674,6 +678,7 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
+	defer r.Body.Close()
 
 	terminalIDStr := r.URL.Query().Get("terminal_id")
 	terminalID, _ := strconv.Atoi(terminalIDStr)

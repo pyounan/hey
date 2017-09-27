@@ -32,6 +32,7 @@ func FetchConfiguration() {
 		log.Println(err.Error())
 		return
 	}
+	defer response.Body.Close()
 	// open configurations file
 	f, err := os.Open("/etc/cloudinn/pos_config.json")
 	if err != nil {
@@ -40,7 +41,6 @@ func FetchConfiguration() {
 	}
 	defer f.Close()
 	data, err := ioutil.ReadAll(response.Body)
-	defer response.Body.Close()
 	if err != nil {
 		log.Println(err.Error())
 		return
@@ -108,19 +108,24 @@ func Load() {
 
 	netClient := helpers.NewNetClient()
 	for collection, api := range backendApis {
-		go func(collection string, api string) {
+		go func(netClient *http.Client, collection string, api string) {
 			uri := fmt.Sprintf("%s/%s", config.Config.BackendURI, api)
 			req, err := http.NewRequest("GET", uri, nil)
 			if err != nil {
 				log.Println(err.Error())
 			}
 			req = helpers.PrepareRequestHeaders(req)
+			log.Println("Open Connection for:", req.URL.Path)
 			response, err := netClient.Do(req)
 			if err != nil {
 				log.Println(err.Error())
 				return
 			}
-			defer response.Body.Close()
+			// defer response.Body.Close()
+			defer func() {
+				log.Println("Closing Connection for", req.URL.Path)
+				response.Body.Close()
+			}()
 			if response.StatusCode != 200 {
 				log.Printf("Failed to load api from backend: %s\n", api)
 				return
@@ -153,11 +158,11 @@ func Load() {
 						log.Println(err.Error())
 						return
 					}
+					defer paginationresponse.Body.Close()
 					if paginationresponse.StatusCode != 200 {
 						log.Printf("Failed to load api from backend: %s\n", api)
 						return
 					}
-					defer paginationresponse.Body.Close()
 					json.NewDecoder(paginationresponse.Body).Decode(&res)
 					for _, item := range res.Results {
 						_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
@@ -207,6 +212,6 @@ func Load() {
 					}
 				}
 			}
-		}(collection, api)
+		}(netClient, collection, api)
 	}
 }
