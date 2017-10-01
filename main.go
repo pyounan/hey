@@ -44,6 +44,7 @@ func main() {
 
 	// auth
 	r.HandleFunc("/api/ensure_tenant_selected/", auth.EnsureTenantSelected).Methods("GET")
+	r.HandleFunc("/core/getloggedinusergroups/{id}/", auth.GetUserPermissions).Methods("GET")
 
 	// handle FDM requests
 	// r.HandleFunc("/proxy/fdm/status/{rcrs}", handlers.FDMStatus).Methods("GET")

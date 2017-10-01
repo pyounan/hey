@@ -105,6 +105,7 @@ func Load() {
 	backendApis["currencies"] = "income/api/currency/"
 	backendApis["permissions"] = "income/api/poscashierpermissions/"
 	backendApis["cashiers"] = "income/api/cashier/sync/"
+	backendApis["usergroups"] = "core/getallusergroups/"
 
 	netClient := helpers.NewNetClient()
 	for collection, api := range backendApis {
@@ -187,7 +188,7 @@ func Load() {
 			} else if api == "shadowinn/api/company/" {
 				var res map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
-				_, err := db.DB.C(collection).Upsert(bson.M{"_id": res["name"]}, res)
+				_, err := db.DB.C(collection).Upsert(bson.M{"name": res["name"]}, res)
 				if err != nil {
 					db.DB.C(collection).Insert(res)
 				}
@@ -197,6 +198,15 @@ func Load() {
 				for _, item := range res {
 					delete(item, "_id")
 					_, err = db.DB.C(collection).Upsert(bson.M{"poscashier_id": item["poscashier_id"]}, item)
+					if err != nil {
+						log.Println(err.Error())
+					}
+				}
+			} else if api == "core/getallusergroups/" {
+				var res []map[string]interface{}
+				json.NewDecoder(response.Body).Decode(&res)
+				for _, item := range res {
+					_, err := db.DB.C(collection).Upsert(bson.M{"id": item["id"]}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}
