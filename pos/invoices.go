@@ -524,9 +524,11 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 
 	invoice, err := req.Submit()
 	if err != nil {
+		log.Println("Submit error:", err.Error())
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
+	log.Println("Invoice Number", invoice.InvoiceNumber)
 	req.Invoice = invoice
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice.PaidAmount = req.Invoice.Total
@@ -537,18 +539,21 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
 	if err != nil {
+		log.Println("Mongodb error:", err.Error())
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 
 	// update table status
-	table := models.Table{}
-	err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
-		return
+	if req.Invoice.TableID != nil && *req.Invoice.TableID != 0 {
+		table := models.Table{}
+		err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		table.UpdateStatus()
 	}
-	table.UpdateStatus()
 
 	helpers.ReturnSuccessMessage(w, req)
 }

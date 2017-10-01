@@ -241,7 +241,11 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
 	if len(positiveItems) > 0 {
-		res, err := SendHashAndSignMessage(fdm, "NS", data, positiveItems)
+		eventLabel := "NS"
+		if data.Invoice.HouseUse == true {
+			eventLabel = "PS"
+		}
+		res, err := SendHashAndSignMessage(fdm, eventLabel, data, positiveItems)
 		if err != nil {
 			return responses, err
 		}
@@ -250,7 +254,11 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 	// send negative msg
 	negativeItems := splitItemsByVATRates(items, negativeVATs)
 	if len(negativeItems) > 0 {
-		res, err := SendHashAndSignMessage(fdm, "NR", data, negativeItems)
+		eventLabel := "NR"
+		if data.Invoice.HouseUse == true {
+			eventLabel = "PR"
+		}
+		res, err := SendHashAndSignMessage(fdm, eventLabel, data, negativeItems)
 		if err != nil {
 			return responses, err
 		}
