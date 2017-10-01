@@ -16,12 +16,16 @@ import (
 func ListFixedDiscounts(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	urlQuery := r.URL.Query()
+	if _, ok := urlQuery["id"]; ok {
+		id, _ := strconv.Atoi(urlQuery["id"][0])
+		query["id"] = id
+	}
 	if _, ok := urlQuery["store"]; ok {
 		id, _ := strconv.Atoi(urlQuery["store"][0])
 		query["stores"] = id
 	}
-	if _, ok := urlQuery["cashier"]; ok {
-		id, _ := strconv.Atoi(urlQuery["cashier"][0])
+	if _, ok := urlQuery["poscashier_id"]; ok {
+		id, _ := strconv.Atoi(urlQuery["poscashier_id"][0])
 		query["cashiers"] = id
 	}
 
