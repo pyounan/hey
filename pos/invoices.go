@@ -623,6 +623,7 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 		TerminalDescription string           `json:"terminal_description" bson:"terminal_description"`
 		TerminalID          int              `json:"terminal_id" bson:"terminal_id"`
 		TerminalNumber      int              `json:"terminal_number" bson:"terminal_number"`
+		Events              []string         `json:"events" bson:"events"`
 	}
 	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
