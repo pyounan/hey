@@ -182,8 +182,14 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println(req.Invoice.Events)
-	locks.LockInvoices([]models.Invoice{invoice}, invoice.TerminalID)
+	if req.Invoice.CreateLock == true {
+		locks.LockInvoices([]models.Invoice{invoice}, invoice.TerminalID)
+	}
+	req.Invoice.CreateLock = false
+	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
+	if err != nil {
+		log.Println(err)
+	}
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
@@ -737,6 +743,7 @@ func ToggleLocking(w http.ResponseWriter, r *http.Request) {
 	invoices := []models.Invoice{}
 	err := db.DB.C("posinvoices").Find(bson.M{"invoice_number": bson.M{"$in": numbers}}).All(&invoices)
 	if err != nil {
+		log.Println(err.Error())
 		helpers.ReturnSuccessMessage(w, err.Error())
 		return
 	}

@@ -32,6 +32,7 @@ type Invoice struct {
 	TerminalID          int                    `json:"terminal_id" bson:"terminal_id"`
 	TerminalDescription string                 `json:"terminal_description" bson:"terminal_description"`
 	Total               float64                `json:"total" bson:"total"`
+	CreateLock          bool                   `json:"create_lock" bson:"create_lock"`
 	FDMResponses        []FDMResponse          `json:"fdm_responses" bson:"fdm_responses"`
 	Postings            []Posting              `json:"pospayment" bson:"pospayment"`
 	Room                *int64                 `json:"room,omitempty" bson:"room,omitempty"`

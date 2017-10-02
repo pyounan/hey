@@ -87,8 +87,10 @@ func LockInvoices(invoices []models.Invoice, terminalID int) (int, error) {
 // and make the invoices available again to be picked up by
 // other terminals.
 func UnlockInvoices(invoices []models.Invoice) {
-	client := db.Redis
+	keys := []string{}
 	for _, i := range invoices {
-		client.Del("invoice_" + i.InvoiceNumber)
+		key := fmt.Sprintf("invoice_%s", i.InvoiceNumber)
+		keys = append(keys, key)
 	}
+	db.Redis.Del(keys...)
 }
