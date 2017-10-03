@@ -561,7 +561,7 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 		table.UpdateStatus()
 	}
 
-	helpers.ReturnSuccessMessage(w, req)
+	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
 // ChangeTable moves the selected invoices from table to another table
