@@ -332,6 +332,17 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req)
 }
 
+func CreatePaymentEJ(w http.ResponseWriter, r *http.Request) {
+	body := make(map[string]interface{})
+	json.NewDecoder(r.Body).Decode(&body)
+	err := syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	helpers.ReturnSuccessMessage(w, true)
+}
+
 // CancelPostings cancels payments of a paid invocie based on postings frontend ids
 func CancelPostings(w http.ResponseWriter, r *http.Request) {
 	type CancelPostingsRequest struct {

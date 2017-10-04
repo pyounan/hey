@@ -94,6 +94,7 @@ func main() {
 	r.HandleFunc("/api/pos/posinvoices/houseuse/", pos.Houseuse).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/changetable/", pos.ChangeTable).Methods("PUT")
 	r.HandleFunc("/api/pos/posinvoices/split/", pos.SplitInvoices).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoices/createpaymentej/", pos.CreatePaymentEJ).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/togglelocking/", pos.ToggleLocking).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoicelineitems/wasteandvoid/", pos.WasteAndVoid).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.GetInvoice).Methods("GET")
