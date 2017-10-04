@@ -566,7 +566,12 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 
 // ChangeTable moves the selected invoices from table to another table
 func ChangeTable(w http.ResponseWriter, r *http.Request) {
-	body := make(map[string]interface{})
+	type ReqBody struct {
+		OldTable int              `json:"oldtable" bson:"oldtable"`
+		NewTable int              `json:"newtable" bson:"newtable"`
+		Invoices []models.Invoice `json:"posinvoices" bson:"posinvoices"`
+	}
+	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
@@ -574,42 +579,38 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	oldTable := int(body["oldtable"].(float64))
-	newTable := int(body["newtable"].(float64))
-	invoices := body["posinvoices"].([]interface{})
-	invoiceNumbers := []string{}
-	for _, i := range invoices {
-		invoiceNumbers = append(invoiceNumbers, (i).(map[string]interface{})["invoice_number"].(string))
-	}
-
-	table := models.Table{}
-	err = db.DB.C("tables").Find(bson.M{"id": newTable}).One(&table)
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
-		return
-	}
 	// update invoices in db
-	_, err = db.DB.C("posinvoices").UpdateAll(bson.M{"invoice_number": bson.M{"$in": invoiceNumbers}}, bson.M{"$set": bson.M{"table": table.Number, "table_number": table.ID}})
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
-		return
+	for _, i := range body.Invoices {
+		err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": i.InvoiceNumber}, i)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err)
+			return
+		}
 	}
 
-	// Update Status of new Table
-	table.UpdateStatus()
-	// Update Status of old Table
-	err = db.DB.C("tables").Find(bson.M{"id": oldTable}).One(&table)
+	newTable := models.Table{}
+	err = db.DB.C("tables").Find(bson.M{"id": body.NewTable}).One(&newTable)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
-	table.UpdateStatus()
+	// Update Status of new Table
+	newTable.UpdateStatus()
+
+	// Update Status of old Table
+	oldTable := models.Table{}
+	err = db.DB.C("tables").Find(bson.M{"id": body.OldTable}).One(&oldTable)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
+	oldTable.UpdateStatus()
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
 
 	// get invoices on the new table
 	newInvoices := []models.Invoice{}
-	err = db.DB.C("posinvoices").Find(bson.M{"table_number": newTable, "is_settled": false}).All(&newInvoices)
+	err = db.DB.C("posinvoices").Find(bson.M{"table_number": body.NewTable, "is_settled": false}).All(&newInvoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
 		return
