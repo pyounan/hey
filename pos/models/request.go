@@ -24,6 +24,7 @@ type InvoicePOSTRequest struct {
 	//Payments     []Payment `json:"postings"`
 	ChangeAmount float64 `json:"change" bson:"change"`
 	IsClosed     bool    `json:"is_closed,omitempty" bson:"is_closed,omitempty"`
+	ModalName    string  `json:"modalname" bson:"modalname"`
 }
 
 // Submit loops over invoice items, and sets the submitted quantity to quantity

@@ -281,7 +281,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 	fdmResponses := []models.FDMResponse{}
 
-	if config.Config.IsFDMEnabled == true {
+	if config.Config.IsFDMEnabled == true && req.ModalName == "payment" {
 		// create fdm connection
 		conn, err := fdm.Connect(req.RCRS)
 		if err != nil {
@@ -296,7 +296,6 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 		fdmResponses = append(fdmResponses, responses...)
 		req.Invoice.FDMResponses = fdmResponses
-		log.Println(req.Invoice.FDMResponses)
 	}
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
@@ -505,6 +504,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	body.Posting.PosPostingInformations = []models.Posting{}
 	body.Posting.PosPostingInformations = append(body.Posting.PosPostingInformations, models.Posting{})
 	resp.Postings = append(resp.Postings, body.Posting)
+	resp.NewInvoice.Postings = resp.Postings
 	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OriginalInvoiceNumber}).One(&resp.OriginalInvoice)
 	helpers.ReturnSuccessMessage(w, resp)
 

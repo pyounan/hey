@@ -45,6 +45,6 @@ type Invoice struct {
 	Taxes               map[string]interface{} `json:"taxes" bson:"taxes"`
 	VoidReason          string                 `json:"void_reason,omitempty" bson:"void_reason,omitempty"`
 	Change              float64                `json:"change,omitempty" bson:"change,omitempty"`
-	ClosedOn            time.Time              `json:"closed_on" bson:"closed_on"`
+	ClosedOn            *time.Time             `json:"closed_on" bson:"closed_on"`
 	UpdatedOn           time.Time              `json:"updated_on" bson:"updated_on"`
 }
