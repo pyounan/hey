@@ -45,9 +45,11 @@ func QueueRequest(uri string, method string, headers http.Header, payload interf
 }
 
 type RequestLog struct {
-	Request        RequestRow  `json:"request_row" bson:"request_row"`
-	ResponseBody   interface{} `json:"response_body" bson:"response_body"`
-	ResponseStatus int         `json:"response_status" bson:"response_status"`
+	ID             bson.ObjectId `json:"id" bson:"_id"`
+	Request        RequestRow    `json:"request_row" bson:"request_row"`
+	ResponseBody   interface{}   `json:"response_body" bson:"response_body"`
+	ResponseStatus int           `json:"response_status" bson:"response_status"`
+	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
 }
 
 func PushToBackend() {
@@ -70,6 +72,7 @@ func PushToBackend() {
 		log.Println("Openning connection for", req.URL)
 		// add this request and its response to requests log
 		logRecord := RequestLog{}
+		logRecord.CreatedAt = time.Now()
 		logRecord.Request = r
 		response, err := netClient.Do(req)
 		if err != nil {

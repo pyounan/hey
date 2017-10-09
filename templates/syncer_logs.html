@@ -1,0 +1,22 @@
+{{ define "syncer_logs" }}
+{{ template "header" . }}
+	<table class="table table-bordered">
+			<tr>
+				<td>URI</td>
+				<td>Response Status</td>
+				<td>Request Body</td>
+				<td>Response Body</td>
+				<td>Created At</td>
+			</tr>
+			{{ range $i, $val := . }}
+			<tr>
+				<td>{{ $val.Request.URI }}</td>
+				<td>{{ $val.ResponseStatus }}</td>
+				<td><a href="/syncer/logs/request/{{ $val.ID.Hex }}" target="_blank">Request</a></td>
+				<td><a href="/syncer/logs/response/{{ $val.ID.Hex }}" target="_blank">Response Body</a></td>
+				<td>{{ $val.CreatedAt }}</td>
+			</tr>
+			{{ end }}
+		</table>
+{{ template "footer" . }}
+{{ end }}

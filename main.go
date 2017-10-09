@@ -107,6 +107,11 @@ func main() {
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
 
 	r.HandleFunc("/api/pos/fixeddiscount/", pos.ListFixedDiscounts).Methods("GET")
+	// Proxy Views
+	r.HandleFunc("/", proxy.HomeView).Methods("GET")
+	r.HandleFunc("/syncer/logs", proxy.RequestsLogView).Methods("GET")
+	r.HandleFunc("/syncer/logs/request/{id}", proxy.SyncerRequest).Methods("GET")
+	r.HandleFunc("/syncer/logs/response/{id}", proxy.SyncerResponse).Methods("GET")
 
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 

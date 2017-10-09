@@ -21,7 +21,6 @@ type InvoicePOSTRequest struct {
 	CashierNumber  int       `json:"cashier_number" bson:"cashier_number"`
 	Postings       []Posting `json:"postings" bson:"postings"`
 	// only used for payment
-	//Payments     []Payment `json:"postings"`
 	ChangeAmount float64 `json:"change" bson:"change"`
 	IsClosed     bool    `json:"is_closed,omitempty" bson:"is_closed,omitempty"`
 	ModalName    string  `json:"modalname" bson:"modalname"`
