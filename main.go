@@ -2,10 +2,13 @@ package main
 
 import (
 	"flag"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 
 	gh "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -13,6 +16,7 @@ import (
 	"pos-proxy/auth"
 	"pos-proxy/config"
 	"pos-proxy/db"
+	"pos-proxy/helpers"
 	"pos-proxy/income"
 	"pos-proxy/pos"
 	"pos-proxy/proxy"
@@ -29,6 +33,8 @@ func init() {
 		log.Println(err)
 	}
 }
+
+var templates = template.Must(template.ParseGlob("templates/*"))
 
 func main() {
 	port := flag.String("port", "80", "Port to listen on")
@@ -107,11 +113,11 @@ func main() {
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
 
 	r.HandleFunc("/api/pos/fixeddiscount/", pos.ListFixedDiscounts).Methods("GET")
-	// Proxy Views
-	r.HandleFunc("/", proxy.HomeView).Methods("GET")
-	r.HandleFunc("/syncer/logs", proxy.RequestsLogView).Methods("GET")
-	r.HandleFunc("/syncer/logs/request/{id}", proxy.SyncerRequest).Methods("GET")
-	r.HandleFunc("/syncer/logs/response/{id}", proxy.SyncerResponse).Methods("GET")
+	// HTML Views
+	r.HandleFunc("/", homeView).Methods("GET")
+	r.HandleFunc("/syncer/logs", requestsLogView).Methods("GET")
+	r.HandleFunc("/syncer/logs/request/{id}", syncerRequest).Methods("GET")
+	r.HandleFunc("/syncer/logs/response/{id}", syncerResponse).Methods("GET")
 
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
@@ -147,4 +153,41 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+*port,
 		gh.CORS(originsOk, headersOk, methodsOk)(lr)))
 
+}
+
+func homeView(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "home", nil)
+}
+
+func requestsLogView(w http.ResponseWriter, r *http.Request) {
+	logs := []syncer.RequestLog{}
+	db.DB.C("requests_log").Find(nil).All(&logs)
+
+	templates.ExecuteTemplate(w, "syncer_logs", logs)
+}
+
+func syncerRequest(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	logRecord := syncer.RequestLog{}
+	err := db.DB.C("requests_log").FindId(bson.ObjectIdHex(id)).One(&logRecord)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+
+	helpers.ReturnSuccessMessage(w, logRecord.Request)
+}
+
+func syncerResponse(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	logRecord := syncer.RequestLog{}
+	err := db.DB.C("requests_log").FindId(bson.ObjectIdHex(id)).One(&logRecord)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+
+	helpers.ReturnSuccessMessage(w, logRecord.ResponseBody)
 }
