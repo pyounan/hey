@@ -2,6 +2,7 @@
 {{ template "header" . }}
 	<table class="table table-bordered">
 			<tr>
+				<td>Method</td>
 				<td>URI</td>
 				<td>Response Status</td>
 				<td>Request Body</td>
@@ -10,6 +11,7 @@
 			</tr>
 			{{ range $i, $val := . }}
 			<tr>
+				<td>{{ $val.Request.Method }}</td>
 				<td>{{ $val.Request.URI }}</td>
 				<td>{{ $val.ResponseStatus }}</td>
 				<td><a href="/syncer/logs/request/{{ $val.ID.Hex }}" target="_blank">Request</a></td>
