@@ -217,6 +217,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
+	fdmResponses := []models.FDMResponse{}
 	// if fdm is enabled submit items to fdm first
 	if config.Config.IsFDMEnabled == true {
 		// create fdm connection
@@ -226,11 +227,12 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer conn.Close()
-		_, err = fdm.Submit(conn, req)
+		responses, err := fdm.Submit(conn, req)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
+		fdmResponses = append(fdmResponses, responses...)
 	}
 
 	req.Invoice, err = req.Submit()
@@ -238,8 +240,6 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-
-	fdmResponses := []models.FDMResponse{}
 
 	if config.Config.IsFDMEnabled == true {
 		// create fdm connection
