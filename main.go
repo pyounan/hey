@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -34,7 +35,8 @@ func init() {
 	}
 }
 
-var templates = template.Must(template.ParseGlob("templates/*"))
+var cwd, _ = os.Getwd()
+var templates = template.Must(template.ParseGlob(filepath.Join(cwd, "./templates/*")))
 
 func main() {
 	port := flag.String("port", "80", "Port to listen on")
