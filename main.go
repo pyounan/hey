@@ -24,6 +24,8 @@ import (
 	"pos-proxy/syncer"
 )
 
+var templates *template.Template
+
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	// read encryption key from environment variables
@@ -33,10 +35,14 @@ func init() {
 	if err != nil {
 		log.Println(err)
 	}
+	var cwd, _ = os.Getwd()
+	log.Println("Getting template files from", cwd)
+	templates, err = template.ParseGlob(filepath.Join(cwd, "templates/*"))
+	if err != nil {
+		log.Println("Failed to parse html templates", err.Error())
+	}
 }
 
-var cwd, _ = os.Getwd()
-var templates = template.Must(template.ParseGlob(filepath.Join(cwd, "templates/*")))
 
 func main() {
 	port := flag.String("port", "80", "Port to listen on")
