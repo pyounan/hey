@@ -72,6 +72,7 @@ func PushToBackend() {
 		log.Println("Openning connection for", req.URL)
 		// add this request and its response to requests log
 		logRecord := RequestLog{}
+		logRecord.ID = bson.NewObjectId()
 		logRecord.CreatedAt = time.Now()
 		logRecord.Request = r
 		response, err := netClient.Do(req)
@@ -90,7 +91,10 @@ func PushToBackend() {
 			log.Println("error response body", string(res))
 			logRecord.ResponseStatus = response.StatusCode
 			logRecord.ResponseBody = res
-			db.DB.C("requests_log").Insert(logRecord)
+			err = db.DB.C("requests_log").Insert(logRecord)
+			if err != nil {
+				log.Println("Failed to queue failure to log", err.Error())
+			}
 			return
 		}
 		if req.URL.Path == "/api/pos/posinvoices/" || strings.Contains(req.URL.Path, "createpostings") {

@@ -43,7 +43,6 @@ func init() {
 	}
 }
 
-
 func main() {
 	port := flag.String("port", "80", "Port to listen on")
 	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
@@ -111,8 +110,7 @@ func main() {
 	r.HandleFunc("/api/pos/posinvoices/createpaymentej/", pos.CreatePaymentEJ).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/togglelocking/", pos.ToggleLocking).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoicelineitems/wasteandvoid/", pos.WasteAndVoid).Methods("POST")
-	r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.GetInvoice).Methods("GET")
-	// r.HandleFunc("/api/pos/posinvoices/{invoice_nubmer}/", pos.UpdateInvoice).Methods("PUT")
+	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/", pos.GetInvoice).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/createpostings/", pos.PayInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/cancelpostings/", pos.CancelPostings).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/unlock/", pos.UnlockInvoice).Methods("GET")

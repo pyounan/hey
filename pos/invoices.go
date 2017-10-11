@@ -116,7 +116,7 @@ func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 func GetInvoice(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	vars := mux.Vars(r)
-	id, _ := vars["invoice_nubmer"]
+	id, _ := vars["invoice_number"]
 	q["invoice_number"] = id
 
 	invoice := models.Invoice{}
