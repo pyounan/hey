@@ -9,6 +9,7 @@ import (
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
+	incomemodels "pos-proxy/income/models"
 	"pos-proxy/pos/fdm"
 	"pos-proxy/pos/locks"
 	"pos-proxy/pos/models"
@@ -19,6 +20,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/novalagung/golpal"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -304,6 +306,9 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 	req.Invoice.Change = req.ChangeAmount
+
+	log.Println("Postings sent", req.Postings)
+	HandleOperaPayments(req.Invoice)
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
@@ -768,4 +773,87 @@ func GetInvoiceLatestChanges(w http.ResponseWriter, r *http.Request) {
 	}
 	res := bson.M{"terminal": nil, "lockedposinvoices": false, "posinvoice": invoice}
 	helpers.ReturnSuccessMessage(w, res)
+}
+
+func MergeTaxes(totalTaxes map[int]float32, currentTaxes map[int]float32) {
+	for key, value := range currentTaxes {
+		_, ok := totalTaxes[key]
+		if !ok {
+			totalTaxes[key] = float32(0.0)
+		}
+		totalTaxes[key] += value
+	}
+}
+
+func HandleOperaPayments(invoice models.Invoice) {
+	totalTaxes := make(map[int]float32)
+	for _, lineitem := range invoice.Items {
+		departmentID := lineitem.AttachedAttributes["revenue_department"]
+		department := incomemodels.Department{}
+		price := float32(lineitem.Price)
+		_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&department)
+		currentTaxes := ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
+		MergeTaxes(totalTaxes, currentTaxes)
+
+		for _, condimentlineitem := range lineitem.CondimentLineItems {
+			log.Println("Condiment:", lineitem.Quantity*condimentlineitem.Price, condimentlineitem.AttachedAttributes)
+			condimentPrice := float32(lineitem.Quantity * condimentlineitem.Price)
+			condimentDepartment := incomemodels.Department{}
+			departmentID := condimentlineitem.AttachedAttributes["revenue_department"]
+			_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
+			currentTaxes = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
+			MergeTaxes(totalTaxes, currentTaxes)
+		}
+	}
+	log.Println("All taxes:", totalTaxes)
+}
+
+func ComputeTaxes(amount float32, tax_defs map[string][]incomemodels.TaxDef,
+	takeout bool) map[int]float32 {
+	taxs := make(map[int]float32)
+	w := float32(1.0)
+	requiredTax := ""
+	if takeout {
+		requiredTax = "takeout"
+	} else {
+		requiredTax = "dinein"
+	}
+	for key, tax_types := range tax_defs {
+		for _, tax_def := range tax_types {
+			if tax_def.POS == "all" || tax_def.POS == requiredTax {
+				if key == "fix" {
+					newFormula := strings.Replace(tax_def.Formula, "x", "1", -1)
+					output, _ := golpal.New().ExecuteSimple(newFormula)
+					value, _ := strconv.ParseFloat(output, 32)
+					amount -= float32(value)
+				} else if key == "in" {
+					newFormula := strings.Replace(tax_def.Formula, "x", "1", -1)
+					output, _ := golpal.New().ExecuteSimple(newFormula)
+					value, _ := strconv.ParseFloat(output, 32)
+					w += float32(value)
+				}
+			}
+		}
+	}
+	net_amount := amount / w
+	log.Println("amount", amount, "Net Amount:", net_amount)
+
+	for _, tax_types := range tax_defs {
+		for _, tax_def := range tax_types {
+			if tax_def.POS == "all" || tax_def.POS == requiredTax {
+				net_amount_str := fmt.Sprintf("%v", net_amount)
+				newFormula := strings.Replace(tax_def.Formula, "x", net_amount_str, -1)
+				output, _ := golpal.New().ExecuteSimple(newFormula)
+				value, _ := strconv.ParseFloat(output, 32)
+				_, ok := taxs[tax_def.Department]
+				if !ok {
+					taxs[tax_def.Department] = float32(0.0)
+				}
+				taxs[tax_def.Department] += float32(value)
+			}
+		}
+	}
+
+	log.Println("taxs map", taxs)
+	return taxs
 }

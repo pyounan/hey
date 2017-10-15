@@ -31,7 +31,7 @@ func init() {
 }
 
 func main() {
-	port := flag.String("port", "80", "Port to listen on")
+	port := flag.String("port", "7000", "Port to listen on")
 	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
 	flag.Parse()
 	config.Load(*filePath)
