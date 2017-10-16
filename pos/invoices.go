@@ -1,7 +1,9 @@
 package pos
 
 import (
+	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,6 +12,7 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/helpers"
 	incomemodels "pos-proxy/income/models"
+	operamodels "pos-proxy/opera/models"
 	"pos-proxy/pos/fdm"
 	"pos-proxy/pos/locks"
 	"pos-proxy/pos/models"
@@ -775,43 +778,91 @@ func GetInvoiceLatestChanges(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, res)
 }
 
-func MergeTaxes(totalTaxes map[int]float32, currentTaxes map[int]float32) {
-	for key, value := range currentTaxes {
-		_, ok := totalTaxes[key]
-		if !ok {
-			totalTaxes[key] = float32(0.0)
-		}
-		totalTaxes[key] += value
+func AddToPostRequest(postRequest *operamodels.PostRequest, revenueConfig map[int]string,
+	department int, taxes float64, service float64, discounts float64, subtotal float64) {
+	log.Println("revenueConfig", revenueConfig)
+	log.Println("revenue config department", revenueConfig[department], "department", department)
+	if revenueConfig[department] == "1" {
+		postRequest.Subtotal1 += subtotal
+		postRequest.Discount1 += discounts
+		postRequest.ServiceCharge1 += service
+		postRequest.Tax1 += taxes
+	} else if revenueConfig[department] == "2" {
+		postRequest.Subtotal2 += subtotal
+		postRequest.Discount2 += discounts
+		postRequest.ServiceCharge2 += service
+		postRequest.Tax2 += taxes
+	} else if revenueConfig[department] == "3" {
+		postRequest.Subtotal3 += subtotal
+		postRequest.Discount3 += discounts
+		postRequest.ServiceCharge3 += service
+		postRequest.Tax3 += taxes
+	} else if revenueConfig[department] == "4" {
+		postRequest.Subtotal4 += subtotal
+		postRequest.Discount4 += discounts
+		postRequest.ServiceCharge4 += service
+		postRequest.Tax4 += taxes
 	}
 }
 
 func HandleOperaPayments(invoice models.Invoice) {
-	totalTaxes := make(map[int]float32)
+	postRequest := operamodels.PostRequest{}
+	revenueConfig := []operamodels.OperaConfig{}
+
+	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "revenue_department"}).All(&revenueConfig)
+	flattenedMap := operamodels.FlattenToMap(revenueConfig)
 	for _, lineitem := range invoice.Items {
+		taxes := 0.0
+		discounts := 0.0
+		service := 0.0
 		departmentID := lineitem.AttachedAttributes["revenue_department"]
 		department := incomemodels.Department{}
-		price := float32(lineitem.Price)
+		price := float64(lineitem.Price)
 		_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&department)
-		currentTaxes := ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
-		MergeTaxes(totalTaxes, currentTaxes)
+
+		taxes, service = ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
+		discounts = ComputeDiscounts(price, lineitem.AppliedDiscounts)
+		subtotal := price - taxes - discounts
+		postRequest.TotalAmount += subtotal
+
+		AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
 
 		for _, condimentlineitem := range lineitem.CondimentLineItems {
-			log.Println("Condiment:", lineitem.Quantity*condimentlineitem.Price, condimentlineitem.AttachedAttributes)
-			condimentPrice := float32(lineitem.Quantity * condimentlineitem.Price)
+			condimentPrice := float64(lineitem.Quantity * condimentlineitem.Price)
 			condimentDepartment := incomemodels.Department{}
 			departmentID := condimentlineitem.AttachedAttributes["revenue_department"]
 			_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
-			currentTaxes = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
-			MergeTaxes(totalTaxes, currentTaxes)
+			taxes, service = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
+			discounts = ComputeDiscounts(condimentPrice, lineitem.AppliedDiscounts)
+			subtotal = condimentPrice - taxes - discounts
+			postRequest.TotalAmount += subtotal
+			AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
 		}
 	}
-	log.Println("All taxes:", totalTaxes)
+	t := time.Now()
+	val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
+	val = val[2:]
+	postRequest.Date = val
+
+	val = fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
+	postRequest.Time = val
+
+	postRequest.CheckNumber = invoice.InvoiceNumber
+	postRequest.RevenueCenter = invoice.Store
+	postRequest.WorkstationId = fmt.Sprintf("%d", invoice.TerminalID)
+
+	buf := bytes.NewBufferString("")
+	if err := xml.NewEncoder(buf).Encode(postRequest); err != nil {
+		log.Println(err)
+	}
+	log.Println(buf.String())
 }
 
-func ComputeTaxes(amount float32, tax_defs map[string][]incomemodels.TaxDef,
-	takeout bool) map[int]float32 {
-	taxs := make(map[int]float32)
-	w := float32(1.0)
+func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,
+	takeout bool) (float64, float64) {
+	totalTaxes := float64(0.0)
+	totalService := float64(0.0)
+	w := float64(1.0)
 	requiredTax := ""
 	if takeout {
 		requiredTax = "takeout"
@@ -825,18 +876,17 @@ func ComputeTaxes(amount float32, tax_defs map[string][]incomemodels.TaxDef,
 					newFormula := strings.Replace(tax_def.Formula, "x", "1", -1)
 					output, _ := golpal.New().ExecuteSimple(newFormula)
 					value, _ := strconv.ParseFloat(output, 32)
-					amount -= float32(value)
+					amount -= value
 				} else if key == "in" {
 					newFormula := strings.Replace(tax_def.Formula, "x", "1", -1)
 					output, _ := golpal.New().ExecuteSimple(newFormula)
 					value, _ := strconv.ParseFloat(output, 32)
-					w += float32(value)
+					w += value
 				}
 			}
 		}
 	}
 	net_amount := amount / w
-	log.Println("amount", amount, "Net Amount:", net_amount)
 
 	for _, tax_types := range tax_defs {
 		for _, tax_def := range tax_types {
@@ -845,15 +895,20 @@ func ComputeTaxes(amount float32, tax_defs map[string][]incomemodels.TaxDef,
 				newFormula := strings.Replace(tax_def.Formula, "x", net_amount_str, -1)
 				output, _ := golpal.New().ExecuteSimple(newFormula)
 				value, _ := strconv.ParseFloat(output, 32)
-				_, ok := taxs[tax_def.Department]
-				if !ok {
-					taxs[tax_def.Department] = float32(0.0)
-				}
-				taxs[tax_def.Department] += float32(value)
+				totalTaxes += value
 			}
 		}
 	}
 
-	log.Println("taxs map", taxs)
-	return taxs
+	return totalTaxes, totalService
+}
+
+func ComputeDiscounts(amount float64, discounts []models.AppliedDiscount) float64 {
+	discountsValue := 0.0
+	for _, discount := range discounts {
+		value := amount * discount.Percentage / 100.0
+		discountsValue += value
+		amount -= value
+	}
+	return discountsValue
 }

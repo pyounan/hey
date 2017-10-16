@@ -13,4 +13,5 @@ type Department struct {
 	Code         int                 `json:"code" bson:"code"`
 	ExchangeRate float32             `json:"exchange_rate" bson:"exchange_rate"`
 	TaxDefs      map[string][]TaxDef `json:"tax_defs" bson:"tax_defs"`
+	ID           int                 `json:"id" bson:"id"`
 }

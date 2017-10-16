@@ -106,6 +106,7 @@ func Load() {
 	backendApis["permissions"] = "income/api/poscashierpermissions/"
 	backendApis["cashiers"] = "income/api/cashier/sync/"
 	backendApis["usergroups"] = "core/getallusergroups/"
+	backendApis["operasettings"] = "api/pos/opera/"
 
 	netClient := helpers.NewNetClient()
 	for collection, api := range backendApis {
