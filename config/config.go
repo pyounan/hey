@@ -15,11 +15,13 @@ var AuthPassword string
 
 // ConfigHolder struct of the proxy configuration
 type ConfigHolder struct {
-	BackendURI   string      `json:"backend_uri"`
-	IsFDMEnabled bool        `json:"is_fdm_enabled"`
-	InstanceName string      `json:"instance_name"`
-	FDMs         []FDMConfig `json:"fdms"`
-	UpdatedAt    time.Time   `json:"updated_at"`
+	BackendURI     string      `json:"backend_uri"`
+	IsFDMEnabled   bool        `json:"is_fdm_enabled"`
+	InstanceName   string      `json:"instance_name"`
+	FDMs           []FDMConfig `json:"fdms"`
+	IsOperaEnabled bool        `json:"is_opera_enabled"`
+	OperaIP        string      `json:"opera_ip"`
+	UpdatedAt      time.Time   `json:"updated_at"`
 }
 
 // FDMConfig struct of each proxy configuration
