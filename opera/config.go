@@ -1,4 +1,4 @@
-package models
+package opera
 
 type OperaConfigValue struct {
 	Code        string `json:"code" bson:"code"`

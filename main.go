@@ -14,6 +14,7 @@ import (
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/income"
+	"pos-proxy/opera"
 	"pos-proxy/pos"
 	"pos-proxy/proxy"
 	"pos-proxy/syncer"
@@ -136,6 +137,7 @@ func main() {
 	// r = gh.RecoveryHandler()(lr)
 
 	db.ConnectRedis()
+	go opera.Connect()
 
 	log.Printf("Listening on http://localhost:%s\n", *port)
 	log.Fatal(http.ListenAndServe(":"+*port,

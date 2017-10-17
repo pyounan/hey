@@ -12,7 +12,7 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/helpers"
 	incomemodels "pos-proxy/income/models"
-	operamodels "pos-proxy/opera/models"
+	"pos-proxy/opera"
 	"pos-proxy/pos/fdm"
 	"pos-proxy/pos/locks"
 	"pos-proxy/pos/models"
@@ -778,7 +778,7 @@ func GetInvoiceLatestChanges(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, res)
 }
 
-func AddToPostRequest(postRequest *operamodels.PostRequest, revenueConfig map[int]string,
+func AddToPostRequest(postRequest *opera.PostRequest, revenueConfig map[int]string,
 	department int, taxes float64, service float64, discounts float64, subtotal float64) {
 	log.Println("revenueConfig", revenueConfig)
 	log.Println("revenue config department", revenueConfig[department], "department", department)
@@ -806,56 +806,59 @@ func AddToPostRequest(postRequest *operamodels.PostRequest, revenueConfig map[in
 }
 
 func HandleOperaPayments(invoice models.Invoice) {
-	postRequest := operamodels.PostRequest{}
-	revenueConfig := []operamodels.OperaConfig{}
+	if config.Config.IsOperaEnabled {
+		postRequest := opera.PostRequest{}
+		revenueConfig := []opera.OperaConfig{}
 
-	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "revenue_department"}).All(&revenueConfig)
-	flattenedMap := operamodels.FlattenToMap(revenueConfig)
-	for _, lineitem := range invoice.Items {
-		taxes := 0.0
-		discounts := 0.0
-		service := 0.0
-		departmentID := lineitem.AttachedAttributes["revenue_department"]
-		department := incomemodels.Department{}
-		price := float64(lineitem.Price)
-		_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&department)
+		_ = db.DB.C("operasettings").Find(bson.M{"config_name": "revenue_department"}).All(&revenueConfig)
+		flattenedMap := opera.FlattenToMap(revenueConfig)
+		for _, lineitem := range invoice.Items {
+			taxes := 0.0
+			discounts := 0.0
+			service := 0.0
+			departmentID := lineitem.AttachedAttributes["revenue_department"]
+			department := incomemodels.Department{}
+			price := float64(lineitem.Price)
+			_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&department)
 
-		taxes, service = ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
-		discounts = ComputeDiscounts(price, lineitem.AppliedDiscounts)
-		subtotal := price - taxes - discounts
-		postRequest.TotalAmount += subtotal
-
-		AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
-
-		for _, condimentlineitem := range lineitem.CondimentLineItems {
-			condimentPrice := float64(lineitem.Quantity * condimentlineitem.Price)
-			condimentDepartment := incomemodels.Department{}
-			departmentID := condimentlineitem.AttachedAttributes["revenue_department"]
-			_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
-			taxes, service = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
-			discounts = ComputeDiscounts(condimentPrice, lineitem.AppliedDiscounts)
-			subtotal = condimentPrice - taxes - discounts
+			taxes, service = ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
+			discounts = ComputeDiscounts(price, lineitem.AppliedDiscounts)
+			subtotal := price - taxes - discounts
 			postRequest.TotalAmount += subtotal
+
 			AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
+
+			for _, condimentlineitem := range lineitem.CondimentLineItems {
+				condimentPrice := float64(lineitem.Quantity * condimentlineitem.Price)
+				condimentDepartment := incomemodels.Department{}
+				departmentID := condimentlineitem.AttachedAttributes["revenue_department"]
+				_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
+				taxes, service = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
+				discounts = ComputeDiscounts(condimentPrice, lineitem.AppliedDiscounts)
+				subtotal = condimentPrice - taxes - discounts
+				postRequest.TotalAmount += subtotal
+				AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
+			}
 		}
+		t := time.Now()
+		val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
+		val = val[2:]
+		postRequest.Date = val
+
+		val = fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
+		postRequest.Time = val
+
+		postRequest.CheckNumber = invoice.InvoiceNumber
+		postRequest.RevenueCenter = invoice.Store
+		postRequest.WorkstationId = fmt.Sprintf("%d", invoice.TerminalID)
+
+		buf := bytes.NewBufferString("")
+		if err := xml.NewEncoder(buf).Encode(postRequest); err != nil {
+			log.Println(err)
+		}
+		log.Println("About to send", buf.String())
+		opera.SendRequest([]byte(buf.String()))
 	}
-	t := time.Now()
-	val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
-	val = val[2:]
-	postRequest.Date = val
-
-	val = fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
-	postRequest.Time = val
-
-	postRequest.CheckNumber = invoice.InvoiceNumber
-	postRequest.RevenueCenter = invoice.Store
-	postRequest.WorkstationId = fmt.Sprintf("%d", invoice.TerminalID)
-
-	buf := bytes.NewBufferString("")
-	if err := xml.NewEncoder(buf).Encode(postRequest); err != nil {
-		log.Println(err)
-	}
-	log.Println(buf.String())
 }
 
 func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,

@@ -1,4 +1,4 @@
-package models
+package opera
 
 import (
 	"encoding/xml"
