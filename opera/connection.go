@@ -11,7 +11,7 @@ import (
 
 var conn net.Conn
 
-func SendRequest(data []byte) {
+func SendRequest(data []byte) (string, error) {
 	stx := []byte{0x02}
 	etx := []byte{0x03}
 	payload := []byte{}
@@ -19,8 +19,8 @@ func SendRequest(data []byte) {
 	payload = append(payload, data...)
 	payload = append(payload, etx...)
 	conn.Write(payload)
-	message, _ := bufio.NewReader(conn).ReadString(etx[0])
-	fmt.Println("total size:", len(message), message)
+	message, err := bufio.NewReader(conn).ReadString(etx[0])
+	return message, err
 }
 
 func Connect() {
@@ -29,6 +29,7 @@ func Connect() {
 	conn, err = net.Dial("tcp", connectionString)
 	if err != nil {
 		log.Println("Couldn't connect to opera with err ", err)
+		log.Println("Connection string", connectionString)
 		return
 	}
 	log.Println(fmt.Sprintf("Connection successful to Opera on %s", config.Config.OperaIP))

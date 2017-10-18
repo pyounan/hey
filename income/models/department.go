@@ -6,7 +6,7 @@ type TaxDef struct {
 	VatPercentage string `json:"vat_percentage,omitempty" bson:"vat_percentage,omitempty"`
 	POS           string `json:"pos" bson:"pos"`
 	Formula       string `json:"formula" bson:"formula"`
-	Department    int    `json:"department" bson:"department"`
+	DepartmentID  int    `json:"department_id" bson:"department_id"`
 }
 
 type Department struct {

@@ -44,16 +44,16 @@ type PostRequest struct {
 
 type PostAnswer struct {
 	XMLName        xml.Name `xml:"PostAnswer"`
-	RoomNumber     string   `xml:"RoomNumber,attr"`
-	ReservationId  string   `xml:"ReservationId,attr"`
-	LastName       string   `xml:"LastName,attr"`
-	AnswerStatus   string   `xml:"AnswerStatus,attr"`
-	ResponseText   string   `xml:"ResponseTest,attr"`
-	CheckNumber    string   `xml:"CheckNumber,attr"`
-	SequenceNumber int      `xml:"SequenceNumber,attr"`
-	Date           string   `xml:"Date,attr"`
-	Time           string   `xml:"Time,attr"`
-	WorkstationId  string   `xml:"WorkstationId,attr"`
-	RevenueCenter  int      `xml:"RevenueCenter,attr"`
-	PaymentMethod  int      `xml:"PaymentMethod,attr"`
+	RoomNumber     string   `xml:"RoomNumber,attr,omitempty" json:"room_number,omitempty"`
+	ReservationId  string   `xml:"ReservationId,attr,omitempty" json:"reservation_id,omitempty"`
+	LastName       string   `xml:"LastName,attr,omitempty" json:"last_name,omitempty"`
+	AnswerStatus   string   `xml:"AnswerStatus,attr" json:"answer_status"`
+	ResponseText   string   `xml:"ResponseTest,attr" json:"response_text"`
+	CheckNumber    string   `xml:"CheckNumber,attr,omitempty" json:"check_number,omitempty"`
+	SequenceNumber int      `xml:"SequenceNumber,attr" json:"squence_number"`
+	Date           string   `xml:"Date,attr" json:"date"`
+	Time           string   `xml:"Time,attr" json:"time"`
+	WorkstationId  string   `xml:"WorkstationId,attr" json:"workstation_id"`
+	RevenueCenter  int      `xml:"RevenueCenter,attr" json:"revenue_center"`
+	PaymentMethod  int      `xml:"PaymentMethod,attr" json:"payment_method"`
 }

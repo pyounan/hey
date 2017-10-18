@@ -310,7 +310,6 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice.PaidAmount = req.Invoice.Total
 	req.Invoice.Change = req.ChangeAmount
 
-	log.Println("Postings sent", req.Postings)
 	HandleOperaPayments(req.Invoice)
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
@@ -808,7 +807,7 @@ func AddToPostRequest(postRequest *opera.PostRequest, revenueConfig map[int]stri
 func HandleOperaPayments(invoice models.Invoice) {
 	if config.Config.IsOperaEnabled {
 		postRequest := opera.PostRequest{}
-		revenueConfig := []opera.OperaConfig{}
+		revenueConfig := []opera.RevenuePaymentServiceConfig{}
 
 		_ = db.DB.C("operasettings").Find(bson.M{"config_name": "revenue_department"}).All(&revenueConfig)
 		flattenedMap := opera.FlattenToMap(revenueConfig)
@@ -823,7 +822,7 @@ func HandleOperaPayments(invoice models.Invoice) {
 
 			taxes, service = ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
 			discounts = ComputeDiscounts(price, lineitem.AppliedDiscounts)
-			subtotal := price - taxes - discounts
+			subtotal := price - taxes - discounts - service
 			postRequest.TotalAmount += subtotal
 
 			AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
@@ -835,7 +834,7 @@ func HandleOperaPayments(invoice models.Invoice) {
 				_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
 				taxes, service = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
 				discounts = ComputeDiscounts(condimentPrice, lineitem.AppliedDiscounts)
-				subtotal = condimentPrice - taxes - discounts
+				subtotal = condimentPrice - taxes - discounts - service
 				postRequest.TotalAmount += subtotal
 				AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
 			}
@@ -863,6 +862,8 @@ func HandleOperaPayments(invoice models.Invoice) {
 
 func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,
 	takeout bool) (float64, float64) {
+	serviceConfig := opera.RevenuePaymentServiceConfig{}
+	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "service_charge"}).One(&serviceConfig)
 	totalTaxes := float64(0.0)
 	totalService := float64(0.0)
 	w := float64(1.0)
@@ -898,7 +899,17 @@ func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,
 				newFormula := strings.Replace(tax_def.Formula, "x", net_amount_str, -1)
 				output, _ := golpal.New().ExecuteSimple(newFormula)
 				value, _ := strconv.ParseFloat(output, 32)
-				totalTaxes += value
+				found := false
+				for _, deptID := range serviceConfig.Value.Departments {
+					if deptID == tax_def.DepartmentID {
+						found = true
+					}
+				}
+				if found {
+					totalService += value
+				} else {
+					totalTaxes += value
+				}
 			}
 		}
 	}

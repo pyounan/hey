@@ -107,6 +107,8 @@ func main() {
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
 
 	r.HandleFunc("/api/pos/fixeddiscount/", pos.ListFixedDiscounts).Methods("GET")
+	r.HandleFunc("/api/opera/rooms/", opera.ListOperaRooms).Methods("GET")
+	r.HandleFunc("/api/opera/roomdepartment/", opera.GetRoomDepartment).Methods("GET")
 
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
