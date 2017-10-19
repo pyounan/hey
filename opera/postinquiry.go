@@ -18,7 +18,7 @@ type PostInquiry struct {
 }
 
 type PostListItem struct {
-	XMLName       xml.Name `xml:"PostListItem"`
+	XMLName       xml.Name `xml:"PostListItem" json:"-"`
 	RoomNumber    string   `xml:"RoomNumber,attr" json:"room_number"`
 	ReservationId string   `xml:"ReservationId,attr" json:"reservation_id"`
 	FirstName     string   `xml:"FirstName,attr" json:"first_name"`
@@ -26,7 +26,7 @@ type PostListItem struct {
 }
 
 type PostList struct {
-	XMLName        xml.Name       `xml:"PostList"`
-	SequenceNumber int            `xml:"SequenceNumber,attr" json:"sequence_numner"`
+	XMLName        xml.Name       `xml:"PostList" json:"-"`
+	SequenceNumber int            `xml:"SequenceNumber,attr" json:"-"`
 	PostListItems  []PostListItem `xml:"PostListItem" json:"post_list_items"`
 }

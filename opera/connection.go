@@ -2,16 +2,26 @@ package opera
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	lock "github.com/bsm/redis-lock"
 	"log"
 	"net"
 	"pos-proxy/config"
+	"pos-proxy/db"
 	"time"
 )
 
 var conn net.Conn
 
 func SendRequest(data []byte) (string, error) {
+	l, err := LockOpera()
+	if err != nil {
+		log.Println("Couldn't aquire opera lock", err)
+		return "", err
+	}
+	defer l.Unlock()
+	log.Println("About to send message", string(data))
 	stx := []byte{0x02}
 	etx := []byte{0x03}
 	payload := []byte{}
@@ -43,4 +53,26 @@ func Connect() {
 	time_value := val
 	linkDescription := fmt.Sprintf(`<LinkDescription Date="%s" Time="%s" VerNum="1.0" />`, date, time_value)
 	SendRequest([]byte(linkDescription))
+}
+
+func LockOpera() (*lock.Lock, error) {
+	lockOptions := &lock.LockOptions{
+		WaitTimeout: 4 * time.Second,
+	}
+
+	l, err := lock.ObtainLock(db.Redis, "opera", lockOptions)
+	if err != nil {
+		return &lock.Lock{}, err
+	} else if l == nil {
+		return &lock.Lock{}, errors.New("couldn't obtain opera lock")
+	}
+
+	ok, err := l.Lock()
+	if err != nil {
+		return &lock.Lock{}, err
+	} else if !ok {
+		return &lock.Lock{}, errors.New("failed to acquire opera lock")
+	}
+
+	return l, nil
 }

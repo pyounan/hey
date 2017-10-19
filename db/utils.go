@@ -87,3 +87,29 @@ func UpdateLastTicketNumber(rcrs string, val int) error {
 		bson.M{"$set": bson.M{"value": val}})
 	return err
 }
+
+func GetNextOperaSequence() (int, error) {
+	var mutex = &sync.Mutex{}
+	var data MetaData
+	valChan := make(chan int)
+	q := bson.M{"key": "last_sequence"}
+	go func() {
+		mutex.Lock()
+		err := DB.C("operametadata").Find(q).One(&data)
+		if err != nil {
+			data = MetaData{}
+			data.Key = "last_sequence"
+			data.Value = 0
+			atomic.AddUint64(&data.Value, 1)
+			err = DB.C("operametadata").Insert(data)
+			valChan <- int(data.Value)
+		} else {
+			atomic.AddUint64(&data.Value, 1)
+			DB.C("operametadata").Update(q, bson.M{"$set": bson.M{"value": data.Value}})
+		}
+		valChan <- int(data.Value)
+		mutex.Unlock()
+	}()
+	val := <-valChan
+	return val, nil
+}

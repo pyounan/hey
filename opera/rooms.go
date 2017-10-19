@@ -19,8 +19,8 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 	postInquiry := PostInquiry{}
 
 	urlQuery := r.URL.Query()
-	if _, ok := urlQuery["room_number"]; ok {
-		postInquiry.InquiryInformation = urlQuery["room_number"][0]
+	if _, ok := urlQuery["inquiry"]; ok {
+		postInquiry.InquiryInformation = urlQuery["inquiry"][0]
 	}
 	if _, ok := urlQuery["terminal"]; ok {
 		postInquiry.WorkstationId = urlQuery["terminal"][0]
@@ -29,9 +29,10 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 		postInquiry.RevenueCenter, _ = strconv.Atoi(urlQuery["store"][0])
 	}
 	postInquiry.MaximumReturnedMatches = 16
-	postInquiry.SequenceNumber = 0
-	postInquiry.RequestType = 4
-	postInquiry.PaymentMethod = 16
+	postInquiry.RequestType = 12
+	postInquiry.PaymentMethod = 11
+	seqNumber, _ := db.GetNextOperaSequence()
+	postInquiry.SequenceNumber = seqNumber
 	t := time.Now()
 	val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
 	val = val[2:]
@@ -47,6 +48,10 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response, err := SendRequest([]byte(buf.String()))
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err)
+		return
+	}
 	response = response[1 : len(response)-1]
 	log.Printf("New response '%s'\n", response)
 	if err != nil {
@@ -68,7 +73,8 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, postAnswer)
 		return
 	}
-	helpers.ReturnSuccessMessage(w, postList)
+	log.Println("Post list items", postList.PostListItems)
+	helpers.ReturnSuccessMessage(w, postList.PostListItems)
 }
 
 // Return configured room department ID
