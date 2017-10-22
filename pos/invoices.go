@@ -310,8 +310,10 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice.PaidAmount = req.Invoice.Total
 	req.Invoice.Change = req.ChangeAmount
 
-	log.Println("Will Pass department", req.Postings[0].Department)
-	HandleOperaPayments(req.Invoice, req.Postings[0].Department)
+	if config.Config.IsOperaEnabled {
+		log.Println("Will Pass department", req.Postings[0].Department)
+		HandleOperaPayments(req.Invoice, req.Postings[0].Department)
+	}
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
@@ -809,75 +811,78 @@ func AddToPostRequest(postRequest *opera.PostRequest, revenueConfig map[int]stri
 }
 
 func HandleOperaPayments(invoice models.Invoice, department int) {
-	if config.Config.IsOperaEnabled {
-		postRequest := opera.PostRequest{}
-		revenueConfig := []opera.RevenuePaymentServiceConfig{}
+	postRequest := opera.PostRequest{}
+	revenueConfig := []opera.RevenuePaymentServiceConfig{}
 
-		_ = db.DB.C("operasettings").Find(bson.M{"config_name": "revenue_department"}).All(&revenueConfig)
-		flattenedMap := opera.FlattenToMap(revenueConfig)
-		for _, lineitem := range invoice.Items {
-			var taxes float64
-			var discounts float64
-			var service float64
-			departmentID := lineitem.AttachedAttributes["revenue_department"]
-			department := incomemodels.Department{}
-			price := float64(lineitem.Price)
-			_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&department)
+	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "revenue_department"}).All(&revenueConfig)
+	flattenedMap := opera.FlattenToMap(revenueConfig)
+	for _, lineitem := range invoice.Items {
+		var taxes float64
+		var discounts float64
+		var service float64
+		departmentID := lineitem.AttachedAttributes["revenue_department"]
+		department := incomemodels.Department{}
+		price := float64(lineitem.Price)
+		_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&department)
 
-			taxes, service = ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
-			discounts = ComputeDiscounts(price, lineitem.AppliedDiscounts)
+		taxes, service = ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
+		discounts = ComputeDiscounts(price, lineitem.AppliedDiscounts)
+		subtotal := helpers.Round(price-taxes-discounts-service, 0.05)
+		AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
+
+		for _, condimentlineitem := range lineitem.CondimentLineItems {
+			condimentPrice := float64(lineitem.Quantity * condimentlineitem.Price)
+			condimentDepartment := incomemodels.Department{}
+			departmentID := condimentlineitem.AttachedAttributes["revenue_department"]
+			_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
+			taxes, service = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
+			discounts = ComputeDiscounts(condimentPrice, lineitem.AppliedDiscounts)
 			subtotal := helpers.Round(price-taxes-discounts-service, 0.05)
 			AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
-
-			for _, condimentlineitem := range lineitem.CondimentLineItems {
-				condimentPrice := float64(lineitem.Quantity * condimentlineitem.Price)
-				condimentDepartment := incomemodels.Department{}
-				departmentID := condimentlineitem.AttachedAttributes["revenue_department"]
-				_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
-				taxes, service = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
-				discounts = ComputeDiscounts(condimentPrice, lineitem.AppliedDiscounts)
-				subtotal := helpers.Round(price-taxes-discounts-service, 0.05)
-				AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
-			}
 		}
-		paymentConfig := []opera.RevenuePaymentServiceConfig{}
-		_ = db.DB.C("operasettings").Find(bson.M{"config_name": "payment_method"}).All(&paymentConfig)
-		paymentMethod := ""
-		log.Println("Payment config", paymentConfig)
-		for _, p := range paymentConfig {
-			for _, dept := range p.Value.Departments {
-				log.Println("Department in payment method", dept)
-				if dept == department {
-					paymentMethod = p.Value.Code
-					break
-				}
-			}
-		}
-		t := time.Now()
-		val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
-		val = val[2:]
-		postRequest.Date = val
-
-		val = fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
-		postRequest.Time = val
-
-		postRequest.CheckNumber = fmt.Sprintf("%d", 10) //invoice.InvoiceNumber
-		postRequest.RevenueCenter = invoice.Store
-		postRequest.WorkstationId = fmt.Sprintf("%d", invoice.TerminalID)
-		paymentMethodInt, _ := strconv.Atoi(paymentMethod)
-		postRequest.PaymentMethod = paymentMethodInt
-		seqNumber, _ := db.GetNextOperaSequence()
-		postRequest.SequenceNumber = seqNumber
-		postRequest.RequestType = 1
-		postRequest.Covers = invoice.Pax
-
-		buf := bytes.NewBufferString("")
-		if err := xml.NewEncoder(buf).Encode(postRequest); err != nil {
-			log.Println(err)
-		}
-		log.Println("About to send", buf.String())
-		opera.SendRequest([]byte(buf.String()))
 	}
+	paymentConfig := []opera.RevenuePaymentServiceConfig{}
+	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "payment_method"}).All(&paymentConfig)
+	paymentMethod := ""
+	log.Println("Payment config", paymentConfig)
+	for _, p := range paymentConfig {
+		for _, dept := range p.Value.Departments {
+			log.Println("Department in payment method", dept)
+			if dept == department {
+				paymentMethod = p.Value.Code
+				break
+			}
+		}
+	}
+	t := time.Now()
+	val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
+	val = val[2:]
+	postRequest.Date = val
+
+	val = fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
+	postRequest.Time = val
+
+	postRequest.CheckNumber = fmt.Sprintf("%d", 10) //invoice.InvoiceNumber
+	postRequest.RevenueCenter = invoice.Store
+	postRequest.WorkstationId = fmt.Sprintf("%d", invoice.TerminalID)
+	paymentMethodInt, _ := strconv.Atoi(paymentMethod)
+	postRequest.PaymentMethod = paymentMethodInt
+	seqNumber, _ := db.GetNextOperaSequence()
+	postRequest.SequenceNumber = seqNumber
+	postRequest.RequestType = 1
+	postRequest.Covers = invoice.Pax
+	if invoice.OperaReservation != "" {
+		postRequest.ReservationId = invoice.OperaReservation
+		postRequest.RoomNumber = invoice.OperaRoomNumber
+		postRequest.LastName = strings.Split(*invoice.WalkinName, "/")[1]
+	}
+
+	buf := bytes.NewBufferString("")
+	if err := xml.NewEncoder(buf).Encode(postRequest); err != nil {
+		log.Println(err)
+	}
+	log.Println("About to send", buf.String())
+	opera.SendRequest([]byte(buf.String()))
 }
 
 func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,
@@ -944,5 +949,5 @@ func ComputeDiscounts(amount float64, discounts []models.AppliedDiscount) float6
 		discountsValue += value
 		amount -= value
 	}
-	return helpers.Round(discountsValue, 0.05)
+	return -helpers.Round(discountsValue, 0.05)
 }

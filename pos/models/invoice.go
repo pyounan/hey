@@ -21,7 +21,7 @@ type Invoice struct {
 	IsSettled           bool                   `json:"is_settled" bson:"is_settled"`
 	PaidAmount          float64                `json:"paid_amount" bson:"paid_amount"`
 	Pax                 int                    `json:"pax" bson:"pax"`
-	WakinName           *string                `json:"walkin_name" bson:"walkin_name"`
+	WalkinName          *string                `json:"walkin_name" bson:"walkin_name"`
 	ProfileName         *int64                 `json:"profile_name" bson:"profile_name"`
 	ProfileDetails      *string                `json:"profile_details" bson:"profile_details"`
 	Store               int                    `json:"store" bson:"store"`
@@ -42,4 +42,6 @@ type Invoice struct {
 	Taxes               map[string]interface{} `json:"taxes" bson:"taxes"`
 	VoidReason          string                 `json:"void_reason,omitempty" bson:"void_reason,omitempty"`
 	Change              float64                `json:"change,omitempty" bson:"change,omitempty"`
+	OperaReservation    string                 `json:"opera_reservation" bson:"opera_reservation"`
+	OperaRoomNumber     string                 `json:"opera_room_number" bson:"opera_room_number"`
 }

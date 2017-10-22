@@ -20,7 +20,7 @@ type PostInquiry struct {
 type PostListItem struct {
 	XMLName       xml.Name `xml:"PostListItem" json:"-"`
 	RoomNumber    string   `xml:"RoomNumber,attr" json:"room_number"`
-	ReservationId string   `xml:"ReservationId,attr" json:"reservation_id"`
+	ReservationId string   `xml:"ReservationId,attr" json:"id"`
 	FirstName     string   `xml:"FirstName,attr" json:"first_name"`
 	LastName      string   `xml:"LastName,attr" json:"last_name"`
 }

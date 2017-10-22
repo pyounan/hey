@@ -15,12 +15,12 @@ import (
 var conn net.Conn
 
 func SendRequest(data []byte) (string, error) {
-	l, err := LockOpera()
-	if err != nil {
-		log.Println("Couldn't aquire opera lock", err)
-		return "", err
-	}
-	defer l.Unlock()
+	//l, err := LockOpera()
+	//if err != nil {
+	//	log.Println("Couldn't aquire opera lock", err)
+	//	return "", err
+	//}
+	//defer l.Unlock()
 	log.Println("About to send message", string(data))
 	stx := []byte{0x02}
 	etx := []byte{0x03}
@@ -36,10 +36,23 @@ func SendRequest(data []byte) (string, error) {
 func Connect() {
 	var err error
 	connectionString := fmt.Sprintf("%s:5010", config.Config.OperaIP)
-	conn, err = net.Dial("tcp", connectionString)
-	if err != nil {
-		log.Println("Couldn't connect to opera with err ", err)
-		log.Println("Connection string", connectionString)
+	retries := 0
+	connected := false
+	log.Println("retries", retries, "connected", connected)
+	for retries < 3 && !connected {
+		log.Println("retries", retries, "connected", connected)
+		conn, err = net.Dial("tcp", connectionString)
+		if err != nil {
+			log.Println("Couldn't connect to opera with err ", err)
+			log.Println("Connection string", connectionString)
+		} else {
+			connected = true
+		}
+		retries += 1
+		time.Sleep(1000 * time.Millisecond)
+	}
+	if !connected {
+		log.Fatal("Couldn't connect to opera on ", connectionString)
 		return
 	}
 	log.Println(fmt.Sprintf("Connection successful to Opera on %s", config.Config.OperaIP))
