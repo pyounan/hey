@@ -850,7 +850,7 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 
 		taxes, service = ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
 		discounts = ComputeDiscounts(price, lineitem.AppliedDiscounts)
-		subtotal := helpers.Round(price-taxes-discounts-service, 0.05)
+		subtotal := helpers.Round(price+discounts, 0.05)
 		AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
 
 		for _, condimentlineitem := range lineitem.CondimentLineItems {
@@ -860,7 +860,7 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 			_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
 			taxes, service = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
 			discounts = ComputeDiscounts(condimentPrice, lineitem.AppliedDiscounts)
-			subtotal := helpers.Round(price-taxes-discounts-service, 0.05)
+			subtotal := helpers.Round(price+discounts, 0.05)
 			AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
 		}
 	}
@@ -953,9 +953,9 @@ func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,
 	}
 	net_amount := amount / w
 
-	for _, tax_types := range tax_defs {
+	for key, tax_types := range tax_defs {
 		for _, tax_def := range tax_types {
-			if tax_def.POS == "all" || tax_def.POS == requiredTax {
+			if (key == "ex" || key == "fix_ex") && (tax_def.POS == "all" || tax_def.POS == requiredTax) {
 				net_amount_str := fmt.Sprintf("%v", net_amount)
 				newFormula := strings.Replace(tax_def.Formula, "x", net_amount_str, -1)
 				output, _ := golpal.New().ExecuteSimple(newFormula)
