@@ -11,6 +11,7 @@ import (
 	"net"
 	"pos-proxy/config"
 	"pos-proxy/db"
+	"sync"
 	"time"
 )
 
@@ -18,13 +19,12 @@ var conn net.Conn
 
 const RETIES = 5
 
+var mutex = &sync.Mutex{}
+
 func doSendRequest(data []byte) (string, error) {
-	l, err := LockOpera()
-	if err != nil {
-		log.Println("Couldn't aquire opera lock", err)
-		return "", err
-	}
-	defer l.Unlock()
+	log.Println("About to lock")
+	mutex.Lock()
+	defer mutex.Unlock()
 	log.Println("About to send message", string(data))
 	stx := []byte{0x02}
 	etx := []byte{0x03}
@@ -32,11 +32,14 @@ func doSendRequest(data []byte) (string, error) {
 	payload = append(payload, stx...)
 	payload = append(payload, data...)
 	payload = append(payload, etx...)
-	_, err = conn.Write(payload)
+	_, err := conn.Write(payload)
 	if err != nil {
+		log.Println("About to unlock in error")
 		return "", err
 	}
+	log.Println("Will read buffer")
 	message, err := bufio.NewReader(conn).ReadString(etx[0])
+	log.Println("About to unlock in success")
 	return message, err
 }
 
@@ -63,7 +66,8 @@ func Connect() {
 			connected = true
 		}
 		retries += 1
-		time.Sleep(1000 * time.Millisecond)
+		sleepValue := 1000 * retries
+		time.Sleep(time.Duration(sleepValue) * time.Millisecond)
 	}
 	if !connected {
 		log.Fatal("Couldn't connect to opera on ", connectionString)

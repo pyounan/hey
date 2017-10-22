@@ -21,16 +21,27 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 	urlQuery := r.URL.Query()
 	if _, ok := urlQuery["inquiry"]; ok {
 		postInquiry.InquiryInformation = urlQuery["inquiry"][0]
+	} else {
+		helpers.ReturnErrorMessage(w, "Insufficient parameters")
+		return
 	}
 	if _, ok := urlQuery["terminal"]; ok {
 		postInquiry.WorkstationId = urlQuery["terminal"][0]
+	} else {
+		helpers.ReturnErrorMessage(w, "Insufficient parameters")
+		return
 	}
 	if _, ok := urlQuery["store"]; ok {
 		postInquiry.RevenueCenter, _ = strconv.Atoi(urlQuery["store"][0])
+	} else {
+		helpers.ReturnErrorMessage(w, "Insufficient parameters")
+		return
 	}
 	postInquiry.MaximumReturnedMatches = 16
 	postInquiry.RequestType = 12
-	postInquiry.PaymentMethod = 11
+	deptID, _ := GetRoomDepartmentID()
+	paymentMethodInt, err := GetPaymentMethod(deptID)
+	postInquiry.PaymentMethod = paymentMethodInt
 	seqNumber, _ := db.GetNextOperaSequence()
 	postInquiry.SequenceNumber = seqNumber
 	t := time.Now()
@@ -69,8 +80,7 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 			helpers.ReturnErrorMessage(w, err)
 			return
 		}
-		log.Println("Writing postAnswer", postAnswer)
-		helpers.ReturnErrorMessage(w, postAnswer)
+		helpers.ReturnSuccessMessage(w, "[]")
 		return
 	}
 	log.Println("Post list items", postList.PostListItems)
@@ -79,11 +89,10 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 
 // Return configured room department ID
 func GetRoomDepartment(w http.ResponseWriter, r *http.Request) {
-	var roomDepartment RoomDepartmentConfig
-	err := db.DB.C("operasettings").Find(bson.M{"config_name": "room_department"}).One(&roomDepartment)
+	deptID, err := GetRoomDepartmentID()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
-	helpers.ReturnSuccessMessage(w, roomDepartment.Value)
+	helpers.ReturnSuccessMessage(w, bson.M{"department_id": deptID})
 }

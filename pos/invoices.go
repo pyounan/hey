@@ -864,19 +864,6 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 			AddToPostRequest(&postRequest, flattenedMap, department.ID, taxes, service, discounts, subtotal)
 		}
 	}
-	paymentConfig := []opera.RevenuePaymentServiceConfig{}
-	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "payment_method"}).All(&paymentConfig)
-	paymentMethod := ""
-	log.Println("Payment config", paymentConfig)
-	for _, p := range paymentConfig {
-		for _, dept := range p.Value.Departments {
-			log.Println("Department in payment method", dept)
-			if dept == department {
-				paymentMethod = p.Value.Code
-				break
-			}
-		}
-	}
 	t := time.Now()
 	val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
 	val = val[2:]
@@ -888,7 +875,7 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 	postRequest.CheckNumber = fmt.Sprintf("%d", 10) //invoice.InvoiceNumber
 	postRequest.RevenueCenter = invoice.Store
 	postRequest.WorkstationId = fmt.Sprintf("%d", invoice.TerminalID)
-	paymentMethodInt, _ := strconv.Atoi(paymentMethod)
+	paymentMethodInt, _ := opera.GetPaymentMethod(department)
 	postRequest.PaymentMethod = paymentMethodInt
 	seqNumber, _ := db.GetNextOperaSequence()
 	postRequest.SequenceNumber = seqNumber
@@ -904,7 +891,6 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 	if err := xml.NewEncoder(buf).Encode(postRequest); err != nil {
 		log.Println(err)
 	}
-	log.Println("About to send", buf.String())
 	msg, _ := opera.SendRequest([]byte(buf.String()))
 	msg = msg[1 : len(msg)-1]
 	postAnswer := opera.PostAnswer{}

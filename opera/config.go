@@ -1,5 +1,11 @@
 package opera
 
+import (
+	"gopkg.in/mgo.v2/bson"
+	"pos-proxy/db"
+	"strconv"
+)
+
 type RevenuePaymentServiceConfigValue struct {
 	Code        string `json:"code" bson:"code"`
 	Departments []int  `json:"departments" bson:"departments"`
@@ -26,4 +32,29 @@ func FlattenToMap(operaConfigs []RevenuePaymentServiceConfig) map[int]string {
 		}
 	}
 	return flattenedMap
+}
+
+func GetPaymentMethod(department int) (int, error) {
+	paymentConfig := []RevenuePaymentServiceConfig{}
+	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "payment_method"}).All(&paymentConfig)
+	paymentMethod := ""
+	for _, p := range paymentConfig {
+		for _, dept := range p.Value.Departments {
+			if dept == department {
+				paymentMethod = p.Value.Code
+				break
+			}
+		}
+	}
+	return strconv.Atoi(paymentMethod)
+}
+
+func GetRoomDepartmentID() (int, error) {
+	var roomDepartment RoomDepartmentConfig
+	err := db.DB.C("operasettings").Find(bson.M{"config_name": "room_department"}).One(&roomDepartment)
+	deptID := -1
+	if err != nil {
+		return deptID, err
+	}
+	return roomDepartment.Value.DepartmentID, err
 }
