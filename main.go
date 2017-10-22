@@ -19,6 +19,7 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/helpers"
 	"pos-proxy/income"
+	"pos-proxy/opera"
 	"pos-proxy/pos"
 	"pos-proxy/proxy"
 	"pos-proxy/syncer"
@@ -44,7 +45,7 @@ func init() {
 }
 
 func main() {
-	port := flag.String("port", "80", "Port to listen on")
+	port := flag.String("port", "7000", "Port to listen on")
 	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
 	flag.Parse()
 	config.Load(*filePath)
@@ -124,6 +125,8 @@ func main() {
 	r.HandleFunc("/syncer/logs", requestsLogView).Methods("GET")
 	r.HandleFunc("/syncer/logs/request/{id}", syncerRequest).Methods("GET")
 	r.HandleFunc("/syncer/logs/response/{id}", syncerResponse).Methods("GET")
+	r.HandleFunc("/api/opera/rooms/", opera.ListOperaRooms).Methods("GET")
+	r.HandleFunc("/api/opera/roomdepartment/", opera.GetRoomDepartment).Methods("GET")
 
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
@@ -154,6 +157,9 @@ func main() {
 	// r = gh.RecoveryHandler()(lr)
 
 	db.ConnectRedis()
+	if config.Config.IsOperaEnabled {
+		opera.Connect()
+	}
 
 	log.Printf("Listening on http://localhost:%s\n", *port)
 	log.Fatal(http.ListenAndServe(":"+*port,
