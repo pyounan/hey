@@ -315,9 +315,13 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice.PaidAmount = req.Invoice.Total
 	req.Invoice.Change = req.ChangeAmount
 
+	paidOnOpera := true
 	if config.Config.IsOperaEnabled {
-		log.Println("Will Pass department", req.Postings[0].Department)
-		HandleOperaPayments(req.Invoice, req.Postings[0].Department)
+		paidOnOpera = HandleOperaPayments(req.Invoice, req.Postings[0].Department)
+		if !paidOnOpera {
+			helpers.ReturnErrorMessage(w, "Failed to pay on Opera")
+			return
+		}
 	}
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
@@ -829,7 +833,7 @@ func AddToPostRequest(postRequest *opera.PostRequest, revenueConfig map[int]stri
 	postRequest.TotalAmount += subtotalInt + discountsInt + taxesInt + serviceInt
 }
 
-func HandleOperaPayments(invoice models.Invoice, department int) {
+func HandleOperaPayments(invoice models.Invoice, department int) bool {
 	postRequest := opera.PostRequest{}
 	revenueConfig := []opera.RevenuePaymentServiceConfig{}
 
@@ -901,7 +905,20 @@ func HandleOperaPayments(invoice models.Invoice, department int) {
 		log.Println(err)
 	}
 	log.Println("About to send", buf.String())
-	opera.SendRequest([]byte(buf.String()))
+	msg, _ := opera.SendRequest([]byte(buf.String()))
+	msg = msg[1 : len(msg)-1]
+	postAnswer := opera.PostAnswer{}
+	responseBuf := bytes.NewBufferString(msg)
+	log.Println("msg", msg)
+	if err := xml.NewDecoder(responseBuf).Decode(&postAnswer); err != nil {
+		log.Println("error parsing", err)
+		return false
+	}
+	if postAnswer.AnswerStatus != "OK" {
+		log.Println("post answer not OK")
+		return false
+	}
+	return true
 }
 
 func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,

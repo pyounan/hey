@@ -2,6 +2,8 @@ package opera
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	lock "github.com/bsm/redis-lock"
@@ -14,13 +16,15 @@ import (
 
 var conn net.Conn
 
-func SendRequest(data []byte) (string, error) {
-	//l, err := LockOpera()
-	//if err != nil {
-	//	log.Println("Couldn't aquire opera lock", err)
-	//	return "", err
-	//}
-	//defer l.Unlock()
+const RETIES = 5
+
+func doSendRequest(data []byte) (string, error) {
+	l, err := LockOpera()
+	if err != nil {
+		log.Println("Couldn't aquire opera lock", err)
+		return "", err
+	}
+	defer l.Unlock()
 	log.Println("About to send message", string(data))
 	stx := []byte{0x02}
 	etx := []byte{0x03}
@@ -28,9 +32,19 @@ func SendRequest(data []byte) (string, error) {
 	payload = append(payload, stx...)
 	payload = append(payload, data...)
 	payload = append(payload, etx...)
-	conn.Write(payload)
+	_, err = conn.Write(payload)
+	if err != nil {
+		return "", err
+	}
 	message, err := bufio.NewReader(conn).ReadString(etx[0])
 	return message, err
+}
+
+func SendRequest(data []byte) (string, error) {
+	//if sendLinkDescription() {
+	return doSendRequest(data)
+	//}
+	//return "", errors.New("Couldn't send link description")
 }
 
 func Connect() {
@@ -39,7 +53,7 @@ func Connect() {
 	retries := 0
 	connected := false
 	log.Println("retries", retries, "connected", connected)
-	for retries < 3 && !connected {
+	for retries < RETIES && !connected {
 		log.Println("retries", retries, "connected", connected)
 		conn, err = net.Dial("tcp", connectionString)
 		if err != nil {
@@ -56,7 +70,10 @@ func Connect() {
 		return
 	}
 	log.Println(fmt.Sprintf("Connection successful to Opera on %s", config.Config.OperaIP))
+	sendLinkDescription()
+}
 
+func sendLinkDescription() bool {
 	t := time.Now()
 	val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
 	val = val[2:]
@@ -65,7 +82,14 @@ func Connect() {
 	val = fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
 	time_value := val
 	linkDescription := fmt.Sprintf(`<LinkDescription Date="%s" Time="%s" VerNum="1.0" />`, date, time_value)
-	SendRequest([]byte(linkDescription))
+	message, _ := doSendRequest([]byte(linkDescription))
+	message = message[1 : len(message)-1]
+	linkAlive := LinkAlive{}
+	responseBuf := bytes.NewBufferString(message)
+	if err := xml.NewDecoder(responseBuf).Decode(&linkAlive); err != nil {
+		return false
+	}
+	return true
 }
 
 func LockOpera() (*lock.Lock, error) {
