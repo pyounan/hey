@@ -127,6 +127,7 @@ func main() {
 	r.HandleFunc("/syncer/logs/response/{id}", syncerResponse).Methods("GET")
 	r.HandleFunc("/api/opera/rooms/", opera.ListOperaRooms).Methods("GET")
 	r.HandleFunc("/api/opera/roomdepartment/", opera.GetRoomDepartment).Methods("GET")
+	r.HandleFunc("/api/pos/opera/{id}/", opera.DeleteConfig).Methods("DELETE")
 
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 

@@ -44,10 +44,14 @@ func doSendRequest(data []byte) (string, error) {
 }
 
 func SendRequest(data []byte) (string, error) {
-	//if sendLinkDescription() {
-	return doSendRequest(data)
-	//}
-	//return "", errors.New("Couldn't send link description")
+	if sendLinkStart() {
+		return doSendRequest(data)
+	} else {
+		conn.Close()
+		Connect()
+		doSendRequest(data)
+	}
+	return "", errors.New("Couldn't send link description")
 }
 
 func Connect() {
@@ -64,6 +68,7 @@ func Connect() {
 			log.Println("Connection string", connectionString)
 		} else {
 			connected = true
+			break
 		}
 		retries += 1
 		sleepValue := 1000 * retries
@@ -75,6 +80,25 @@ func Connect() {
 	}
 	log.Println(fmt.Sprintf("Connection successful to Opera on %s", config.Config.OperaIP))
 	sendLinkDescription()
+}
+
+func sendLinkStart() bool {
+	t := time.Now()
+	val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
+	val = val[2:]
+	date := val
+
+	val = fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
+	time_value := val
+	linkStartStr := fmt.Sprintf(`<LinkStart Date="%s" Time="%s" VerNum="1.0" />`, date, time_value)
+	message, _ := doSendRequest([]byte(linkStartStr))
+	message = message[1 : len(message)-1]
+	linkAlive := LinkAlive{}
+	responseBuf := bytes.NewBufferString(message)
+	if err := xml.NewDecoder(responseBuf).Decode(&linkAlive); err != nil {
+		return false
+	}
+	return true
 }
 
 func sendLinkDescription() bool {
