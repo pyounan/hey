@@ -808,26 +808,24 @@ func AddToPostRequest(postRequest *opera.PostRequest,
 	serviceConfig map[int]string, department int,
 	taxes map[int]int64, service map[int]int64, discounts int64,
 	subtotal int64) {
-	log.Println("Revenue config", revenueConfig, "Department", department)
 	if revenueConfig[department] == "1" {
-		postRequest.Subtotal1 += subtotal
+		postRequest.Subtotal1 += subtotal - discounts
 		postRequest.Discount1 += discounts
-		postRequest.TotalAmount += subtotal + discounts
+		postRequest.TotalAmount += subtotal
 	} else if revenueConfig[department] == "2" {
-		postRequest.Subtotal2 += subtotal
+		postRequest.Subtotal2 += subtotal - discounts
 		postRequest.Discount2 += discounts
-		postRequest.TotalAmount += subtotal + discounts
+		postRequest.TotalAmount += subtotal
 	} else if revenueConfig[department] == "3" {
-		postRequest.Subtotal3 += subtotal
+		postRequest.Subtotal3 += subtotal - discounts
 		postRequest.Discount3 += discounts
-		postRequest.TotalAmount += subtotal + discounts
+		postRequest.TotalAmount += subtotal
 	} else if revenueConfig[department] == "4" {
-		postRequest.Subtotal4 += subtotal
+		postRequest.Subtotal4 += subtotal - discounts
 		postRequest.Discount4 += discounts
-		postRequest.TotalAmount += subtotal + discounts
+		postRequest.TotalAmount += subtotal
 	}
 	for key, value := range taxes {
-		log.Println("In taxes loop", taxConfig[key])
 		if taxConfig[key] == "1" {
 			postRequest.Tax1 += value
 		} else if taxConfig[key] == "2" {
@@ -840,7 +838,6 @@ func AddToPostRequest(postRequest *opera.PostRequest,
 		postRequest.TotalAmount += value
 	}
 	for key, value := range service {
-		log.Println("In servicees loop", serviceConfig[key])
 		if serviceConfig[key] == "1" {
 			postRequest.ServiceCharge1 += value
 		} else if serviceConfig[key] == "2" {
@@ -864,39 +861,46 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "revenue_department"}).All(&revenueConfig)
 	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "service_charge"}).All(&serviceConfig)
 
-	log.Println("tax config", taxConfig, "service config", serviceConfig)
 	taxFlattenedMap := opera.FlattenToMap(taxConfig)
 	revenueFlattenedMap := opera.FlattenToMap(revenueConfig)
 	serviceFlattenedMap := opera.FlattenToMap(serviceConfig)
 	for _, lineitem := range invoice.Items {
 		var taxes map[int]int64
-		var discounts int64
+		var discounts float64
 		var service map[int]int64
+
 		departmentID := lineitem.AttachedAttributes["revenue_department"]
 		department := incomemodels.Department{}
-		price := float64(lineitem.Price)
 		_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&department)
 
-		taxes, service = ComputeTaxes(price, department.TaxDefs, invoice.TakeOut)
-		discounts = ComputeDiscounts(price, lineitem.AppliedDiscounts)
+		price := float64(lineitem.Price)
 		roundedPrice := helpers.ConvertToInt(helpers.Round(price, 0.05))
-		subtotal := roundedPrice + discounts
+		discounts = ComputeDiscounts(price, lineitem.AppliedDiscounts)
+		discountsInt := helpers.ConvertToInt(discounts)
+		subtotalFloat := price + discounts
+		subtotal := roundedPrice + discountsInt
+
+		taxes, service = ComputeTaxes(subtotalFloat, department.TaxDefs, invoice.TakeOut)
 		AddToPostRequest(&postRequest, revenueFlattenedMap,
 			taxFlattenedMap, serviceFlattenedMap,
-			department.ID, taxes, service, discounts, subtotal)
+			department.ID, taxes, service, discountsInt, subtotal)
 
 		for _, condimentlineitem := range lineitem.CondimentLineItems {
-			condimentPrice := float64(lineitem.Quantity * condimentlineitem.Price)
-			roundedPrice := helpers.ConvertToInt(helpers.Round(condimentPrice, 0.05))
 			condimentDepartment := incomemodels.Department{}
 			departmentID := condimentlineitem.AttachedAttributes["revenue_department"]
 			_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
-			taxes, service = ComputeTaxes(condimentPrice, condimentDepartment.TaxDefs, invoice.TakeOut)
+
+			condimentPrice := float64(lineitem.Quantity * condimentlineitem.Price)
+			roundedPrice := helpers.ConvertToInt(helpers.Round(condimentPrice, 0.05))
 			discounts = ComputeDiscounts(condimentPrice, lineitem.AppliedDiscounts)
-			subtotal := roundedPrice + discounts
+			subtotalFloat := condimentPrice + discounts
+			discountsInt := helpers.ConvertToInt(discounts)
+			subtotal := roundedPrice + discountsInt
+
+			taxes, service = ComputeTaxes(subtotalFloat, condimentDepartment.TaxDefs, invoice.TakeOut)
 			AddToPostRequest(&postRequest, revenueFlattenedMap,
 				taxFlattenedMap, serviceFlattenedMap,
-				department.ID, taxes, service, discounts, subtotal)
+				department.ID, taxes, service, discountsInt, subtotal)
 		}
 	}
 	t := time.Now()
@@ -1017,12 +1021,14 @@ func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,
 	return taxMapInt, serviceMapInt
 }
 
-func ComputeDiscounts(amount float64, discounts []models.AppliedDiscount) int64 {
+func ComputeDiscounts(amount float64, discounts []models.AppliedDiscount) float64 {
+	log.Println("Will discount from", amount)
 	discountsValue := 0.0
 	for _, discount := range discounts {
 		value := amount * discount.Percentage / 100.0
 		discountsValue += value
 		amount -= value
 	}
-	return -helpers.ConvertToInt(helpers.Round(discountsValue, 0.05))
+	log.Println("Discounted value", discountsValue)
+	return -helpers.Round(discountsValue, 0.05)
 }
