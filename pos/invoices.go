@@ -503,6 +503,15 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice = invoice
 	req.Invoice.PaidAmount = req.Invoice.Total
 
+	paidOnOpera := true
+	if config.Config.IsOperaEnabled {
+		paidOnOpera = HandleOperaPayments(req.Invoice, body.DepartmentID)
+		if !paidOnOpera {
+			helpers.ReturnErrorMessage(w, "Failed to refund on Opera")
+			return
+		}
+	}
+
 	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.Invoice.InvoiceNumber}, body.Invoice)
 
 	type RespBody struct {
