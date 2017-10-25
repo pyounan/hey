@@ -24,10 +24,14 @@ type PostRequest struct {
 	Subtotal2           int64    `xml:"Subtotal2,attr"`
 	Subtotal3           int64    `xml:"Subtotal3,attr"`
 	Subtotal4           int64    `xml:"Subtotal4,attr"`
+	Subtotal5           int64    `xml:"Subtotal5,attr"`
+	Subtotal6           int64    `xml:"Subtotal6,attr"`
 	Discount1           int64    `xml:"Discount1,attr"`
 	Discount2           int64    `xml:"Discount2,attr"`
 	Discount3           int64    `xml:"Discount3,attr"`
 	Discount4           int64    `xml:"Discount4,attr"`
+	Discount5           int64    `xml:"Discount5,attr"`
+	Discount6           int64    `xml:"Discount6,attr"`
 	Tip                 int64    `xml:"Tip,attr"`
 	ServiceCharge1      int64    `xml:"ServiceCharge1,attr"`
 	ServiceCharge2      int64    `xml:"ServiceCharge2,attr"`

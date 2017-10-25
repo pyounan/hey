@@ -833,6 +833,14 @@ func AddToPostRequest(postRequest *opera.PostRequest,
 		postRequest.Subtotal4 += subtotal - discounts
 		postRequest.Discount4 += discounts
 		postRequest.TotalAmount += subtotal
+	} else if revenueConfig[department] == "5" {
+		postRequest.Subtotal5 += subtotal - discounts
+		postRequest.Discount5 += discounts
+		postRequest.TotalAmount += subtotal
+	} else if revenueConfig[department] == "6" {
+		postRequest.Subtotal6 += subtotal - discounts
+		postRequest.Discount6 += discounts
+		postRequest.TotalAmount += subtotal
 	}
 	for key, value := range taxes {
 		if taxConfig[key] == "1" {
