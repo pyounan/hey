@@ -6,7 +6,7 @@ type PaymentLog struct {
 }
 
 type Invoice struct {
-	ID               *int64        `json:"id" bson:"id"`
+	ID               *int64        `json:"id" bson:"id.omit_empty"`
 	InvoiceNumber    string        `json:"invoice_number" bson:"invoice_number"`
 	Items            []POSLineItem `json:"posinvoicelineitem_set" bson:"posinvoicelineitem_set"`
 	GroupedLineItems []EJEvent     `json:"grouped_lineitems" bson:"grouped_lineitems"`

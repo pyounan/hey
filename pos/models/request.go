@@ -47,7 +47,8 @@ func (req *InvoicePOSTRequest) Submit() (Invoice, error) {
 
 	req.Invoice.Items = items
 
-	_, err := db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+	_, err := db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": req.Invoice.InvoiceNumber},
+		bson.M{"$set": req.Invoice})
 	if err != nil {
 		return Invoice{}, err
 	}
