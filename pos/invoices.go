@@ -303,6 +303,15 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		req.Invoice.FDMResponses = fdmResponses
 	}
 
+	paidOnOpera := true
+	if config.Config.IsOperaEnabled {
+		paidOnOpera = HandleOperaPayments(req.Invoice, req.Postings[0].Department)
+		if !paidOnOpera {
+			helpers.ReturnErrorMessage(w, bson.M{"message": "Failed to pay on Opera"})
+			return
+		}
+	}
+
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 
 	for i := 0; i < len(req.Postings); i++ {
@@ -314,15 +323,6 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 	req.Invoice.Change = req.ChangeAmount
-
-	paidOnOpera := true
-	if config.Config.IsOperaEnabled {
-		paidOnOpera = HandleOperaPayments(req.Invoice, req.Postings[0].Department)
-		if !paidOnOpera {
-			helpers.ReturnErrorMessage(w, "Failed to pay on Opera")
-			return
-		}
-	}
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
@@ -494,6 +494,16 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 		body.Invoice.FDMResponses = fdmResponses
 	}
+
+	paidOnOpera := true
+	if config.Config.IsOperaEnabled {
+		paidOnOpera = HandleOperaPayments(req.Invoice, body.DepartmentID)
+		if !paidOnOpera {
+			helpers.ReturnErrorMessage(w, bson.M{"message": "Failed to refund on Opera"})
+			return
+		}
+	}
+
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
 	invoice, err := req.Submit()
 	if err != nil {
@@ -502,15 +512,6 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Invoice = invoice
 	req.Invoice.PaidAmount = req.Invoice.Total
-
-	paidOnOpera := true
-	if config.Config.IsOperaEnabled {
-		paidOnOpera = HandleOperaPayments(req.Invoice, body.DepartmentID)
-		if !paidOnOpera {
-			helpers.ReturnErrorMessage(w, "Failed to refund on Opera")
-			return
-		}
-	}
 
 	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.Invoice.InvoiceNumber}, body.Invoice)
 
@@ -946,6 +947,7 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 	buf := bytes.NewBufferString("")
 	if err := xml.NewEncoder(buf).Encode(postRequest); err != nil {
 		log.Println(err)
+		return false
 	}
 	msg, _ := opera.SendRequest([]byte(buf.String()))
 	msg = msg[1 : len(msg)-1]
