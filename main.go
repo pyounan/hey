@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -38,7 +37,8 @@ func init() {
 	}
 	var cwd, _ = os.Getwd()
 	log.Println("Getting template files from", cwd)
-	templates, err = template.ParseGlob(filepath.Join(cwd, "templates/*"))
+	templates, err = template.ParseGlob("templates/*")
+	// templates, err = template.ParseGlob(filepath.Join(cwd, "templates/*"))
 	if err != nil {
 		log.Println("Failed to parse html templates", err.Error())
 	}
