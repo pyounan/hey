@@ -30,6 +30,7 @@ pull_proxy(){
   gcloud auth activate-service-account --key-file ${GS_KEY}
 
   gsutil -m cp gs://pos-proxy/$SUB_DOMAIN/bin/pos-proxy .
+  gsutil -m cp gs://pos-proxy/$SUB_DOMAIN/bin/templates .
 
   mkdir -p /usr/local/bin
   cp ./pos-proxy /usr/local/bin/pos-proxy

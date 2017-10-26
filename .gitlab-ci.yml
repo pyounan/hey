@@ -33,6 +33,7 @@ push_testing:
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
   - gsutil cp -r bin/ gs://pos-proxy/test/
+  - gsutil cp -r templates/ gs://pos-proxy/test/bin/
   only:
   - master
 
@@ -46,6 +47,7 @@ push_staging:
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
   - gsutil cp -r bin/ gs://pos-proxy/staging/
+  - gsutil cp -r templates/ gs://pos-proxy/staging/bin/
   only:
   - master
   when: manual
@@ -60,6 +62,7 @@ push_live:
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
   - gsutil cp -r bin/ gs://pos-proxy/manage/
+  - gsutil cp -r templates/ gs://pos-proxy/manage/bin/
   only:
   - master
   when: manual
