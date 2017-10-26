@@ -137,8 +137,8 @@ func PushToBackend() {
 			}
 		} else if strings.Contains(req.URL.Path, "refund") {
 			type RespBody struct {
-				NewInvoice      models.Invoice `json:"new_posinvoice" bson:"new_posinvoice"`
-				OriginalInvoice models.Invoice `json:"original_posinvoice" bson:"original_posinvoice"`
+				NewInvoice      models.Invoice `json:"new_invoice" bson:"new_invoice"`
+				OriginalInvoice models.Invoice `json:"original_invoice" bson:"original_invoice"`
 			}
 			res := RespBody{}
 			json.NewDecoder(response.Body).Decode(&res)
