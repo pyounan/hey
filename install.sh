@@ -45,7 +45,7 @@ FILE=/etc/supervisor/conf.d/pos_proxy.conf
 touch $FILE
 cat <<EOM >$FILE
 [program:pos-proxy]
-command=/usr/local/bin/pos-proxy --templates=`pwd`
+command=/usr/local/bin/pos-proxy --templates="`pwd`/*"
 autostart=true
 autorestart=true
 stderr_logfile=/var/log/pos_proxy.err.log
