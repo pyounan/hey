@@ -35,23 +35,26 @@ func init() {
 	if err != nil {
 		log.Println(err)
 	}
-	var cwd, _ = os.Getwd()
-	log.Println("Getting template files from", cwd)
-	templates, err = template.ParseGlob("templates/*")
-	// templates, err = template.ParseGlob(filepath.Join(cwd, "templates/*"))
-	if err != nil {
-		log.Println("Failed to parse html templates", err.Error())
-	}
 }
 
 func main() {
+	var err error
 	port := flag.String("port", "80", "Port to listen on")
+	templatesPath := flag.String("templates", "templates/*", "Path of templates directory")
 	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
 	flag.Parse()
 	config.Load(*filePath)
 	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "X-CSRFToken", "Accept", "Accept-Lanuage", "Accept-Encoding", "Authorization"})
 	originsOk := gh.AllowedOrigins([]string{"*"})
 	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+	// Load templates
+	log.Println("Getting template files from", *templatesPath)
+	templates, err = template.ParseGlob(*templatesPath)
+	// templates, err = template.ParseGlob(filepath.Join(cwd, "templates/*"))
+	if err != nil {
+		log.Println("Failed to parse html templates", err.Error())
+	}
+	// Define routes
 	r := mux.NewRouter()
 	r = r.StrictSlash(true)
 	r.HandleFunc("/proxy/test/", proxy.Status).Methods("GET")
