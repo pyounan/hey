@@ -571,6 +571,7 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 	log.Println("Invoice Number", invoice.InvoiceNumber)
 	req.Invoice = invoice
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	req.Invoice.HouseUse = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 	postings := []models.Posting{}
 	posting := models.Posting{PostingType: "houseuse", Amount: req.Invoice.Total}
