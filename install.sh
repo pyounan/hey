@@ -34,7 +34,7 @@ pull_proxy(){
 
   mkdir -p /usr/local/bin
   cp ./pos-proxy /usr/local/bin/pos-proxy
-  cp -r ./templates /usr/local/bin/
+  cp -r ./templates /var/www/templates
 
   chmod +x /usr/local/bin/pos-proxy
 }
@@ -45,7 +45,7 @@ FILE=/etc/supervisor/conf.d/pos_proxy.conf
 touch $FILE
 cat <<EOM >$FILE
 [program:pos-proxy]
-command=/usr/local/bin/pos-proxy --templates="`pwd`/*"
+command=/usr/local/bin/pos-proxy --templates="/var/www/templates`/*"
 autostart=true
 autorestart=true
 stderr_logfile=/var/log/pos_proxy.err.log
