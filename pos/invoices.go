@@ -505,12 +505,12 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
-	invoice, err := req.Submit()
+	body.Invoice, err = req.Submit()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	req.Invoice = invoice
+	req.Invoice = body.Invoice
 	req.Invoice.PaidAmount = req.Invoice.Total
 
 	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.Invoice.InvoiceNumber}, body.Invoice)

@@ -121,7 +121,7 @@ func Load() {
 				log.Println(err.Error())
 			}
 			req = helpers.PrepareRequestHeaders(req)
-			log.Println("Open Connection for:", req.URL.Path)
+			// log.Println("Open Connection for:", req.URL.Path)
 			response, err := netClient.Do(req)
 			if err != nil {
 				log.Println(err.Error())
@@ -129,7 +129,7 @@ func Load() {
 			}
 			// defer response.Body.Close()
 			defer func() {
-				log.Println("Closing Connection for", req.URL.Path)
+				// log.Println("Closing Connection for", req.URL.Path)
 				response.Body.Close()
 			}()
 			if response.StatusCode != 200 {
