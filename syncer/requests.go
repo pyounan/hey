@@ -69,7 +69,7 @@ func PushToBackend() {
 		}
 		req.Header = r.Headers
 		req = helpers.PrepareRequestHeaders(req)
-		log.Println("Openning connection for", req.URL)
+		// log.Println("Openning connection for", req.URL)
 		// add this request and its response to requests log
 		logRecord := RequestLog{}
 		logRecord.ID = bson.NewObjectId()
@@ -81,7 +81,7 @@ func PushToBackend() {
 			return
 		}
 		defer func() {
-			log.Println("Closing connection of", req.URL)
+			// log.Println("Closing connection of", req.URL)
 			response.Body.Close()
 		}()
 		log.Println("Sending: ", r.Method, req.URL.Path)
