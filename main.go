@@ -21,6 +21,7 @@ import (
 	"pos-proxy/opera"
 	"pos-proxy/pos"
 	"pos-proxy/proxy"
+	"pos-proxy/sun"
 	"pos-proxy/syncer"
 )
 
@@ -131,6 +132,7 @@ func main() {
 	r.HandleFunc("/api/opera/rooms/", opera.ListOperaRooms).Methods("GET")
 	r.HandleFunc("/api/opera/roomdepartment/", opera.GetRoomDepartment).Methods("GET")
 	r.HandleFunc("/api/pos/opera/{id}/", opera.DeleteConfig).Methods("DELETE")
+	r.HandleFunc("/jv/", sun.ImportJournalVouchers).Methods("GET")
 
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
