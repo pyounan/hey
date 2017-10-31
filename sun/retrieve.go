@@ -119,15 +119,25 @@ func Serialize(jvs []JournalVoucher, exportType string) error {
 }
 
 func ImportJournalVouchers(w http.ResponseWriter, r *http.Request) {
+	lastDate := make(map[string]string)
+	db.DB.C("sunexportdate").Find(nil).One(&lastDate)
+	log.Println("Before return from post", lastDate["dt"])
+	layout := "2006-01-02"
 	if r.Method == "GET" {
-		templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun", nil)
+		templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
+			bson.M{"lastDate": lastDate["dt"]})
 	} else {
-		/*err := r.ParseForm()
-		if err != nil{
-			   panic(err)
-		}*/
 
 		dt := r.PostFormValue("dt")
+		dtParsed, _ := time.Parse(layout, dt)
+		lastDateParsed, _ := time.Parse(layout, lastDate["dt"])
+		if dtParsed.Before(lastDateParsed) {
+			templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
+				bson.M{"message": "Export date cannot be less than last export date",
+					"lastDate": lastDate["dt"]})
+			return
+		}
+
 		fetchedJVS, err := FetchJournalVouchers(dt)
 		if err != nil {
 			templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
@@ -148,9 +158,12 @@ func ImportJournalVouchers(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		syncer.QueueRequest("/api/inventory/exportsundate/", "POST",
+		db.DB.C("sunexportdate").Remove(nil)
+		db.DB.C("sunexportdate").Insert(bson.M{"dt": dt})
+		syncer.QueueRequest("/api/inventory/sunexportdate/", "POST",
 			r.Header, bson.M{"dt": dt})
+		log.Println("After after return from post", dt)
 		templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
-			bson.M{"message": "Success"})
+			bson.M{"message": "Success", "lastDate": dt})
 	}
 }
