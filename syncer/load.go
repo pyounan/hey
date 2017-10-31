@@ -112,6 +112,8 @@ func Load() {
 	backendApis["usergroups"] = "core/getallusergroups/"
 	backendApis["operasettings"] = "api/pos/opera/"
 
+	backendApis["sunexportdate"] = "api/inventory/sunexportdate/"
+
 	netClient := helpers.NewNetClient()
 	for collection, api := range backendApis {
 		go func(netClient *http.Client, collection string, api string) {
@@ -137,7 +139,17 @@ func Load() {
 				return
 			}
 			log.Printf("-- syncing %s from %s\n", collection, api)
-			if api == "api/pos/posinvoices/?is_settled=false" {
+			if collection == "sunexportdate" {
+				db.DB.C(collection).Remove(nil)
+				type BodyRequest struct {
+					Dt string `json:"dt" bson:"dt"`
+				}
+				res := []BodyRequest{}
+				json.NewDecoder(response.Body).Decode(&res)
+				if len(res) > 0 {
+					db.DB.C(collection).Insert(bson.M{"dt": res[0].Dt})
+				}
+			} else if api == "api/pos/posinvoices/?is_settled=false" {
 				type Links struct {
 					Next *string `json:"next"`
 				}

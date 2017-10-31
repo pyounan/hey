@@ -3,7 +3,6 @@ package sun
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,18 +10,24 @@ import (
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
+	"pos-proxy/syncer"
 	"pos-proxy/templateexport"
 	"strconv"
 	"strings"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
-func FetchJournalVouchers() ([]JournalVoucher, error) {
+func FetchJournalVouchers(dt string) ([]JournalVoucher, error) {
 	jvs := []JournalVoucher{}
 	apiURL := fmt.Sprintf("%s/api/inventory/journalvoucher/", config.Config.BackendURI)
 	req, _ := http.NewRequest("GET", apiURL, nil)
 	netClient := helpers.NewNetClient()
 	req = helpers.PrepareRequestHeaders(req)
+	q := req.URL.Query()
+	q.Add("dt", dt)
+	req.URL.RawQuery = q.Encode()
 	response, err := netClient.Do(req)
 	if err != nil {
 		log.Println("Failed to fetch jvs", err)
@@ -117,7 +122,13 @@ func ImportJournalVouchers(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun", nil)
 	} else {
-		fetchedJVS, err := FetchJournalVouchers()
+		/*err := r.ParseForm()
+		if err != nil{
+			   panic(err)
+		}*/
+
+		dt := r.PostFormValue("dt")
+		fetchedJVS, err := FetchJournalVouchers(dt)
 		if err != nil {
 			templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
 				bson.M{"message": fmt.Sprintf("Error: %s", err)})
@@ -137,6 +148,8 @@ func ImportJournalVouchers(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+		syncer.QueueRequest("/api/inventory/exportsundate/", "POST",
+			r.Header, bson.M{"dt": dt})
 		templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
 			bson.M{"message": "Success"})
 	}
