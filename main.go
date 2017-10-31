@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -23,9 +22,8 @@ import (
 	"pos-proxy/proxy"
 	"pos-proxy/sun"
 	"pos-proxy/syncer"
+	"pos-proxy/templateexport"
 )
-
-var templates *template.Template
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -39,7 +37,6 @@ func init() {
 }
 
 func main() {
-	var err error
 	port := flag.String("port", "80", "Port to listen on")
 	templatesPath := flag.String("templates", "templates/*", "Path of templates directory")
 	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
@@ -49,12 +46,7 @@ func main() {
 	originsOk := gh.AllowedOrigins([]string{"*"})
 	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 	// Load templates
-	log.Println("Getting template files from", *templatesPath)
-	templates, err = template.ParseGlob(*templatesPath)
-	// templates, err = template.ParseGlob(filepath.Join(cwd, "templates/*"))
-	if err != nil {
-		log.Println("Failed to parse html templates", err.Error())
-	}
+	templateexport.ParseTemplates(*templatesPath)
 	// Define routes
 	r := mux.NewRouter()
 	r = r.StrictSlash(true)
@@ -132,7 +124,7 @@ func main() {
 	r.HandleFunc("/api/opera/rooms/", opera.ListOperaRooms).Methods("GET")
 	r.HandleFunc("/api/opera/roomdepartment/", opera.GetRoomDepartment).Methods("GET")
 	r.HandleFunc("/api/pos/opera/{id}/", opera.DeleteConfig).Methods("DELETE")
-	r.HandleFunc("/jv/", sun.ImportJournalVouchers).Methods("GET")
+	r.HandleFunc("/jv/", sun.ImportJournalVouchers).Methods("GET", "POST")
 
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
@@ -174,14 +166,14 @@ func main() {
 }
 
 func homeView(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "home", nil)
+	templateexport.ExportedTemplates.ExecuteTemplate(w, "home", nil)
 }
 
 func requestsLogView(w http.ResponseWriter, r *http.Request) {
 	logs := []syncer.RequestLog{}
 	db.DB.C("requests_log").Find(nil).All(&logs)
 
-	templates.ExecuteTemplate(w, "syncer_logs", logs)
+	templateexport.ExportedTemplates.ExecuteTemplate(w, "syncer_logs", logs)
 }
 
 func syncerRequest(w http.ResponseWriter, r *http.Request) {

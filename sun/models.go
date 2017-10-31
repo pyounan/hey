@@ -1,11 +1,13 @@
 package sun
 
 type JournalVoucher struct {
-	ID           int64         `json:"id"`
-	GLPeriod     string        `json:"gl_period"`
-	Dt           string        `json:"posted_on"`
-	Description  string        `json:"description"`
-	Transactions []Transaction `json:"transaction_set"`
+	ID            int64         `json:"id"`
+	GLPeriod      string        `json:"gl_period"`
+	Dt            string        `json:"dt"`
+	Description   string        `json:"description"`
+	Transactions  []Transaction `json:"transaction_set"`
+	OperationType string        `json:"operation_type"`
+	OperationId   int64         `json:"operation_id"`
 }
 
 type Transaction struct {

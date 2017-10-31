@@ -8,44 +8,68 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
+	"pos-proxy/templateexport"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func FetchJournalVouchers(exportType string) []JournalVoucher {
-	apiURL := fmt.Sprintf("%s/api/inventory/journalvoucher/?type=%s", config.Config.BackendURI, exportType)
+func FetchJournalVouchers() ([]JournalVoucher, error) {
+	jvs := []JournalVoucher{}
+	apiURL := fmt.Sprintf("%s/api/inventory/journalvoucher/", config.Config.BackendURI)
 	req, _ := http.NewRequest("GET", apiURL, nil)
 	netClient := helpers.NewNetClient()
 	req = helpers.PrepareRequestHeaders(req)
-	response, _ := netClient.Do(req)
-	respBody, _ := ioutil.ReadAll(response.Body)
-	jvs := []JournalVoucher{}
-	_ = json.Unmarshal(respBody, &jvs)
-	return jvs
+	response, err := netClient.Do(req)
+	if err != nil {
+		log.Println("Failed to fetch jvs", err)
+		return jvs, err
+	}
+	respBody, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Println("Failed to fetch jvs", err)
+		return jvs, err
+	}
+	err = json.Unmarshal(respBody, &jvs)
+	if err != nil {
+		log.Println("Failed to fetch jvs", err)
+		return jvs, err
+	}
+	return jvs, nil
 }
 
-func Serialize(jvs []JournalVoucher, exportType string) string {
+func Serialize(jvs []JournalVoucher, exportType string) error {
 	t := time.Now()
-	fileName := fmt.Sprintf("/tmp/%s_%s.ndf", exportType, t.Format("20060102150405"))
-	f, _ := os.Create(fileName)
+	fileName := fmt.Sprintf("/media/share/%s_%s.ndf", exportType, t.Format("20060102150405"))
+	f, err := os.Create(fileName)
+	if err != nil {
+		log.Println("Failed to create file", fileName)
+		return err
+	}
 	defer f.Close()
-	f.WriteString("VERSION                         42601\n")
-	layout := "2006-01-02T15:04:05.000000Z"
+	f.WriteString("VERSION                         42601\r\n")
+	layout := "2006-01-02T15:04:05Z"
 	defaultCurrency := make(map[string]interface{})
 	db.DB.C("currencies").Find(bson.M{"is_default": true}).One(&defaultCurrency)
-	log.Println("Currency", defaultCurrency)
 	for _, jv := range jvs {
 		splitted := strings.Split(jv.GLPeriod, "-")
-		glPeriodMonth, _ := strconv.Atoi(splitted[0])
+		glPeriodMonth, err := strconv.Atoi(splitted[0])
+		if err != nil {
+			log.Println("Failed to parse gl period month", jv.GLPeriod)
+			return err
+		}
 		glPeriodYear := splitted[1]
-		t, _ = time.Parse(layout, jv.Dt)
+		t, err = time.Parse(layout, jv.Dt)
+		if err != nil {
+			log.Println("Failed to parse JV date", jv.Dt)
+			return err
+		}
 		for _, transaction := range jv.Transactions {
-			number := transaction.Account["number"]
+			number := transaction.Account["number"].(string)
+			number = strings.ToUpper(number)
 			amount := transaction.Amount * 1000
 			convertedFloat, _ := strconv.ParseFloat(fmt.Sprintf("%.3f", amount), 64)
 			convertedFloat *= 1000
@@ -54,11 +78,11 @@ func Serialize(jvs []JournalVoucher, exportType string) string {
 			if transaction.TransactionType == "debit" {
 				trType = "D"
 			}
-			journalType := "MCCON"
+			journalType := "CICON"
 			if exportType == "transfer" {
-				journalType = "MCTRS"
+				journalType = "CITRS"
 			} else if exportType == "invoice" {
-				journalType = "MCINV"
+				journalType = "CIINV"
 			}
 
 			transactionRef := strings.Title(exportType)
@@ -73,42 +97,47 @@ func Serialize(jvs []JournalVoucher, exportType string) string {
 			sep2 := strings.Repeat(" ", 2)
 			sep5 := strings.Repeat(" ", 5)
 			sep15 := strings.Repeat(" ", 15)
-			sep8 := strings.Repeat(" ", 15)
-			line := fmt.Sprintf("%-15s%s0%02d%s%sL%s%018d%s %s%s%-15s%06d-%s%s%s%s%s\n",
+			sep8 := strings.Repeat(" ", 8)
+			sep201 := strings.Repeat(" ", 201)
+			line := fmt.Sprintf("%-15s%s0%02d%s%sL%s%018d%s %s%s%-15s%06d-%s%s%s%s%-5s%s\r\n",
 				number, glPeriodYear, glPeriodMonth, t.Format("20060102"), sep2,
 				sep14, amountInt, trType, journalType, sep5, transactionRef, jv.ID,
-				description, sep15, sep8, sep46, defaultCurrency["code"])
-			f.WriteString(line)
+				description, sep15, sep8, sep46, defaultCurrency["code"], sep201)
+			_, err = f.WriteString(line)
+			if err != nil {
+				log.Println("Failed to write to file", fileName)
+				return err
+			}
 		}
 	}
-	return fileName
-}
-
-func SerializeReceiving(jvs []JournalVoucher) string {
-	t := time.Now()
-	fileName := fmt.Sprintf("/tmp/invoice_%s.ndf", t.Format("20060102150405"))
-	f, _ := os.Create(fileName)
-	defer f.Close()
-	for _, jv := range jvs {
-		for _, transaction := range jv.Transactions {
-			f.WriteString(fmt.Sprintf("%-15s\n", transaction.Account["number"]))
-		}
-	}
-	return fileName
+	return nil
 }
 
 func ImportJournalVouchers(w http.ResponseWriter, r *http.Request) {
-	path := "/media/share/"
-	jvs := FetchJournalVouchers("receiving")
-	receivingFileName := Serialize(jvs, "invoice")
-	jvs = FetchJournalVouchers("transfer")
-	transferFileName := Serialize(jvs, "transfer")
-	jvs = FetchJournalVouchers("usage")
-	consumptionFileName := Serialize(jvs, "consumption")
-	newFile := fmt.Sprintf("%s%s", path, filepath.Base(receivingFileName))
-	_ = os.Rename(receivingFileName, newFile)
-	newFile = fmt.Sprintf("%s%s", path, filepath.Base(transferFileName))
-	_ = os.Rename(transferFileName, newFile)
-	newFile = fmt.Sprintf("%s%s", path, filepath.Base(consumptionFileName))
-	_ = os.Rename(consumptionFileName, newFile)
+	if r.Method == "GET" {
+		templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun", nil)
+	} else {
+		fetchedJVS, err := FetchJournalVouchers()
+		if err != nil {
+			templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
+				bson.M{"message": fmt.Sprintf("Error: %s", err)})
+			return
+		}
+
+		groupedJVS := make(map[string][]JournalVoucher)
+		for _, m := range fetchedJVS {
+			groupedJVS[m.OperationType] = append(groupedJVS[m.OperationType], m)
+		}
+
+		for k, v := range groupedJVS {
+			err = Serialize(v, k)
+			if err != nil {
+				templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
+					bson.M{"message": fmt.Sprintf("Error: %s", err)})
+				return
+			}
+		}
+		templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
+			bson.M{"message": "Success"})
+	}
 }
