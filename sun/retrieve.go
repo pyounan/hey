@@ -75,6 +75,9 @@ func Serialize(jvs []JournalVoucher, exportType string) error {
 		for _, transaction := range jv.Transactions {
 			number := transaction.Account["number"].(string)
 			number = strings.ToUpper(number)
+			if transaction.SunMapping.Code != "" {
+				number = transaction.SunMapping.Code
+			}
 			amount := transaction.Amount * 1000
 			convertedFloat, _ := strconv.ParseFloat(fmt.Sprintf("%.3f", amount), 64)
 			convertedFloat *= 1000
@@ -88,6 +91,8 @@ func Serialize(jvs []JournalVoucher, exportType string) error {
 				journalType = "CITRS"
 			} else if exportType == "invoice" {
 				journalType = "CIINV"
+			} else if exportType == "posinvoice" {
+				journalType = "CIPOS"
 			}
 
 			transactionRef := strings.Title(exportType)
@@ -97,18 +102,52 @@ func Serialize(jvs []JournalVoucher, exportType string) error {
 			}
 			description = fmt.Sprintf("%-18s", description)
 			description = description[0:18]
-			sep14 := strings.Repeat(" ", 14)
-			sep46 := strings.Repeat(" ", 46)
 			sep2 := strings.Repeat(" ", 2)
 			sep5 := strings.Repeat(" ", 5)
-			sep15 := strings.Repeat(" ", 15)
 			sep8 := strings.Repeat(" ", 8)
-			sep201 := strings.Repeat(" ", 201)
-			line := fmt.Sprintf("%-15s%s0%02d%s%sL%s%018d%s %s%s%-15s%06d-%s%s%s%s%-5s%s\r\n",
-				number, glPeriodYear, glPeriodMonth, t.Format("20060102"), sep2,
-				sep14, amountInt, trType, journalType, sep5, transactionRef, jv.ID,
-				description, sep15, sep8, sep46, defaultCurrency["code"], sep201)
-			_, err = f.WriteString(line)
+			sep14 := strings.Repeat(" ", 14)
+			sep15 := strings.Repeat(" ", 15)
+			sep18 := strings.Repeat(" ", 18)
+			sep46 := strings.Repeat(" ", 46)
+
+			line := []string{}
+			line = append(line, fmt.Sprintf("%-10s", number))
+			line = append(line, sep5)
+			line = append(line, glPeriodYear)
+			line = append(line, "0")
+			line = append(line, fmt.Sprintf("%02d", glPeriodMonth))
+			line = append(line, t.Format("20060102"))
+			line = append(line, sep2)
+			line = append(line, "L")
+			line = append(line, sep14)
+			line = append(line, fmt.Sprintf("%018d", amountInt))
+			line = append(line, trType)
+			line = append(line, " ")
+			line = append(line, journalType)
+			line = append(line, sep5) // Journal Source
+			line = append(line, fmt.Sprintf("%-15s", transactionRef))
+			line = append(line, fmt.Sprintf("%06d-", jv.OperationId))
+			line = append(line, description)
+			line = append(line, sep15)                                        //Space 15
+			line = append(line, sep8)                                         // Due date
+			line = append(line, sep46)                                        // Space 46
+			line = append(line, fmt.Sprintf("%-5s", defaultCurrency["code"])) // Currency
+			line = append(line, sep18)                                        // Conversion Rate
+			line = append(line, sep18)                                        // Amount FC
+			line = append(line, sep14)                                        // Space 14
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode1))
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode2))
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode3))
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode4))
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode5))
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode6))
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode7))
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode8))
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode9))
+			line = append(line, fmt.Sprintf("%-15s", transaction.SunMapping.TCode10))
+			line = append(line, "\r\n")
+			lineStr := strings.Join(line, "")
+			_, err = f.WriteString(lineStr)
 			if err != nil {
 				log.Println("Failed to write to file", fileName)
 				return err
