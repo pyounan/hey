@@ -189,6 +189,11 @@ func ImportJournalVouchers(w http.ResponseWriter, r *http.Request) {
 				bson.M{"message": fmt.Sprintf("Error: %s", err)})
 			return
 		}
+		if len(fetchedJVS) == 0 {
+			templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
+				bson.M{"message": fmt.Sprintf("Error: %s", "No JVs were fetched")})
+			return
+		}
 
 		groupedJVS := make(map[string][]JournalVoucher)
 		for _, m := range fetchedJVS {
