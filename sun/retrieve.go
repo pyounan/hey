@@ -168,7 +168,13 @@ func ImportJournalVouchers(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		dt := r.PostFormValue("dt")
-		dtParsed, _ := time.Parse(layout, dt)
+		dtParsed, err := time.Parse(layout, dt)
+		if err != nil {
+			templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
+				bson.M{"message": "Invalid date",
+					"lastDate": lastDate["dt"]})
+			return
+		}
 		lastDateParsed, _ := time.Parse(layout, lastDate["dt"])
 		if dtParsed.Before(lastDateParsed) {
 			templateexport.ExportedTemplates.ExecuteTemplate(w, "export_to_sun",
