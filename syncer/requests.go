@@ -11,6 +11,7 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/helpers"
 	"pos-proxy/pos/models"
+	"pos-proxy/proxy"
 	"strings"
 	"time"
 
@@ -95,8 +96,12 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("Failed to queue failure to log", err.Error())
 			}
+			if response.StatusCode >= 400 && response.StatusCode <= 500 {
+				proxy.AllowIncomingRequests = false
+			}
 			return
 		}
+		proxy.AllowIncomingRequests = true
 		if req.URL.Path == "/api/pos/posinvoices/" || strings.Contains(req.URL.Path, "createpostings") {
 			type RespBody struct {
 				Invoice models.Invoice `json:"posinvoice" bson:"posinvoice"`

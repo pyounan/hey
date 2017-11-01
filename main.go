@@ -152,6 +152,7 @@ func main() {
 	}()
 
 	lr := gh.LoggingHandler(os.Stdout, r)
+	mr := proxy.StatusMiddleware(lr)
 	// r = gh.RecoveryHandler()(lr)
 
 	db.ConnectRedis()
@@ -161,7 +162,7 @@ func main() {
 
 	log.Printf("Listening on http://localhost:%s\n", *port)
 	log.Fatal(http.ListenAndServe(":"+*port,
-		gh.CORS(originsOk, headersOk, methodsOk)(lr)))
+		gh.CORS(originsOk, headersOk, methodsOk)(mr)))
 
 }
 

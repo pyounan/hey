@@ -11,6 +11,30 @@ import (
 	//"net/url"
 )
 
+// AllowIncomingRequests indicates if the proxy allows to receive operations,
+// or all the operations should be halted until an intervertion from support.
+var AllowIncomingRequests = true
+
+// StatusMiddleware checks the value of AllowIncomingRequests and determines if the
+// ongoing request should be rejected or can continue the operation.
+// If AllowIncomingRequests is true, then the proxy is healthy and accepting more
+// operations. If false, then the request should return an internal error with a
+// message to the client to call suport team.
+func StatusMiddleware(h http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		// If proxy should reject all operations, return error message and don't call next middleware
+		if AllowIncomingRequests == false {
+			err := map[string]string{"message": "Proxy Internal Error, Operations halted. Please contact support."}
+			helpers.ReturnErrorMessage(w, err)
+			return
+		}
+		h.ServeHTTP(w, r)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+// Status returns a success message if the proxy is working properly.
 func Status(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("success")
 }
@@ -26,6 +50,7 @@ func Status(w http.ResponseWriter, r *http.Request) {
 	prox.ServeHTTP(w, r)
 }*/
 
+// ProxyToBackend sends the incoming requests to the backend directly
 func ProxyToBackend(w http.ResponseWriter, r *http.Request) {
 	// backendURI, _ := url.Parse(config.Config.BackendURI)
 	netClient := helpers.NewNetClient()
