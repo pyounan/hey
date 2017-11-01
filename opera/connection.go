@@ -92,7 +92,7 @@ func sendLinkStart() bool {
 	time_value := val
 	linkStartStr := fmt.Sprintf(`<LinkStart Date="%s" Time="%s" VerNum="1.0" />`, date, time_value)
 	message, _ := doSendRequest([]byte(linkStartStr))
-	if len(message) > 0 {
+	if len(message) > 1 {
 		message = message[1 : len(message)-1]
 	}
 	linkAlive := LinkAlive{}

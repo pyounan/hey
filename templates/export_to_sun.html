@@ -1,0 +1,39 @@
+{{ define "export_to_sun" }}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/jquery-ui-git.css">
+  <script>
+    $(function () {
+      $("#datepicker").datepicker({
+        dateFormat: "yy-mm-dd"
+      });
+    });
+  </script>
+</head>
+<body>
+    <div style="width:300px; margin: 0 auto;">
+        <div style="border: 1px solid #3598dc; margin-top: 30px;">
+            <div>
+              <h4 style="color:#000;  padding: 5px; text-align: center; margin: 0px;">Last export date {{.lastDate}}</h4>
+            </div>
+            <div style="background: #3598dc;">
+                <h4 style="color:#fff;  padding: 5px; text-align: center; margin: 0px;">Export To SUN</h4>
+            </div>
+            <div> {{ .message }} </div>
+            <form method="post" style="padding: 10px;" action="http://localhost:7000/jv/" >
+                <p style="margin-top: 0px;">Date: <input type="text" name="dt" id="datepicker" style="width: 100%; padding: 6px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;"></p>
+                <div style="text-align: center;">
+                    <input type="submit" value="Submit" style="background: #3598dc; color: white; padding: 6px 12px; border: 1px solid #3598dc;">
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
+{{ end }}
