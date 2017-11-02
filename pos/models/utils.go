@@ -48,7 +48,7 @@ func AdvanceInvoiceNumber(terminalID int) (string, error) {
 	}
 
 	id := terminal.LastInvoiceID + 1
-	invoiceNumber = fmt.Sprintf("%d-%d", terminal.Number, id)
+	invoiceNumber = fmt.Sprintf("%d-%d", terminal.ID, id)
 	err = db.DB.C("terminals").Update(bson.M{"id": terminal.ID},
 		bson.M{"$set": bson.M{"last_invoice_id": terminal.LastInvoiceID + 1}})
 	if err != nil {
