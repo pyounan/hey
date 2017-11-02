@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"pos-proxy/db"
+	"sync"
 	"time"
 
 	lock "github.com/bsm/redis-lock"
@@ -11,9 +12,17 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// TerminalsOperationsMutex locks when doing operations on LastInvoiceID attribute.
+// If the mutex is locked when creating a new invoice, then syncing operations should wait
+// If the mutex is locked from syncing, then creating a new invoice number should wait
+var TerminalsOperationsMutex = &sync.Mutex{}
+
 // AdvanceInvoiceNumber increases the terminal.last_invoice_id by one and
 // returns a new invoice number.
 func AdvanceInvoiceNumber(terminalID int) (string, error) {
+	// Lock the terminals operations mutex
+	TerminalsOperationsMutex.Lock()
+	defer TerminalsOperationsMutex.Unlock()
 	// Connect to Redis
 	client := redis.NewClient(&redis.Options{
 		Network: "tcp",

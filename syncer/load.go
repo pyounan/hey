@@ -117,6 +117,9 @@ func Load() {
 	netClient := helpers.NewNetClient()
 	for collection, api := range backendApis {
 		go func(netClient *http.Client, collection string, api string) {
+			if collection == "terminals" {
+				models.TerminalsOperationsMutex.Lock()
+			}
 			uri := fmt.Sprintf("%s/%s", config.Config.BackendURI, api)
 			req, err := http.NewRequest("GET", uri, nil)
 			if err != nil {
@@ -133,6 +136,9 @@ func Load() {
 			defer func() {
 				// log.Println("Closing Connection for", req.URL.Path)
 				response.Body.Close()
+				if collection == "terminals" {
+					defer models.TerminalsOperationsMutex.Unlock()
+				}
 			}()
 			if response.StatusCode != 200 {
 				log.Printf("Failed to load api from backend: %s\n", api)
@@ -148,6 +154,24 @@ func Load() {
 				json.NewDecoder(response.Body).Decode(&res)
 				if len(res) > 0 {
 					db.DB.C(collection).Insert(bson.M{"dt": res[0].Dt})
+				}
+			} else if collection == "terminals" {
+				terminals := []models.Terminal{}
+				json.NewDecoder(response.Body).Decode(&terminals)
+				for _, terminal := range terminals {
+					// get old terminal
+					t := models.Terminal{}
+					err := db.DB.C(collection).Find(bson.M{"id": terminal.ID}).One(&t)
+					if err != nil {
+						// terminal not found, create a new one
+						db.DB.C(collection).Insert(terminal)
+					} else {
+						// terminal already exists, check that the incoming last_invoice_id is larger
+						// than the current one, update if true, otherwise continue to the next terminal.
+						if t.LastInvoiceID < terminal.LastInvoiceID {
+							db.DB.C(collection).Upsert(bson.M{"id": terminal.ID}, terminal)
+						}
+					}
 				}
 			} else if api == "api/pos/posinvoices/?is_settled=false" {
 				type Links struct {

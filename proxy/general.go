@@ -14,7 +14,7 @@ import (
 
 // AllowIncomingRequests indicates if the proxy allows to receive operations,
 // or all the operations should be halted until an intervertion from support.
-var AllowIncomingRequests = false
+var AllowIncomingRequests = true
 
 // StatusMiddleware checks the value of AllowIncomingRequests and determines if the
 // ongoing request should be rejected or can continue the operation.
