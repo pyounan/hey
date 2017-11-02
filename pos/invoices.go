@@ -942,7 +942,7 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 	if invoice.OperaReservation != "" {
 		postRequest.ReservationId = invoice.OperaReservation
 		postRequest.RoomNumber = invoice.OperaRoomNumber
-		postRequest.LastName = strings.Split(*invoice.WalkinName, "/")[1]
+		postRequest.LastName = strings.Split(invoice.WalkinName, "/")[1]
 	}
 
 	buf := bytes.NewBufferString("")
