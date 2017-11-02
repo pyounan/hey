@@ -23,9 +23,9 @@ type Invoice struct {
 	IsSettled           bool                   `json:"is_settled" bson:"is_settled"`
 	PaidAmount          float64                `json:"paid_amount" bson:"paid_amount"`
 	Pax                 int                    `json:"pax" bson:"pax"`
-	WalkinName          *string                `json:"walkin_name" bson:"walkin_name"`
+	WalkinName          string                 `json:"walkin_name" bson:"walkin_name"`
 	ProfileName         *int64                 `json:"profile_name" bson:"profile_name"`
-	ProfileDetails      *string                `json:"profile_details" bson:"profile_details"`
+	ProfileDetails      string                 `json:"profile_details" bson:"profile_details"`
 	Store               int                    `json:"store" bson:"store"`
 	StoreDescription    string                 `json:"store_description" bson:"store_description"`
 	Subtotal            float64                `json:"subtotal" bson:"subtotal"`

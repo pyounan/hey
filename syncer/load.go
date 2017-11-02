@@ -184,6 +184,7 @@ func Load() {
 				res := Body{}
 				json.NewDecoder(response.Body).Decode(&res)
 				for _, item := range res.Results {
+					// Chec
 					_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
 					if err != nil {
 						log.Println(err.Error())
