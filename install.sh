@@ -34,7 +34,8 @@ pull_proxy(){
 
   mkdir -p /usr/local/bin
   cp ./pos-proxy /usr/local/bin/pos-proxy
-  cp -r ./templates /var/www/templates
+  mkdir -p /var/www/templates/
+  cp -r ./templates/* /var/www/templates
 
   chmod +x /usr/local/bin/pos-proxy
 }
