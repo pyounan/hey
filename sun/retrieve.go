@@ -33,6 +33,7 @@ func FetchJournalVouchers(dt string) ([]JournalVoucher, error) {
 		log.Println("Failed to fetch jvs", err)
 		return jvs, err
 	}
+	defer response.Body.Close()
 	respBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		log.Println("Failed to fetch jvs", err)
