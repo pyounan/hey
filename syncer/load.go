@@ -184,7 +184,16 @@ func Load() {
 				res := Body{}
 				json.NewDecoder(response.Body).Decode(&res)
 				for _, item := range res.Results {
-					// Chec
+					// Check if invoice is already settled, don't update it.
+					oldInvoice := models.Invoice{}
+					err := db.DB.C(collection).Find(bson.M{"invoice_number": item.InvoiceNumber}).One(&oldInvoice)
+					// if older invoice was found, check if it is settled, then don't update it.
+					if err == nil {
+						if oldInvoice.IsSettled == true {
+							continue
+						}
+					}
+
 					_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
 					if err != nil {
 						log.Println(err.Error())
