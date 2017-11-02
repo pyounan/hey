@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"pos-proxy/config"
 	"pos-proxy/helpers"
+	"strings"
 	//"net/http/httputil"
 	//"net/url"
 )
 
 // AllowIncomingRequests indicates if the proxy allows to receive operations,
 // or all the operations should be halted until an intervertion from support.
-var AllowIncomingRequests = true
+var AllowIncomingRequests = false
 
 // StatusMiddleware checks the value of AllowIncomingRequests and determines if the
 // ongoing request should be rejected or can continue the operation.
@@ -23,9 +23,9 @@ var AllowIncomingRequests = true
 // message to the client to call suport team.
 func StatusMiddleware(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		log.Println("URL Path", r.URL.Path)
 		// If proxy should reject all operations, return error message and don't call next middleware
-		if AllowIncomingRequests == false && r.URL.Path != "/syncer/logs" && r.URL.Path != "/jv" {
+		if AllowIncomingRequests == false && !strings.HasPrefix(r.URL.Path, "/syncer/logs") &&
+			!strings.HasPrefix(r.URL.Path, "/jv") {
 			err := map[string]string{"message": "Proxy Internal Error, Operations halted. Please contact support."}
 			helpers.ReturnErrorMessage(w, err)
 			return
