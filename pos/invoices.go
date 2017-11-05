@@ -951,7 +951,10 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 		return false
 	}
 	msg, _ := opera.SendRequest([]byte(buf.String()))
-	msg = msg[1 : len(msg)-1]
+
+	if len(msg) > 1 {
+		msg = msg[1 : len(msg)-1]
+	}
 	postAnswer := opera.PostAnswer{}
 	responseBuf := bytes.NewBufferString(msg)
 	log.Println("msg", msg)

@@ -22,6 +22,10 @@ const RETIES = 5
 var mutex = &sync.Mutex{}
 
 func doSendRequest(data []byte) (string, error) {
+	if conn == nil {
+		log.Println("Connection with opera died")
+		return "", errors.New("Please check Opera POS Interface")
+	}
 	log.Println("About to lock")
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -47,9 +51,11 @@ func SendRequest(data []byte) (string, error) {
 	if sendLinkStart() {
 		return doSendRequest(data)
 	} else {
-		conn.Close()
+		if conn != nil {
+			conn.Close()
+		}
 		Connect()
-		doSendRequest(data)
+		return doSendRequest(data)
 	}
 	return "", errors.New("Couldn't send link description")
 }
@@ -71,11 +77,11 @@ func Connect() {
 			break
 		}
 		retries += 1
-		sleepValue := 1000 * retries
+		sleepValue := 1500
 		time.Sleep(time.Duration(sleepValue) * time.Millisecond)
 	}
 	if !connected {
-		log.Fatal("Couldn't connect to opera on ", connectionString)
+		log.Println("Couldn't connect to opera on ", connectionString)
 		return
 	}
 	log.Println(fmt.Sprintf("Connection successful to Opera on %s", config.Config.OperaIP))
