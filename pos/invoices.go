@@ -304,7 +304,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	paidOnOpera := true
-	if config.Config.IsOperaEnabled {
+	if config.Config.IsOperaEnabled && len(req.Postings) > 0 {
 		paidOnOpera = HandleOperaPayments(req.Invoice, req.Postings[0].Department)
 		if !paidOnOpera {
 			helpers.ReturnErrorMessage(w, bson.M{"message": "Failed to pay on Opera"})
