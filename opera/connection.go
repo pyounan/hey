@@ -17,7 +17,7 @@ import (
 
 var conn net.Conn
 
-const RETIES = 5
+const RETIES = 1
 
 var mutex = &sync.Mutex{}
 
