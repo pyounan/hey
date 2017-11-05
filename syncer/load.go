@@ -119,6 +119,7 @@ func Load() {
 		go func(netClient *http.Client, collection string, api string) {
 			if collection == "terminals" {
 				models.TerminalsOperationsMutex.Lock()
+				defer models.TerminalsOperationsMutex.Unlock()
 			}
 			uri := fmt.Sprintf("%s/%s", config.Config.BackendURI, api)
 			req, err := http.NewRequest("GET", uri, nil)
@@ -132,14 +133,7 @@ func Load() {
 				log.Println(err.Error())
 				return
 			}
-			// defer response.Body.Close()
-			defer func() {
-				// log.Println("Closing Connection for", req.URL.Path)
-				response.Body.Close()
-				if collection == "terminals" {
-					defer models.TerminalsOperationsMutex.Unlock()
-				}
-			}()
+			defer response.Body.Close()
 			if response.StatusCode != 200 {
 				log.Printf("Failed to load api from backend: %s\n", api)
 				return
