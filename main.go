@@ -100,6 +100,7 @@ func main() {
 	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoicesLite).Methods("GET").Queries("simplified", "")
 	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoices).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/", pos.SubmitInvoice).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoices/bulksubmit/", pos.BulkSubmitInvoices).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/folio/", pos.FolioInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/refund/", pos.RefundInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/houseuse/", pos.Houseuse).Methods("POST")

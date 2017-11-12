@@ -234,6 +234,73 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
+// BulkSubmitInvoices loops over list of invoices, creates or updates
+// them, then release the terminal that is locked.
+func BulkSubmitInvoices(w http.ResponseWriter, r *http.Request) {
+	type Body struct {
+		Invoices              []models.Invoice `json:"posinvoices" bson:"posinvoices"`
+		RCRS                  string           `json:"rcrs" bson:"rcrs"`
+		TerminalID            int              `json:"terminal_id" bson:"terminal_id"`
+		TerminalNumber        int              `json:"terminal_number" bson:"terminal_number"`
+		TerminalName          string           `json:"terminal_description" bson:"terminal_description"`
+		EmployeeID            string           `json:"employee_id" bson:"employee_id"`
+		OriginalInvoiceNumber string           `json:"original_invoice_number" bson:"original_invoice_number"`
+		DepartmentID          int              `json:"department" bson:"department"`
+		Posting               models.Posting   `json:"posting" bson:"posting"`
+		CashierID             int              `json:"cashier_id" bson:"cashier_id"`
+		CashierName           string           `json:"cashier_name" bson:"cashier_name"`
+		CashierNumber         int              `json:"cashier_number" bson:"cashier_number"`
+		Type                  string           `json:"type" bson:"type"`
+		ActionTime            string           `json:"action_time" bson:"action_time"`
+	}
+	req := Body{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	for _, invoice := range req.Invoices {
+		if config.Config.IsFDMEnabled == true {
+			// create fdm connection
+			conn, err := fdm.Connect(req.RCRS)
+			if err != nil {
+				helpers.ReturnErrorMessage(w, err.Error())
+				return
+			}
+			defer conn.Close()
+			// build a normal request model
+			invoiceReq := models.InvoicePOSTRequest{}
+			invoiceReq.RCRS = req.RCRS
+			invoiceReq.TerminalID = req.TerminalID
+			invoiceReq.TerminalName = req.TerminalName
+			invoiceReq.ActionTime = req.ActionTime
+			invoiceReq.Invoice = invoice
+			invoiceReq.TerminalNumber = req.TerminalNumber
+			invoiceReq.EmployeeID = req.EmployeeID
+			invoiceReq.CashierName = req.CashierName
+			invoiceReq.CashierNumber = req.CashierNumber
+			responses, err := fdm.Submit(conn, invoiceReq)
+			if err != nil {
+				helpers.ReturnErrorMessage(w, err.Error())
+				return
+			}
+			invoice.FDMResponses = responses
+		}
+		invoice.Submit(req.TerminalID)
+	}
+	// release terminal lock
+	locks.UnlockTerminal(req.TerminalID)
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	// clear events
+	for _, invoice := range req.Invoices {
+		invoice.Events = []models.EJEvent{}
+		db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
+	}
+	helpers.ReturnSuccessMessage(w, bson.M{"status": 200})
+}
+
 // UnlockInvoice removes invoice_number key from redis and make
 // the invoice available to be picked up again by cashiers
 func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
