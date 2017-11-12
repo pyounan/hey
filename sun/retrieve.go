@@ -90,7 +90,7 @@ func Serialize(jvs []JournalVoucher, exportType string) error {
 			journalType := "CICON"
 			if exportType == "transfer" {
 				journalType = "CITRS"
-			} else if exportType == "invoice" {
+			} else if exportType == "receiving" {
 				journalType = "CIINV"
 			} else if exportType == "posinvoice" {
 				journalType = "CIPOS"
