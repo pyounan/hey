@@ -28,39 +28,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// ListInvoicesLite serves a list of simplified invoices with basic
-// information
-func ListInvoicesLite(w http.ResponseWriter, r *http.Request) {
-	q := bson.M{}
-	for key, val := range r.URL.Query() {
-		if key == "store" {
-			num, err := strconv.Atoi(val[0])
-			if err != nil {
-				helpers.ReturnErrorMessage(w, err.Error())
-				return
-			}
-			q[key] = num
-		} else if key == "updated_on" {
-			t, err := time.Parse("", val[0])
-			if err != nil {
-				helpers.ReturnErrorMessage(w, err.Error())
-				return
-			}
-			q[key] = bson.M{"$gt": t}
-		} else if key == "invoice_number" {
-			q[key] = val[0]
-		}
-	}
-	invoices := []models.InvoiceLite{}
-	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
-		return
-	}
-
-	helpers.ReturnSuccessMessage(w, invoices)
-}
-
 // ListInvoices lists open invoices
 func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
@@ -135,12 +102,9 @@ func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 		proxy.ProxyToBackend(w, r)
 		return
 	}
-	invoices := []models.InvoiceLite{}
+	invoices := []models.Invoice{}
 	q["is_settled"] = false
-	store := r.URL.Query().Get("store")
-	if store != "" {
-		q["store"], _ = strconv.Atoi(store)
-	}
+	q["store"], _ = strconv.Atoi(r.URL.Query().Get("store"))
 	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
