@@ -2,31 +2,9 @@ package models
 
 import "time"
 
-// PaymentLog .
-type PaymentLog struct{}
-
-// InvoiceLite represents the Invoice model in a list
-type InvoiceLite struct {
-	ID                  *int64     `json:"id" bson:"id,omitempty"`
-	InvoiceNumber       string     `json:"invoice_number" bson:"invoice_number"`
-	TableNumber         *int64     `json:"table" bson:"table"`
-	AuditDate           string     `json:"audit_date" bson:"audit_date"`
-	Cashier             int        `json:"cashier" bson:"cashier"`
-	CashierDetails      string     `json:"cashier_details" bson:"cashier_details"`
-	CashierNumber       int        `json:"cashier_number" bson:"cashier_number"`
-	IsSettled           bool       `json:"is_settled" bson:"is_settled"`
-	PaidAmount          float64    `json:"paid_amount" bson:"paid_amount"`
-	StoreDescription    string     `json:"store_description" bson:"store_description"`
-	TerminalID          int        `json:"terminal_id" bson:"terminal_id"`
-	TerminalDescription string     `json:"terminal_description" bson:"terminal_description"`
-	CreatedOn           string     `json:"created_on" bson:"created_on"`
-	ClosedOn            *time.Time `json:"closed_on" bson:"closed_on"`
-	GuestName           string     `json:"guest_name" bson:"guest_name"`
-	RoomNumber          *int64     `json:"room_number,omitempty" bson:"room_number,omitempty"`
-	Total               float64    `json:"total" bson:"total"`
+type PaymentLog struct {
 }
 
-// Invoice represents Invoice model details
 type Invoice struct {
 	ID               *int64        `json:"id" bson:"id,omitempty"`
 	InvoiceNumber    string        `json:"invoice_number" bson:"invoice_number"`
@@ -52,7 +30,6 @@ type Invoice struct {
 	StoreDescription    string                 `json:"store_description" bson:"store_description"`
 	Subtotal            float64                `json:"subtotal" bson:"subtotal"`
 	TableID             *int64                 `json:"table_number" bson:"table_number"`
-	GuestName           string                 `json:"guest_name" bson:"guest_name"`
 	TakeOut             bool                   `json:"takeout" bson:"takeout"`
 	TerminalID          int                    `json:"terminal_id" bson:"terminal_id"`
 	TerminalDescription string                 `json:"terminal_description" bson:"terminal_description"`
