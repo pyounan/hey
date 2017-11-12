@@ -29,7 +29,6 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	// read encryption key from environment variables
 	key := os.Getenv("CLOUDINN_ENC_KEY")
-	log.Println(key)
 	err := config.ParseAuthCredentials(key)
 	if err != nil {
 		log.Println(err)
@@ -37,6 +36,11 @@ func init() {
 }
 
 func main() {
+	// Check command line arguments, if askings for version, print version then exit
+	if len(os.Args) > 1 && os.Args[1] == "version" {
+		log.Println(config.Version)
+		os.Exit(0)
+	}
 	port := flag.String("port", "80", "Port to listen on")
 	templatesPath := flag.String("templates", "templates/*", "Path of templates directory")
 	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
@@ -168,7 +172,9 @@ func main() {
 }
 
 func homeView(w http.ResponseWriter, r *http.Request) {
-	templateexport.ExportedTemplates.ExecuteTemplate(w, "home", nil)
+	ctx := bson.M{}
+	ctx["version"] = config.Version
+	templateexport.ExportedTemplates.ExecuteTemplate(w, "home", ctx)
 }
 
 func requestsLogView(w http.ResponseWriter, r *http.Request) {

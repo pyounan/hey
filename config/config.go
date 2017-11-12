@@ -10,8 +10,21 @@ import (
 	"time"
 )
 
+// AuthUsername reflects the proxy user's username for backend credentials
 var AuthUsername string
+
+// AuthPassword reflects the proxy user's password for backend credentials
 var AuthPassword string
+
+// Version reflects the current build number
+var Version string = ""
+
+func init() {
+	// load version from system variables
+	if Version == "" {
+		Version = os.Getenv("CI_JOB_ID")
+	}
+}
 
 // ConfigHolder struct of the proxy configuration
 type ConfigHolder struct {
@@ -36,9 +49,9 @@ type FDMConfig struct {
 var Config *ConfigHolder = &ConfigHolder{}
 
 // Load loads configuration from a file
-func Load(file_path string) {
+func Load(filePath string) {
 	log.Println("Loading configuration...")
-	confPath, _ := filepath.Abs(file_path)
+	confPath, _ := filepath.Abs(filePath)
 	log.Printf("File: %s\n", confPath)
 	f, err := os.Open(confPath)
 	if err != nil {
@@ -73,6 +86,7 @@ func ParseAuthCredentials(encKey string) error {
 	return nil
 }
 
+// WriteToFile updates the configuration file with new values
 func (config *ConfigHolder) WriteToFile() error {
 	f, err := os.OpenFile("/etc/cloudinn/pos_config.json", os.O_RDWR, os.ModeExclusive)
 	if err != nil {
