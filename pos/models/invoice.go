@@ -1,6 +1,12 @@
 package models
 
-import "time"
+import (
+	"log"
+	"pos-proxy/db"
+	"time"
+
+	"gopkg.in/mgo.v2/bson"
+)
 
 // PaymentLog .
 type PaymentLog struct{}
@@ -72,4 +78,41 @@ type Invoice struct {
 	UpdatedOn           time.Time              `json:"updated_on" bson:"updated_on"`
 	OperaReservation    string                 `json:"opera_reservation" bson:"opera_reservation"`
 	OperaRoomNumber     string                 `json:"opera_room_number" bson:"opera_room_number"`
+}
+
+// Submit creates or updates invoice and save it
+func (invoice *Invoice) Submit(terminalID int) error {
+	if invoice.InvoiceNumber == "" {
+		// create a new invoice with a new invoice number
+		invoiceNumber, err := AdvanceInvoiceNumber(terminalID)
+		if err != nil {
+			return err
+		}
+		invoice.InvoiceNumber = invoiceNumber
+	}
+
+	items := []POSLineItem{}
+	for _, item := range invoice.Items {
+		item.SubmittedQuantity = item.Quantity
+		items = append(items, item)
+	}
+
+	invoice.Items = items
+
+	_, err := db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoice.InvoiceNumber},
+		bson.M{"$set": invoice})
+	if err != nil {
+		return err
+	}
+
+	// update table status
+	table := Table{}
+	err = db.DB.C("tables").Find(bson.M{"id": invoice.TableID}).One(&table)
+	if err != nil {
+		log.Println(err)
+	} else {
+		table.UpdateStatus()
+	}
+
+	return nil
 }
