@@ -97,6 +97,7 @@ func main() {
 	r.HandleFunc("/api/pos/course/", pos.ListCourses).Methods("GET")
 
 	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoicesPaginated).Methods("GET").Queries("is_settled", "")
+	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoicesLite).Methods("GET").Queries("simplified", "")
 	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoices).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/", pos.SubmitInvoice).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/folio/", pos.FolioInvoice).Methods("POST")
