@@ -6,13 +6,14 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	lock "github.com/bsm/redis-lock"
 	"log"
 	"net"
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"sync"
 	"time"
+
+	lock "github.com/bsm/redis-lock"
 )
 
 var conn net.Conn
@@ -130,23 +131,23 @@ func sendLinkDescription() bool {
 	return true
 }
 
-func LockOpera() (*lock.Lock, error) {
-	lockOptions := &lock.LockOptions{
+func LockOpera() (*lock.Locker, error) {
+	lockOptions := &lock.Options{
 		WaitTimeout: 4 * time.Second,
 	}
 
 	l, err := lock.ObtainLock(db.Redis, "opera", lockOptions)
 	if err != nil {
-		return &lock.Lock{}, err
+		return &lock.Locker{}, err
 	} else if l == nil {
-		return &lock.Lock{}, errors.New("couldn't obtain opera lock")
+		return &lock.Locker{}, errors.New("couldn't obtain opera lock")
 	}
 
 	ok, err := l.Lock()
 	if err != nil {
-		return &lock.Lock{}, err
+		return &lock.Locker{}, err
 	} else if !ok {
-		return &lock.Lock{}, errors.New("failed to acquire opera lock")
+		return &lock.Locker{}, errors.New("failed to acquire opera lock")
 	}
 
 	return l, nil
