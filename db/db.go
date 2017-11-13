@@ -7,7 +7,10 @@ import (
 // DB instance of mongo database connection
 var DB *mgo.Database
 
-func init() {
+// Connect sets the connection to mongodb and make it
+// available as a global variable to be used by other
+// packages
+func Connect() {
 	session, err := mgo.Dial("localhost")
 	if err != nil {
 		panic(err)

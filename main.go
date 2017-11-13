@@ -51,6 +51,8 @@ func main() {
 	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 	// Load templates
 	templateexport.ParseTemplates(*templatesPath)
+	// Connect to Database
+	db.Connect()
 	// Define routes
 	r := mux.NewRouter()
 	r = r.StrictSlash(true)
