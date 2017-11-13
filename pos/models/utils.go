@@ -29,7 +29,7 @@ func AdvanceInvoiceNumber(terminalID int) (string, error) {
 		Addr:    "127.0.0.1:6379",
 	})
 	defer client.Close()
-	lockOpts := &lock.LockOptions{
+	lockOpts := &lock.Options{
 		WaitTimeout: 3 * time.Second,
 	}
 	lock, err := lock.ObtainLock(client, fmt.Sprintf("terminal_%d_invoice_number", terminalID), lockOpts)
