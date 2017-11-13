@@ -525,23 +525,28 @@ func CancelPostings(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, invoice.Postings)
 }
 
-// RefundInvoice handles the refund scenario
+// RefundInvoice handles the refund scenario and cancel postings.
+// Creating a new invoice with the canceled postings.
 func RefundInvoice(w http.ResponseWriter, r *http.Request) {
+	type OriginalInvoiceData struct {
+		ID            int    `json:"id" bson:"id"`
+		InvoiceNumber string `json:"invoice_number" bson:"invoice_number"`
+	}
 	type ReqBody struct {
-		RCRS                  string         `json:"rcrs" bson:"rcrs"`
-		TerminalID            int            `json:"terminal_id" bson:"terminal_id"`
-		TerminalNumber        int            `json:"terminal_number" bson:"terminal_number"`
-		TerminalName          string         `json:"terminal_description" bson:"terminal_description"`
-		EmployeeID            string         `json:"employee_id" bson:"employee_id"`
-		Invoice               models.Invoice `json:"posinvoice" bson:"posinvoice"`
-		OriginalInvoiceNumber string         `json:"original_invoice_number" bson:"original_invoice_number"`
-		DepartmentID          int            `json:"department" bson:"department"`
-		Posting               models.Posting `json:"posting" bson:"posting"`
-		CashierID             int            `json:"cashier_id" bson:"cashier_id"`
-		CashierName           string         `json:"cashier_name" bson:"cashier_name"`
-		CashierNumber         int            `json:"cashier_number" bson:"cashier_number"`
-		Type                  string         `json:"type" bson:"type"`
-		ActionTime            string         `json:"action_time" bson:"action_time"`
+		RCRS            string              `json:"rcrs" bson:"rcrs"`
+		TerminalID      int                 `json:"terminal_id" bson:"terminal_id"`
+		TerminalNumber  int                 `json:"terminal_number" bson:"terminal_number"`
+		TerminalName    string              `json:"terminal_description" bson:"terminal_description"`
+		EmployeeID      string              `json:"employee_id" bson:"employee_id"`
+		NewInvoice      models.Invoice      `json:"new_posinvoice" bson:"new_posinvoice"`
+		OriginalInvoice OriginalInvoiceData `json:"posinvoice" bson:"posinvoice"`
+		DepartmentID    int                 `json:"department" bson:"department"`
+		Posting         models.Posting      `json:"posting" bson:"posting"`
+		CashierID       int                 `json:"cashier_id" bson:"cashier_id"`
+		CashierName     string              `json:"cashier_name" bson:"cashier_name"`
+		CashierNumber   int                 `json:"cashier_number" bson:"cashier_number"`
+		Type            string              `json:"type" bson:"type"`
+		ActionTime      string              `json:"action_time" bson:"action_time"`
 	}
 	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
@@ -560,14 +565,14 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err)
 		return
 	}
-	body.Invoice.InvoiceNumber = invoiceNumber
+	body.NewInvoice.InvoiceNumber = invoiceNumber
 
 	fdmResponses := []models.FDMResponse{}
 
 	req := models.InvoicePOSTRequest{}
 	req.RCRS = body.RCRS
 	req.EmployeeID = body.EmployeeID
-	req.Invoice = body.Invoice
+	req.Invoice = body.NewInvoice
 	req.TerminalID = body.TerminalID
 	req.TerminalNumber = body.TerminalNumber
 	req.TerminalName = body.TerminalName
@@ -595,7 +600,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fdmResponses = append(fdmResponses, responses...)
-		body.Invoice.FDMResponses = fdmResponses
+		body.NewInvoice.FDMResponses = fdmResponses
 	}
 
 	paidOnOpera := true
@@ -608,15 +613,15 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
-	body.Invoice, err = req.Submit()
+	body.NewInvoice, err = req.Submit()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	req.Invoice = body.Invoice
+	req.Invoice = body.NewInvoice
 	req.Invoice.PaidAmount = req.Invoice.Total
 
-	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.Invoice.InvoiceNumber}, body.Invoice)
+	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.NewInvoice.InvoiceNumber}, body.NewInvoice)
 
 	type RespBody struct {
 		NewInvoice      models.Invoice   `json:"new_invoice" bson:"new_invoice"`
@@ -631,7 +636,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	body.Posting.PosPostingInformations = append(body.Posting.PosPostingInformations, models.Posting{})
 	resp.Postings = append(resp.Postings, body.Posting)
 	resp.NewInvoice.Postings = resp.Postings
-	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OriginalInvoiceNumber}).One(&resp.OriginalInvoice)
+	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OriginalInvoice.InvoiceNumber}).One(&resp.OriginalInvoice)
 	helpers.ReturnSuccessMessage(w, resp)
 
 }
