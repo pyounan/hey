@@ -27,12 +27,6 @@ import (
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	// read encryption key from environment variables
-	key := os.Getenv("CLOUDINN_ENC_KEY")
-	err := config.ParseAuthCredentials(key)
-	if err != nil {
-		log.Println(err)
-	}
 }
 
 func main() {
@@ -40,6 +34,12 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "version" {
 		log.Println(config.Version)
 		os.Exit(0)
+	}
+	// read encryption key from environment variables
+	key := os.Getenv("CLOUDINN_ENC_KEY")
+	err := config.ParseAuthCredentials(key)
+	if err != nil {
+		log.Println(err)
 	}
 	port := flag.String("port", "80", "Port to listen on")
 	templatesPath := flag.String("templates", "templates/*", "Path of templates directory")
