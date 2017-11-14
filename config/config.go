@@ -17,14 +17,7 @@ var AuthUsername string
 var AuthPassword string
 
 // Version reflects the current build number
-var Version string = ""
-
-func init() {
-	// load version from system variables
-	if Version == "" {
-		Version = os.Getenv("CI_JOB_ID")
-	}
-}
+var Version string
 
 // ConfigHolder struct of the proxy configuration
 type ConfigHolder struct {
