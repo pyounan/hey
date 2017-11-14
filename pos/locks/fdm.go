@@ -12,10 +12,10 @@ import (
 // LockFDM creates a lock on the FDM connection to prevent race conditions
 func LockFDM(productionNumber string) (*lock.Locker, error) {
 	lockOptions := &lock.Options{
-		WaitTimeout: 4 * time.Second,
+		LockTimeout: 4 * time.Second,
 	}
 
-	l, err := lock.ObtainLock(db.Redis, fmt.Sprintf("fdm_%s", productionNumber), lockOptions)
+	l, err := lock.Obtain(db.Redis, fmt.Sprintf("fdm_%s", productionNumber), lockOptions)
 	if err != nil {
 		return &lock.Locker{}, err
 	} else if l == nil {

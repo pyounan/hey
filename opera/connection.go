@@ -133,10 +133,10 @@ func sendLinkDescription() bool {
 
 func LockOpera() (*lock.Locker, error) {
 	lockOptions := &lock.Options{
-		WaitTimeout: 4 * time.Second,
+		LockTimeout: 4 * time.Second,
 	}
 
-	l, err := lock.ObtainLock(db.Redis, "opera", lockOptions)
+	l, err := lock.Obtain(db.Redis, "opera", lockOptions)
 	if err != nil {
 		return &lock.Locker{}, err
 	} else if l == nil {

@@ -18,7 +18,7 @@ func LockInvoices(invoices []models.Invoice, terminalID int) (int, error) {
 	lockName := fmt.Sprintf("posinvoices_lock")
 	var otherTerminal int
 	client := db.Redis
-	l, err := lock.ObtainLock(client, lockName, nil)
+	l, err := lock.Obtain(client, lockName, nil)
 	if err != nil {
 		log.Println("failed to obtain invoice lock", lockName)
 		return otherTerminal, err

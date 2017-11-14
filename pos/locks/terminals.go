@@ -19,7 +19,7 @@ func LockTerminal(terminalID int, cashierID int) (int, error) {
 	/*lockOpts := &lock.LockOptions{
 		WaitTimeout: 3 * time.Second,
 	}*/
-	lock, err := lock.ObtainLock(db.Redis, lockName, nil)
+	lock, err := lock.Obtain(db.Redis, lockName, nil)
 	if err != nil {
 		return 0, err
 	} else if lock == nil {
