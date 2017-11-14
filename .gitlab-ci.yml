@@ -19,9 +19,9 @@ go_build:
    - cd $GOPATH/src/pos-proxy
    - echo $CI_JOB_ID
    - go get
-   - go install -ldflags "-X pos-proxy/config.Version=2.0.0"
-   - cp -r $GOPATH/bin/* $CI_PROJECT_DIR/bin
-   - $GOPATH/bin/pos-proxy version 
+   - go build -ldflags "-X pos-proxy/config.Version=2.0.0"
+   - cp -r $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/bin
+   - $GOPATH/src/pos-proxy/pos-proxy version 
   only:
   - master
 
