@@ -30,9 +30,9 @@ func AdvanceInvoiceNumber(terminalID int) (string, error) {
 	})
 	defer client.Close()
 	lockOpts := &lock.Options{
-		WaitTimeout: 3 * time.Second,
+		LockTimeout: 3 * time.Second,
 	}
-	lock, err := lock.ObtainLock(client, fmt.Sprintf("terminal_%d_invoice_number", terminalID), lockOpts)
+	lock, err := lock.Obtain(client, fmt.Sprintf("terminal_%d_invoice_number", terminalID), lockOpts)
 	if err != nil {
 		return "", err
 	} else if lock == nil {
