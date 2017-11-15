@@ -48,6 +48,7 @@ func FetchConfiguration() {
 	type ProxySettings struct {
 		UpdatedAt      string             `json:"updated_at"`
 		FDMs           []config.FDMConfig `json:"fdms"`
+		IsFDMEnabled   bool               `json:"is_fdm_enabled"`
 		IsOperaEnabled bool               `json:"is_opera_enabled"`
 		OperaIP        string             `json:"opera_ip"`
 	}
@@ -69,9 +70,7 @@ func FetchConfiguration() {
 	}
 	log.Println("New configurations found")
 	config.Config.FDMs = dataStr.FDMs
-	if len(config.Config.FDMs) > 0 {
-		config.Config.IsFDMEnabled = true
-	}
+	config.Config.IsFDMEnabled = dataStr.IsFDMEnabled
 	config.Config.IsOperaEnabled = dataStr.IsOperaEnabled
 	config.Config.OperaIP = dataStr.OperaIP
 	config.Config.UpdatedAt = t

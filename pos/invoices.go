@@ -462,8 +462,9 @@ func CreatePaymentEJ(w http.ResponseWriter, r *http.Request) {
 // CancelPostings cancels payments of a paid invocie based on postings frontend ids
 func CancelPostings(w http.ResponseWriter, r *http.Request) {
 	type CancelPostingsRequest struct {
-		PostingsIDs []string `json:"frontend_ids" bson:"frontend_ids"`
-		CashierID   int      `json:"poscashier_id" bson:"poscashier_id"`
+		PostingsIDs []string       `json:"frontend_ids" bson:"frontend_ids"`
+		CashierID   int            `json:"poscashier_id" bson:"poscashier_id"`
+		Posinvoice  models.Invoice `json:"posinvoice" bson:"posinvoice"`
 	}
 	req := CancelPostingsRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
