@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/libs/libfdm"
 	"pos-proxy/pos/locks"
@@ -101,6 +102,7 @@ func SendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 		return models.FDMResponse{}, err
 	}
 	pfResponse := models.FDMResponse{}
+	pfResponse.SoftwareVersion = config.Version
 	pfResponse.Process(res, t)
 	err = CheckFDMError(pfResponse)
 	log.Println("Checking FDM Errors")

@@ -20,8 +20,9 @@ type FDMResponse struct {
 	TicketCounter      string    `json:"ticket_counter" bson:"ticket_counter"`
 	TotalTicketCounter string    `json:"total_ticket_counter" bson:"total_ticket_counter"`
 	Signature          string    `json:"signature"`
-	TicketNumber string `json:"ticket_number" bson:"ticket_number"`
-	TicketActionTime string `json:"ticket_datetime" bson:"ticket_datetime"`
+	TicketNumber       string    `json:"ticket_number" bson:"ticket_number"`
+	TicketActionTime   string    `json:"ticket_datetime" bson:"ticket_datetime"`
+	SoftwareVersion    string    `json:"software_version" bson:"software_version"`
 	// Attached attributes from ticket
 	PLUHash    string                `json:"plu_hash" bson:"plu_hash"`
 	VATSummary map[string]VATSummary `json:"vat_summary" bson:"vat_summary"`
@@ -95,5 +96,6 @@ func (r *FDMResponse) Process(fdm_response []byte, ticket FDMTicket) map[string]
 	res["ticket_number"] = r.TicketNumber
 	res["ticket_datetime"] = r.TicketActionTime
 	res["vat_summary"] = r.VATSummary
+	res["software_version"] = r.SoftwareVersion
 	return res
 }
