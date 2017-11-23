@@ -24,6 +24,8 @@ type AppliedDiscount struct {
 	Type       string  `json:"type" bson:"type"`
 }
 
+// GroupedAppliedDiscount represents a group of applied discounts grouped
+// by vat code
 type GroupedAppliedDiscount struct {
 	Amount        float64 `json:"amount" bson:"amount"`
 	Percentage    float64 `json:"percentage" bson:"percentage"`
@@ -69,8 +71,9 @@ type POSLineItem struct {
 	BaseUnit                string                   `json:"base_unit,omitempty" bson:"base_unit,omitempty"`
 	OriginalFrontendID      *string                  `json:"original_frontend_id" bson:"original_frontend_id"`
 	OriginalLineItemID      *int64                   `json:"original_line_item_id" bson:"original_line_item_id"`
+	MenuID                  *int64                   `json:"menu" bson:"menu"`
+	CashierID               *int64                   `json:"cashier" bson:"cashier"`
 	// used for waste
 	PosinvoiceID *int64 `json:"posinvoice" bson:"posinvoice"`
-	CashierID    *int64 `json:"cashier,omitempty" bson:"cashier,omitempty"`
 	Reason       string `json:"reason,omitempty" bson:"reason,omitempty"`
 }
