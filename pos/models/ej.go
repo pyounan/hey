@@ -20,6 +20,7 @@ type EJEvent struct {
 	IsDiscount    bool    `json:"is_discount" bson:"is_discount"`
 	LineItemType  string  `json:"line_item_type" bson:"line_item_type"`
 	Item          *int64  `json:"item,omitempty" bson:"item,omitempty"`
+	CashierID     *int64  `json:"cashier", bson:"cashier"`
 }
 
 // String generates a text for a ej event in a format for the FDM.
