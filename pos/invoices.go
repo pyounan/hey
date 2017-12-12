@@ -247,7 +247,6 @@ func BulkSubmitInvoices(w http.ResponseWriter, r *http.Request) {
 		OriginalInvoiceNumber string           `json:"original_invoice_number" bson:"original_invoice_number"`
 		DepartmentID          int              `json:"department" bson:"department"`
 		Posting               models.Posting   `json:"posting" bson:"posting"`
-		CashierID             int              `json:"cashier_id" bson:"cashier_id"`
 		CashierName           string           `json:"cashier_name" bson:"cashier_name"`
 		CashierNumber         int              `json:"cashier_number" bson:"cashier_number"`
 		Type                  string           `json:"type" bson:"type"`
@@ -543,7 +542,6 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 		OriginalInvoice OriginalInvoiceData `json:"posinvoice" bson:"posinvoice"`
 		DepartmentID    int                 `json:"department" bson:"department"`
 		Posting         models.Posting      `json:"posting" bson:"posting"`
-		CashierID       int                 `json:"cashier_id" bson:"cashier_id"`
 		CashierName     string              `json:"cashier_name" bson:"cashier_name"`
 		CashierNumber   int                 `json:"cashier_number" bson:"cashier_number"`
 		Type            string              `json:"type" bson:"type"`
