@@ -78,6 +78,7 @@ type Invoice struct {
 	UpdatedOn           time.Time              `json:"updated_on" bson:"updated_on"`
 	OperaReservation    string                 `json:"opera_reservation" bson:"opera_reservation"`
 	OperaRoomNumber     string                 `json:"opera_room_number" bson:"opera_room_number"`
+	LastPaymentDate     string                 `json:"last_payment_date,omitempty" bson:"last_payment_date,omitempty"`
 }
 
 // Submit creates or updates invoice and save it

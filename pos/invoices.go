@@ -1029,12 +1029,12 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 				department.ID, taxes, service, discountsInt, subtotal)
 		}
 	}
-	t := time.Now()
-	val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
-	val = val[2:]
-	postRequest.Date = val
 
-	val = fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
+	invoiceDate := strings.Split(invoice.LastPaymentDate, "-")
+	postRequest.Date = fmt.Sprintf("%02s%02s%02s", invoiceDate[0][2:], invoiceDate[1], invoiceDate[2])
+
+	t := time.Now()
+	val := fmt.Sprintf("%02d%02d%02d", t.Hour(), t.Minute(), t.Second())
 	postRequest.Time = val
 
 	postRequest.CheckNumber = strings.Replace(invoice.InvoiceNumber, "-", "", -1)
