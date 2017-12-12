@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -32,7 +33,7 @@ func init() {
 func main() {
 	// Check command line arguments, if askings for version, print version then exit
 	if len(os.Args) > 1 && os.Args[1] == "version" {
-		log.Println(config.Version)
+		fmt.Println(config.Version)
 		os.Exit(0)
 	}
 	// read encryption key from environment variables
