@@ -197,7 +197,7 @@ func requestsLogView(w http.ResponseWriter, r *http.Request) {
 	recordCount, _ := db.DB.C("requests_log").Count()
 	db.DB.C("requests_log").Find(nil).Sort("-created_at").Limit(limit).Skip(offset).All(&logs)
 	ctx["logs"] = logs
-	if offset+limit > recordCount {
+	if offset+limit >= recordCount {
 		ctx["hasNext"] = false
 	} else {
 		ctx["hasNext"] = true
