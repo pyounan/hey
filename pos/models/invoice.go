@@ -67,6 +67,7 @@ type Invoice struct {
 	FDMResponses        []FDMResponse          `json:"fdm_responses" bson:"fdm_responses"`
 	Postings            []Posting              `json:"pospayment" bson:"pospayment"`
 	Room                *int64                 `json:"room,omitempty" bson:"room,omitempty"`
+	Paymaster           *int64                 `json:"paymaster,omitempty" bson:"paymaster,omitempty"`
 	RoomNumber          *int64                 `json:"room_number,omitempty" bson:"room_number,omitempty"`
 	RoomDetails         *string                `json:"room_details,omitempty" bson:"room_details,omitempty"`
 	HouseUse            bool                   `json:"house_use" bson:"house_use"`
