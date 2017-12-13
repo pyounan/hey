@@ -1,5 +1,13 @@
 {{ define "syncer_logs" }}
 {{ template "header" . }}
+  <div class="pagination pagination-sm justify-content-center" style="margin:12px">
+    {{ if eq .hasPrevious true }} <a class="page-link" href="/syncer/logs/?page={{.prevPage }}"> Prev </a>{{ end }}
+    <div class="page-link disabled">Page {{ .page }}</div>
+    {{ if eq .hasNext true }} <a class="page-link" href="/syncer/logs/?page={{.nextPage }}"> Next </a>{{ end }}
+  </div>
+  <div class="pagination pagination-sm justify-content-center" style="margin:7px">
+    <a class="page-link">Showing from {{.offset}} to {{.lastRecord}} of {{.totalRecords}} total records</a>
+  </div>
 	<table class="table table-bordered">
 			<tr>
 				<td>Method</td>
@@ -9,7 +17,7 @@
 				<td>Response Body</td>
 				<td>Created At</td>
 			</tr>
-			{{ range $i, $val := . }}
+			{{ range $i, $val := .logs }}
 			<tr>
 				<td>{{ $val.Request.Method }}</td>
 				<td>{{ $val.Request.URI }}</td>

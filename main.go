@@ -185,16 +185,39 @@ func homeView(w http.ResponseWriter, r *http.Request) {
 
 func requestsLogView(w http.ResponseWriter, r *http.Request) {
 	offset := 0
-	limit := 200
+	limit := 100
 	qParams := r.URL.Query()
+	page := 0
 	if v, ok := qParams["page"]; ok {
-		page, _ := strconv.Atoi(v[0])
-		offset = (limit * page) + limit
+		page, _ = strconv.Atoi(v[0])
+		offset = (limit * page)
 	}
+	ctx := bson.M{}
 	logs := []syncer.RequestLog{}
+	recordCount, _ := db.DB.C("requests_log").Count()
 	db.DB.C("requests_log").Find(nil).Sort("-created_at").Limit(limit).Skip(offset).All(&logs)
+	ctx["logs"] = logs
+	if offset+limit > recordCount {
+		ctx["hasNext"] = false
+	} else {
+		ctx["hasNext"] = true
+		ctx["nextPage"] = page + 1
+	}
+	if page == 0 {
+		ctx["hasPrevious"] = false
+	} else {
+		ctx["hasPrevious"] = true
+		ctx["prevPage"] = page - 1
+	}
+	ctx["page"] = page + 1
+	ctx["totalRecords"] = recordCount
+	ctx["offset"] = offset + 1
+	ctx["lastRecord"] = offset + limit
+	if recordCount < offset+limit {
+		ctx["lastRecord"] = recordCount
+	}
 
-	templateexport.ExportedTemplates.ExecuteTemplate(w, "syncer_logs", logs)
+	templateexport.ExportedTemplates.ExecuteTemplate(w, "syncer_logs", ctx)
 }
 
 func syncerRequest(w http.ResponseWriter, r *http.Request) {
