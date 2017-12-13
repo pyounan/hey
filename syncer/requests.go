@@ -86,16 +86,16 @@ func PushToBackend() {
 			response.Body.Close()
 		}()
 		log.Println("Sending: ", r.Method, req.URL.Path)
+		res, _ := ioutil.ReadAll(response.Body)
+		logRecord.ResponseStatus = response.StatusCode
+		logRecord.ResponseBody = string(res)
+		log.Println("response body", string(res))
+		err = db.DB.C("requests_log").Insert(logRecord)
+		if err != nil {
+			log.Println("Failed to queue failure to log", err.Error())
+		}
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
 			log.Println(response, "Failed to fetch response from backend")
-			res, _ := ioutil.ReadAll(response.Body)
-			log.Println("error response body", string(res))
-			logRecord.ResponseStatus = response.StatusCode
-			logRecord.ResponseBody = res
-			err = db.DB.C("requests_log").Insert(logRecord)
-			if err != nil {
-				log.Println("Failed to queue failure to log", err.Error())
-			}
 			if response.StatusCode >= 400 && response.StatusCode <= 500 {
 				proxy.AllowIncomingRequests = false
 			}
@@ -108,9 +108,6 @@ func PushToBackend() {
 			}
 			res := RespBody{}
 			json.NewDecoder(response.Body).Decode(&res)
-			logRecord.ResponseStatus = response.StatusCode
-			logRecord.ResponseBody = res
-			db.DB.C("requests_log").Insert(logRecord)
 			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.Invoice.InvoiceNumber}, res.Invoice)
 			if err != nil {
 				log.Println(err.Error())
@@ -119,9 +116,6 @@ func PushToBackend() {
 		} else if strings.Contains(req.URL.Path, "changetable") || strings.Contains(req.URL.Path, "split") {
 			res := []models.Invoice{}
 			json.NewDecoder(response.Body).Decode(&res)
-			logRecord.ResponseStatus = response.StatusCode
-			logRecord.ResponseBody = res
-			db.DB.C("requests_log").Insert(logRecord)
 			for _, inv := range res {
 				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": inv.InvoiceNumber}, inv)
 				if err != nil {
@@ -132,9 +126,6 @@ func PushToBackend() {
 		} else if strings.Contains(req.URL.Path, "folio") {
 			res := models.Invoice{}
 			json.NewDecoder(response.Body).Decode(&res)
-			logRecord.ResponseStatus = response.StatusCode
-			logRecord.ResponseBody = res
-			db.DB.C("requests_log").Insert(logRecord)
 			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
 			if err != nil {
 				log.Println(err.Error())
@@ -147,9 +138,6 @@ func PushToBackend() {
 			}
 			res := RespBody{}
 			json.NewDecoder(response.Body).Decode(&res)
-			logRecord.ResponseStatus = response.StatusCode
-			logRecord.ResponseBody = res
-			db.DB.C("requests_log").Insert(logRecord)
 			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.OriginalInvoice.InvoiceNumber}, res.OriginalInvoice)
 			if err != nil {
 				log.Println(err.Error())
