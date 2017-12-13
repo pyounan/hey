@@ -10,6 +10,7 @@ import (
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
+	"pos-proxy/logging"
 	"pos-proxy/pos/models"
 	"pos-proxy/proxy"
 	"strings"
@@ -86,10 +87,12 @@ func PushToBackend() {
 			// log.Println("Closing connection of", req.URL)
 			response.Body.Close()
 		}()
+		log.Println(response.Body)
 		res, _ := ioutil.ReadAll(response.Body)
 		logRecord.ResponseStatus = response.StatusCode
 		logRecord.ResponseBody = fmt.Sprintf("%s", res)
-		log.Printf("response body %s\n", res)
+		log.Println("Response Content-Type", response.Header["Content-Type"])
+		logging.Debug(fmt.Sprintf("response body %s\n", res))
 		err = db.DB.C("requests_log").Insert(logRecord)
 		if err != nil {
 			log.Println("Failed to queue failure to log", err.Error())
@@ -101,13 +104,28 @@ func PushToBackend() {
 			}
 			return
 		}
+		response.Body = ioutil.NopCloser(bytes.NewBuffer(res))
 		proxy.AllowIncomingRequests = true
-		if req.URL.Path == "/api/pos/posinvoices/" || strings.Contains(req.URL.Path, "createpostings") {
+		if req.URL.Path == "/api/pos/posinvoices/" {
+			res := models.Invoice{}
+			err := json.NewDecoder(response.Body).Decode(&res)
+			if err != nil {
+				log.Println("decoding error", err.Error())
+			}
+			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+		} else if strings.Contains(req.URL.Path, "createpostings") {
 			type RespBody struct {
 				Invoice models.Invoice `json:"posinvoice" bson:"posinvoice"`
 			}
 			res := RespBody{}
-			json.NewDecoder(response.Body).Decode(&res)
+			err := json.NewDecoder(response.Body).Decode(&res)
+			if err != nil {
+				log.Println("decoding error", err.Error())
+			}
 			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.Invoice.InvoiceNumber}, res.Invoice)
 			if err != nil {
 				log.Println(err.Error())
