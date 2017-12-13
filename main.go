@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -183,8 +184,15 @@ func homeView(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestsLogView(w http.ResponseWriter, r *http.Request) {
+	offset := 0
+	limit := 200
+	qParams := r.URL.Query()
+	if v, ok := qParams["page"]; ok {
+		page, _ := strconv.Atoi(v[0])
+		offset = (limit * page) + limit
+	}
 	logs := []syncer.RequestLog{}
-	db.DB.C("requests_log").Find(nil).All(&logs)
+	db.DB.C("requests_log").Find(nil).Sort("-created_at").Limit(limit).Skip(offset).All(&logs)
 
 	templateexport.ExportedTemplates.ExecuteTemplate(w, "syncer_logs", logs)
 }

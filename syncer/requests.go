@@ -76,6 +76,7 @@ func PushToBackend() {
 		logRecord.ID = bson.NewObjectId()
 		logRecord.CreatedAt = time.Now()
 		logRecord.Request = r
+		log.Println("Sending: ", r.Method, req.URL.Path)
 		response, err := netClient.Do(req)
 		if err != nil {
 			log.Println(err.Error())
@@ -85,11 +86,10 @@ func PushToBackend() {
 			// log.Println("Closing connection of", req.URL)
 			response.Body.Close()
 		}()
-		log.Println("Sending: ", r.Method, req.URL.Path)
 		res, _ := ioutil.ReadAll(response.Body)
 		logRecord.ResponseStatus = response.StatusCode
-		logRecord.ResponseBody = string(res)
-		log.Println("response body", string(res))
+		logRecord.ResponseBody = fmt.Sprintf("%s", res)
+		log.Printf("response body %s\n", res)
 		err = db.DB.C("requests_log").Insert(logRecord)
 		if err != nil {
 			log.Println("Failed to queue failure to log", err.Error())
