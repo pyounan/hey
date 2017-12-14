@@ -308,7 +308,7 @@ func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
 	invoice := models.Invoice{}
 	err := db.DB.C("posinvoices").Find(bson.M{"invoice_number": invoiceNumber}).One(&invoice)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 	}
 	locks.UnlockInvoices([]models.Invoice{invoice})
 	helpers.ReturnSuccessMessage(w, true)
@@ -409,7 +409,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	if config.Config.IsOperaEnabled && len(req.Postings) > 0 {
 		paidOnOpera = HandleOperaPayments(req.Invoice, req.Postings[0].Department)
 		if !paidOnOpera {
-			helpers.ReturnErrorMessage(w, bson.M{"message": "Failed to pay on Opera"})
+			helpers.ReturnErrorMessage(w, "Failed to pay on Opera")
 			return
 		}
 	}
@@ -552,7 +552,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		log.Println("########ERRRORRRRR#####", err.Error())
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	defer r.Body.Close()
@@ -562,7 +562,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	invoiceNumber, err := models.AdvanceInvoiceNumber(terminalID)
 	if err != nil {
 		log.Println("refund error", err.Error())
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	body.NewInvoice.InvoiceNumber = invoiceNumber
@@ -607,7 +607,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	if config.Config.IsOperaEnabled {
 		paidOnOpera = HandleOperaPayments(req.Invoice, body.DepartmentID)
 		if !paidOnOpera {
-			helpers.ReturnErrorMessage(w, bson.M{"message": "Failed to refund on Opera"})
+			helpers.ReturnErrorMessage(w, "Failed to refund on Opera")
 			return
 		}
 	}
@@ -717,7 +717,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	defer r.Body.Close()
@@ -726,7 +726,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	for _, i := range body.Invoices {
 		err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": i.InvoiceNumber}, i)
 		if err != nil {
-			helpers.ReturnErrorMessage(w, err)
+			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
 	}
@@ -734,7 +734,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	newTable := models.Table{}
 	err = db.DB.C("tables").Find(bson.M{"id": body.NewTable}).One(&newTable)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	// Update Status of new Table
@@ -744,7 +744,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	oldTable := models.Table{}
 	err = db.DB.C("tables").Find(bson.M{"id": body.OldTable}).One(&oldTable)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	oldTable.UpdateStatus()
@@ -755,7 +755,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	newInvoices := []models.Invoice{}
 	err = db.DB.C("posinvoices").Find(bson.M{"table_number": body.NewTable, "is_settled": false}).All(&newInvoices)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	helpers.ReturnSuccessMessage(w, newInvoices)
@@ -778,7 +778,7 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	defer r.Body.Close()
@@ -831,7 +831,7 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 	req := models.InvoicePOSTRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	defer r.Body.Close()
@@ -870,7 +870,7 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 
 	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 
