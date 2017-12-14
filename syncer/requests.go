@@ -87,12 +87,20 @@ func PushToBackend() {
 			// log.Println("Closing connection of", req.URL)
 			response.Body.Close()
 		}()
-		log.Println(response.Body)
 		res, _ := ioutil.ReadAll(response.Body)
 		logRecord.ResponseStatus = response.StatusCode
 		logRecord.ResponseBody = fmt.Sprintf("%s", res)
 		log.Println("Response Content-Type", response.Header["Content-Type"])
-		logging.Debug(fmt.Sprintf("response body %s\n", res))
+		if v, ok := response.Header["Content-Type"]; ok && v[0] == "application/json" {
+			var data json.RawMessage
+			err := json.Unmarshal(res, &data)
+			if err != nil {
+				log.Println("unmarshal error", err.Error())
+			}
+			logging.Debug(fmt.Sprintf("response body %s", data))
+		} else {
+			logging.Debug(fmt.Sprintf("response body %s", res))
+		}
 		err = db.DB.C("requests_log").Insert(logRecord)
 		if err != nil {
 			log.Println("Failed to queue failure to log", err.Error())
@@ -112,6 +120,7 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("decoding error", err.Error())
 			}
+			log.Println("result invoice", res)
 			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
 			if err != nil {
 				log.Println(err.Error())

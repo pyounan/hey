@@ -2,7 +2,7 @@ package models
 
 // Posting models POSPayment
 type Posting struct {
-	ID                     int        `json"id,omitempty" bson:"id,omitempty"`
+	ID                     int        `json:"id,omitempty" bson:"id,omitempty"`
 	Amount                 float64    `json:"amount" bson:"amount"`
 	AuditDate              string     `json:"audit_date,omitempty" bson:"audit_date,omitempty"`
 	CashierDetails         string     `json:"cashier_details" bson:"cashier_details"`
@@ -11,7 +11,7 @@ type Posting struct {
 	Comments               string     `json:"comments" bson:"comments"`
 	CurrencyID             int        `json:"currency_id" bson:"currency_id"`
 	Currency               int        `json:"currency" bson:"currency"`
-	CurrencyDetails        string     `json"currency_details" bson:"currency_details"`
+	CurrencyDetails        string     `json:"currency_details" bson:"currency_details"`
 	Department             int        `json:"department,omitempty" bson:"department,omitempty"`
 	DepartmentDetails      string     `json:"department_details" bson:"department_details"`
 	ForeignAmount          float64    `json:"foreign_amount" bson:"foreign_amount"`

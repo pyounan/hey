@@ -494,6 +494,7 @@ func CancelPostings(w http.ResponseWriter, r *http.Request) {
 				newPayment.ForeignAmount = -1 * invoice.Postings[j].ForeignAmount
 				newPayment.AuditDate = invoice.Postings[j].AuditDate
 				newPayment.PostingType = invoice.Postings[j].PostingType
+				newPayment.DepartmentDetails = invoice.Postings[j].DepartmentDetails
 				if invoice.Postings[j].Room != nil {
 					newPayment.Room = invoice.Postings[j].Room
 					newPayment.RoomNumber = invoice.Postings[j].RoomNumber
