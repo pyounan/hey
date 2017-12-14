@@ -19,7 +19,7 @@ type Posting struct {
 	PosinvoiceID           int        `json:"posinvoice_id" bson:"posinvoice_id"`
 	PostingType            string     `json:"posting_type" bson:"posting_type"`
 	Room                   *int64     `json:"room" bson:"room"`
-	RoomNumber             *int64     `json:"room_number" bson:"room_number"`
+	RoomNumber             string     `json:"room_number" bson:"room_number"`
 	RoomDetails            *string    `json:"room_details" bson:"room_details"`
 	PosPostingInformations []Posting  `json:"pospostinginformations" bson:"pospostinginformations"`
 	PaymentLog             PaymentLog `json:"paymentlog" bson:"paymentlog"`
