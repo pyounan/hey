@@ -22,7 +22,7 @@ func GetUserPermissions(w http.ResponseWriter, req *http.Request) {
 	q["id"] = id
 	err := db.DB.C("usergroups").Find(q).One(&perms)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	helpers.ReturnSuccessMessage(w, perms["permissions"])

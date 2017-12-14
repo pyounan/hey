@@ -96,21 +96,21 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 			resp, err := netClient.Do(req)
 			if err != nil {
 				log.Println(err.Error())
-				helpers.ReturnErrorMessage(w, err)
+				helpers.ReturnErrorMessage(w, err.Error())
 				return
 			}
 			defer resp.Body.Close()
 			respbody, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				log.Println(err.Error())
-				helpers.ReturnErrorMessage(w, err)
+				helpers.ReturnErrorMessage(w, err.Error())
 				return
 			}
 			invoices := []models.Invoice{}
 			err = json.Unmarshal(respbody, &invoices)
 			if err != nil {
 				log.Println(err.Error())
-				helpers.ReturnErrorMessage(w, err)
+				helpers.ReturnErrorMessage(w, err.Error())
 				return
 			}
 			if len(invoices) > 0 {

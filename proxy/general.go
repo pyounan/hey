@@ -26,7 +26,7 @@ func StatusMiddleware(h http.Handler) http.Handler {
 		// If proxy should reject all operations, return error message and don't call next middleware
 		if AllowIncomingRequests == false && !strings.HasPrefix(r.URL.Path, "/syncer/logs") &&
 			!strings.HasPrefix(r.URL.Path, "/jv") {
-			err := map[string]string{"message": "Proxy Internal Error, Operations halted. Please contact support."}
+			err := "Proxy Internal Error, Operations halted. Please contact support."
 			helpers.ReturnErrorMessage(w, err)
 			return
 		}
@@ -63,12 +63,12 @@ func ProxyToBackend(w http.ResponseWriter, r *http.Request) {
 	req = helpers.PrepareRequestHeaders(req)
 	resp, err := netClient.Do(req)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	respbody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	defer resp.Body.Close()

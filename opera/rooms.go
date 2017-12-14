@@ -55,19 +55,19 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBufferString("")
 	if err := xml.NewEncoder(buf).Encode(postInquiry); err != nil {
 		log.Println("Error occurred while encoding ", err)
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	response, err := SendRequest([]byte(buf.String()))
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	response = response[1 : len(response)-1]
 	log.Printf("New response '%s'\n", response)
 	if err != nil {
 		log.Println("Error while sending request", err)
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	postList := PostList{}
@@ -77,7 +77,7 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 		responseBuf = bytes.NewBufferString(response)
 		if err := xml.NewDecoder(responseBuf).Decode(&postAnswer); err != nil {
 			log.Println("Couldn't parse as PostAnswer", err)
-			helpers.ReturnErrorMessage(w, err)
+			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
 		helpers.ReturnSuccessMessage(w, "[]")
@@ -91,7 +91,7 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 func GetRoomDepartment(w http.ResponseWriter, r *http.Request) {
 	deptID, err := GetRoomDepartmentID()
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err)
+		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	helpers.ReturnSuccessMessage(w, bson.M{"department_id": deptID})
