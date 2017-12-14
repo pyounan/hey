@@ -637,6 +637,16 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	resp.Postings = append(resp.Postings, body.Posting)
 	resp.NewInvoice.Postings = resp.Postings
 	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OriginalInvoice.InvoiceNumber}).One(&resp.OriginalInvoice)
+	// change the returned_qty of the line items that haven refunded
+	for _, item := range body.NewInvoice.Items {
+		for i, oldItem := range resp.OriginalInvoice.Items {
+			if oldItem.FrontendID == *item.OriginalFrontendID {
+				resp.OriginalInvoice.Items[i].ReturnedQuantity += -1 * item.Quantity
+				break
+			}
+		}
+	}
+	db.DB.C("posinvoices").Update(bson.M{"invoice_number": body.OriginalInvoice.InvoiceNumber}, resp.OriginalInvoice)
 	helpers.ReturnSuccessMessage(w, resp)
 
 }
