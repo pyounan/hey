@@ -14,6 +14,7 @@ import (
 	gh "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
+	"github.com/TV4/graceful"
 	"pos-proxy/auth"
 	"pos-proxy/config"
 	"pos-proxy/db"
@@ -172,8 +173,13 @@ func main() {
 	}
 
 	log.Printf("Listening on http://localhost:%s\n", *port)
-	log.Fatal(http.ListenAndServe(":"+*port,
-		gh.CORS(originsOk, headersOk, methodsOk)(mr)))
+	graceful.Timeout = 30 * time.Second
+	graceful.LogListenAndServe(
+		&http.Server{
+			Addr:    ":" + *port,
+			Handler: gh.CORS(originsOk, headersOk, methodsOk)(mr),
+		},
+	)
 
 }
 
