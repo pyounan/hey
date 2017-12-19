@@ -30,7 +30,7 @@ pull_proxy(){
   gcloud auth activate-service-account --key-file ${GS_KEY}
 
 
-  AVAILABLE_VERSIONS=($(gsutil ls gs://pos-proxy/$SUB_DOMAIN/ | sort -nr))
+  AVAILABLE_VERSIONS=($(gsutil ls gs://pos-proxy/$SUB_DOMAIN/ | cut -d"/" -f 5 | sort -nr))
 
   gsutil -m cp gs://pos-proxy/$SUB_DOMAIN/${AVAILABLE_VERSIONS[0]}/pos-proxy .
   gsutil -m cp -r gs://pos-proxy/$SUB_DOMAIN/${AVAILABLE_VERSIONS[0]}/templates .
