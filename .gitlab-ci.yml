@@ -38,8 +38,7 @@ push_test:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - pwd
-  - ls
+  - ls build_test
   - gsutil cp -r build_test/* gs://pos-proxy/test/${CI_PIPELINE_ID}
   only:
   - master
