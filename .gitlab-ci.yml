@@ -1,27 +1,23 @@
 stages:
-  - go_build
+  - build_test
   - push_testing
+  - build_staging
   - push_staging
-  - push_live
+  - build_manage
+  - push_manage
 
-go_build:
+build_test:
   stage: go_build
   image: golang:1.8
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - bin/
   script:
    - apt-get update && apt-get install -y --no-install-recommends git
-   - mkdir bin
    - mkdir -p $GOPATH/src/pos-proxy
    - cp -r * $GOPATH/src/pos-proxy
    - cd $GOPATH/src/pos-proxy
-   - echo $CI_JOB_ID
+   - echo $CI_PIPELINE_ID
    - go get
-   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_JOB_ID} -X pos-proxy/config.Version=2.0.0"
-   - cp -r $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/bin
-   - $GOPATH/src/pos-proxy/pos-proxy version 
+   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pox-proxy/config.VirtualHost=test"
+   - $GOPATH/src/pos-proxy/pos-proxy versions
   only:
   - master
 
@@ -34,10 +30,27 @@ push_testing:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - gsutil cp -r bin/ gs://pos-proxy/test/
-  - gsutil cp -r templates/ gs://pos-proxy/test/bin/
+  - gsutil cp pos-proxy gs://pos-proxy/test/${CI_PIPELINE_ID}
+  - gsutil cp update.sh gs://pos-proxy/test/${CI_PIPELINE_ID}
+  - gsutil cp -r templates/ gs://pos-proxy/test/${CI_PIPELINE_ID}
   only:
   - master
+
+build_staging:
+  stage: go_build
+  image: golang:1.8
+  script:
+   - apt-get update && apt-get install -y --no-install-recommends git
+   - mkdir -p $GOPATH/src/pos-proxy
+   - cp -r * $GOPATH/src/pos-proxy
+   - cd $GOPATH/src/pos-proxy
+   - echo $CI_PIPELINE_ID
+   - go get
+   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pox-proxy/config.VirtualHost=staging"
+   - $GOPATH/src/pos-proxy/pos-proxy versions
+  only:
+  - master
+  when: manual
 
 push_staging:
   image: google/cloud-sdk
@@ -48,23 +61,41 @@ push_staging:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - gsutil cp -r bin/ gs://pos-proxy/staging/
-  - gsutil cp -r templates/ gs://pos-proxy/staging/bin/
+  - gsutil cp pos-proxy gs://pos-proxy/staging/${CI_PIPELINE_ID}
+  - gsutil cp update.sh gs://pos-proxy/staging/${CI_PIPELINE_ID}
+  - gsutil cp -r templates/ gs://pos-proxy/staging/${CI_PIPELINE_ID}
   only:
   - master
   when: manual
 
-push_live:
+build_manage:
+  stage: go_build
+  image: golang:1.8
+  script:
+   - apt-get update && apt-get install -y --no-install-recommends git
+   - mkdir -p $GOPATH/src/pos-proxy
+   - cp -r * $GOPATH/src/pos-proxy
+   - cd $GOPATH/src/pos-proxy
+   - echo $CI_PIPELINE_ID
+   - go get
+   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pox-proxy.VirtualHost=manage"
+   - $GOPATH/src/pos-proxy/pos-proxy versions
+  only:
+  - master
+  when: manual
+
+push_manage:
   image: google/cloud-sdk
-  stage: push_live
+  stage: push_manage
   dependencies:
     - go_build
   script:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - gsutil cp -r bin/ gs://pos-proxy/manage/
-  - gsutil cp -r templates/ gs://pos-proxy/manage/bin/
+  - gsutil cp pos-proxy gs://pos-proxy/manage/${CI_PIPELINE_ID}
+  - gsutil cp update.sh gs://pos-proxy/manage/${CI_PIPELINE_ID}
+  - gsutil cp -r templates/ gs://pos-proxy/manage/${CI_PIPELINE_ID}
   only:
   - master
   when: manual

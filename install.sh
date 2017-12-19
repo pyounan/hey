@@ -29,10 +29,14 @@ pull_proxy(){
   # fetch the proxy program (binary file)
   gcloud auth activate-service-account --key-file ${GS_KEY}
 
-  gsutil -m cp gs://pos-proxy/$SUB_DOMAIN/bin/pos-proxy .
-  gsutil -m cp -r gs://pos-proxy/$SUB_DOMAIN/bin/templates .
+
+  AVAILABLE_VERSIONS=($(gsutil ls gs://pos-proxy/$SUB_DOMAIN/ | sort -nr))
+
+  gsutil -m cp gs://pos-proxy/$SUB_DOMAIN/${AVAILABLE_VERSIONS[0]}/pos-proxy .
+  gsutil -m cp -r gs://pos-proxy/$SUB_DOMAIN/${AVAILABLE_VERSIONS[0]}/templates .
 
   mkdir -p /usr/local/bin
+  sudo supervisorctl stop all || true
   cp ./pos-proxy /usr/local/bin/pos-proxy
   mkdir -p /var/www/templates/
   cp -r ./templates/* /var/www/templates
@@ -101,7 +105,6 @@ AUTH_USERNAME=$2
 AUTH_PASSWORD=$3
 SUB_DOMAIN=$4
 
-sudo supervisorctl stop all || true
 apt-get install curl
 add_google_repo
 install_deps

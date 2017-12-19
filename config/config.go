@@ -22,6 +22,9 @@ var Version string
 // BuildNumber reflects the current build number
 var BuildNumber string
 
+// Sub domain of the backend environment
+var VirtualHost string
+
 // ConfigHolder struct of the proxy configuration
 type ConfigHolder struct {
 	BackendURI     string      `json:"backend_uri"`

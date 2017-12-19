@@ -169,6 +169,8 @@ func main() {
 		}
 	}()
 
+	go proxy.CheckForupdates()
+
 	lr := gh.LoggingHandler(os.Stdout, r)
 	mr := proxy.StatusMiddleware(lr)
 	// r = gh.RecoveryHandler()(lr)
