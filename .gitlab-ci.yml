@@ -26,7 +26,6 @@ build_test:
    - cp $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_test
    - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_test
    - cp -r templates $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_test
-   - ls $CI_PROJECT_DIR/build_test
   only:
   - master
 
@@ -39,8 +38,7 @@ push_test:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - ls build_test
-  - gsutil cp -r build_test/* gs://pos-proxy/test/${CI_PIPELINE_ID}
+  - gsutil cp -r build_test/* gs://pos-proxy/test/${CI_PIPELINE_ID}/
   only:
   - master
 
@@ -77,9 +75,7 @@ push_staging:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - pwd
-  - ls
-  - gsutil cp -r build_staging/* gs://pos-proxy/staging/${CI_PIPELINE_ID}
+  - gsutil cp -r build_staging/* gs://pos-proxy/staging/${CI_PIPELINE_ID}/
   only:
   - master
   when: manual
@@ -117,9 +113,7 @@ push_manage:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - pwd
-  - ls
-  - gsutil cp -r build_manage/* gs://pos-proxy/manage/${CI_PIPELINE_ID}
+  - gsutil cp -r build_manage/* gs://pos-proxy/manage/${CI_PIPELINE_ID}/
   only:
   - master
   when: manual
