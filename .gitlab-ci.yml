@@ -11,6 +11,7 @@ build_test:
   image: golang:1.8
   script:
    - apt-get update && apt-get install -y --no-install-recommends git
+   - pwd
    - mkdir -p $GOPATH/src/pos-proxy
    - cp -r * $GOPATH/src/pos-proxy
    - cd $GOPATH/src/pos-proxy
@@ -33,7 +34,8 @@ push_testing:
   - gcloud config set project pos-proxy
   - pwd
   - ls
-  - cd $GOPATH/src/pos-proxy
+  - cd /go/src/pos-proxy
+  - ls
   - gsutil cp pos-proxy gs://pos-proxy/test/${CI_PIPELINE_ID}
   - gsutil cp update.sh gs://pos-proxy/test/${CI_PIPELINE_ID}
   - gsutil cp -r templates/ gs://pos-proxy/test/${CI_PIPELINE_ID}
@@ -65,7 +67,7 @@ push_staging:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - cd $GOPATH/src/pos-proxy
+  - cd /go/src/pos-proxy
   - gsutil cp pos-proxy gs://pos-proxy/staging/${CI_PIPELINE_ID}
   - gsutil cp update.sh gs://pos-proxy/staging/${CI_PIPELINE_ID}
   - gsutil cp -r templates/ gs://pos-proxy/staging/${CI_PIPELINE_ID}
@@ -98,7 +100,7 @@ push_manage:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
-  - cd $GOPATH/src/pos-proxy
+  - cd /go/src/pos-proxy
   - gsutil cp pos-proxy gs://pos-proxy/manage/${CI_PIPELINE_ID}
   - gsutil cp update.sh gs://pos-proxy/manage/${CI_PIPELINE_ID}
   - gsutil cp -r templates/ gs://pos-proxy/manage/${CI_PIPELINE_ID}
