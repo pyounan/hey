@@ -38,6 +38,11 @@ func main() {
 		fmt.Println(config.Version)
 		os.Exit(0)
 	}
+	if len(os.Args) > 1 && os.Args[1] == "versions" {
+		fmt.Println(fmt.Sprintf("Version: %s", config.Version))
+		fmt.Println(fmt.Sprintf("Build number: %s", config.BuildNumber))
+		os.Exit(0)
+	}
 	// read encryption key from environment variables
 	key := os.Getenv("CLOUDINN_ENC_KEY")
 	err := config.ParseAuthCredentials(key)

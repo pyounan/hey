@@ -16,8 +16,11 @@ var AuthUsername string
 // AuthPassword reflects the proxy user's password for backend credentials
 var AuthPassword string
 
-// Version reflects the current build number
+// Version reflects the current API version
 var Version string
+
+// BuildNumber reflects the current build number
+var BuildNumber string
 
 // ConfigHolder struct of the proxy configuration
 type ConfigHolder struct {
