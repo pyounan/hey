@@ -18,6 +18,7 @@ build_test:
    - go get
    - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pox-proxy/config.VirtualHost=test"
    - $GOPATH/src/pos-proxy/pos-proxy versions
+   - pwd
   only:
   - master
 
@@ -30,6 +31,7 @@ push_testing:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project pos-proxy
+  - pwd
   - cd $GOPATH/src/pos-proxy
   - gsutil cp pos-proxy gs://pos-proxy/test/${CI_PIPELINE_ID}
   - gsutil cp update.sh gs://pos-proxy/test/${CI_PIPELINE_ID}
