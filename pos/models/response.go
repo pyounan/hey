@@ -1,6 +1,7 @@
 package models
 
 import (
+	"pos-proxy/config"
 	"strconv"
 	"time"
 )
@@ -96,6 +97,6 @@ func (r *FDMResponse) Process(fdm_response []byte, ticket FDMTicket) map[string]
 	res["ticket_number"] = r.TicketNumber
 	res["ticket_datetime"] = r.TicketActionTime
 	res["vat_summary"] = r.VATSummary
-	res["software_version"] = r.SoftwareVersion
+	res["software_version"] = config.Version
 	return res
 }
