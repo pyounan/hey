@@ -26,6 +26,7 @@ build_test:
    - cp $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_test
    - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_test
    - cp -r templates $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_test
+   - ls $CI_PROJECT_DIR/build_test
   only:
   - master
 
