@@ -65,6 +65,7 @@ func main() {
 	r := mux.NewRouter()
 	r = r.StrictSlash(true)
 	r.HandleFunc("/proxy/test/", proxy.Status).Methods("GET")
+	r.HandleFunc("/proxy/version/", proxy.Version).Methods("GET")
 
 	// auth
 	r.HandleFunc("/api/ensure_tenant_selected/", auth.EnsureTenantSelected).Methods("GET")

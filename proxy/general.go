@@ -3,6 +3,7 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net/http"
 	"pos-proxy/config"
@@ -39,6 +40,10 @@ func StatusMiddleware(h http.Handler) http.Handler {
 // Status returns a success message if the proxy is working properly.
 func Status(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("success")
+}
+
+func Version(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(bson.M{"version": config.Version})
 }
 
 /*func ProxyToBackend(w http.ResponseWriter, r *http.Request) {
