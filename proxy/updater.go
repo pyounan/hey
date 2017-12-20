@@ -56,7 +56,7 @@ func CheckForupdates() {
 func initiateUpdate(buildNumber string) error {
 	dir, err := ioutil.TempDir("", "example")
 	log.Println("Creating staging area in ", dir)
-	gsPath := fmt.Sprintf("gs://pos-proxy/test/%s/update.sh", buildNumber)
+	gsPath := fmt.Sprintf("gs://pos-proxy/%s/%s/update.sh", config.VirtualHost, buildNumber)
 	cmd := exec.Command("gsutil", "-m", "cp", gsPath, dir)
 	cmd.Env = append(os.Environ())
 	cmd.Stdout = os.Stdout
@@ -83,7 +83,7 @@ func initiateUpdate(buildNumber string) error {
 
 func update(buildNumber, updateCommand, updateDir string) {
 	log.Println("Starting update process")
-	cmd := exec.Command(updateCommand, "test", buildNumber, updateDir)
+	cmd := exec.Command(updateCommand, config.VirtualHost, buildNumber, updateDir)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
