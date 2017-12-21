@@ -1,6 +1,7 @@
 package income
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"pos-proxy/db"
@@ -24,12 +25,21 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	cashier := Cashier{}
 	q := bson.M{}
 	store, _ := strconv.Atoi(req.URL.Query().Get("store"))
-	pin := req.URL.Query().Get("pin")
+
+	postBody := map[string]string{}
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&postBody)
+	if err != nil {
+		helpers.ReturnSuccessMessage(w, err.Error())
+		return
+	}
+
+	pin := postBody["pin"]
 	terminal := req.URL.Query().Get("terminal")
 	terminalID, _ := strconv.Atoi(terminal)
 	q["pin"] = pin
 	q["store_set"] = store
-	err := db.DB.C("cashiers").Find(q).One(&cashier)
+	err = db.DB.C("cashiers").Find(q).One(&cashier)
 	if err != nil {
 		resp := bson.M{"ok": false, "details": "No matching PIN code to selected store."}
 		helpers.ReturnSuccessMessage(w, resp)
