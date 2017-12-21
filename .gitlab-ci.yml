@@ -21,7 +21,7 @@ build_test:
    - cd $GOPATH/src/pos-proxy
    - echo $CI_PIPELINE_ID
    - go get
-   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pox-proxy/config.VirtualHost=test"
+   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pos-proxy/config.VirtualHost=test"
    - $GOPATH/src/pos-proxy/pos-proxy versions
    - cp $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_test
    - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_test
@@ -57,7 +57,7 @@ build_staging:
    - cd $GOPATH/src/pos-proxy
    - echo $CI_PIPELINE_ID
    - go get
-   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pox-proxy/config.VirtualHost=staging"
+   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pos-proxy/config.VirtualHost=staging"
    - $GOPATH/src/pos-proxy/pos-proxy versions
    - cp $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_staging
    - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_staging
@@ -95,7 +95,7 @@ build_manage:
    - cd $GOPATH/src/pos-proxy
    - echo $CI_PIPELINE_ID
    - go get
-   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pox-proxy/config.VirtualHost=manage"
+   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pos-proxy/config.VirtualHost=manage"
    - $GOPATH/src/pos-proxy/pos-proxy versions
    - cp $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_manage
    - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_manage

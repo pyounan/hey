@@ -30,10 +30,14 @@ type ConfigHolder struct {
 	BackendURI     string      `json:"backend_uri"`
 	IsFDMEnabled   bool        `json:"is_fdm_enabled"`
 	InstanceName   string      `json:"instance_name"`
+	InstanceID     int64       `json:"instance_id"`
+	CompanyName    string      `json:"company_name"`
+	CompanyID      int64       `json:"company_id"`
 	FDMs           []FDMConfig `json:"fdms"`
 	IsOperaEnabled bool        `json:"is_opera_enabled"`
 	OperaIP        string      `json:"opera_ip"`
 	UpdatedAt      time.Time   `json:"updated_at"`
+	BuildNumber    *int64      `json:"build_number"`
 }
 
 // FDMConfig struct of each proxy configuration

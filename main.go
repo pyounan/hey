@@ -41,6 +41,7 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "versions" {
 		fmt.Println(fmt.Sprintf("Version: %s", config.Version))
 		fmt.Println(fmt.Sprintf("Build number: %s", config.BuildNumber))
+		fmt.Println(fmt.Sprintf("Virtual host: %s", config.VirtualHost))
 		os.Exit(0)
 	}
 	// read encryption key from environment variables
@@ -147,6 +148,7 @@ func main() {
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
 	r.NotFoundHandler = http.HandlerFunc(proxy.ProxyToBackend)
+	auth.FetchToken()
 
 	go func() {
 		for true {

@@ -2,32 +2,43 @@ package proxy
 
 import (
 	"encoding/json"
+	"strconv"
 	//"errors"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
+	"pos-proxy/auth"
 	"pos-proxy/config"
 	"pos-proxy/helpers"
-	"strings"
 	"syscall"
 	"time"
 )
 
 func CheckForupdates() {
 	type NewVersion struct {
-		BuildNumber string `json:"build_number"`
+		BuildNumber int64 `json:"build_number"`
 	}
 	netClient := helpers.NewNetClient()
 	for {
 		log.Println("Checking for updates...")
-		uri := fmt.Sprintf("%s%s", config.Config.BackendURI, "/api/pos/proxy/update/")
-		requestBody := fmt.Sprintf("{\"build_number\": \"%s\"}", config.BuildNumber)
-		log.Println("Request", uri, requestBody)
-		req, err := http.NewRequest("POST", uri, strings.NewReader(requestBody))
-		req = helpers.PrepareRequestHeaders(req)
+		uri := fmt.Sprintf("%s%s", config.Config.BackendURI, "/api/proxyversions/getupdate/")
+
+		val, err := strconv.ParseInt(config.BuildNumber, 10, 64)
+		if err != nil {
+			log.Println("Failed to convert build number", err.Error())
+		}
+		config.Config.BuildNumber = &val
+		requestBody, err := json.Marshal(config.Config)
+		if err != nil {
+			log.Println("Failed to marshal config", err.Error())
+		}
+		req, err := http.NewRequest("POST", uri, bytes.NewBuffer(requestBody))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", auth.Token))
 		resp, err := netClient.Do(req)
 		if err != nil {
 			log.Println("Failed to get update data", err.Error())
@@ -43,8 +54,8 @@ func CheckForupdates() {
 		if err != nil {
 			log.Println("Failed to parse update data", string(respBody), err.Error())
 		}
-		log.Println(fmt.Sprintf("New version \"%s\"", data.BuildNumber))
-		if data.BuildNumber != "" {
+		log.Println(fmt.Sprintf("New version \"%d\"", data.BuildNumber))
+		if data.BuildNumber != 0 {
 			initiateUpdate(data.BuildNumber)
 		}
 
@@ -53,10 +64,10 @@ func CheckForupdates() {
 	}
 }
 
-func initiateUpdate(buildNumber string) error {
+func initiateUpdate(buildNumber int64) error {
 	dir, err := ioutil.TempDir("", "example")
 	log.Println("Creating staging area in ", dir)
-	gsPath := fmt.Sprintf("gs://pos-proxy/%s/%s/update.sh", config.VirtualHost, buildNumber)
+	gsPath := fmt.Sprintf("gs://pos-proxy/%s/%d/update.sh", config.VirtualHost, buildNumber)
 	cmd := exec.Command("gsutil", "-m", "cp", gsPath, dir)
 	cmd.Env = append(os.Environ())
 	cmd.Stdout = os.Stdout
@@ -81,9 +92,9 @@ func initiateUpdate(buildNumber string) error {
 	return nil
 }
 
-func update(buildNumber, updateCommand, updateDir string) {
+func update(buildNumber int64, updateCommand, updateDir string) {
 	log.Println("Starting update process")
-	cmd := exec.Command(updateCommand, config.VirtualHost, buildNumber, updateDir)
+	cmd := exec.Command(updateCommand, config.VirtualHost, fmt.Sprintf("%d", buildNumber), updateDir)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
