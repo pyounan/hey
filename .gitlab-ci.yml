@@ -8,7 +8,7 @@ stages:
 
 build_test:
   stage: build_test
-  image: golang:1.8
+  image: golang:1.9
   artifacts:
     expire_in: 1 week
     paths:
