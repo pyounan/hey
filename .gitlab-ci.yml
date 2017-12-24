@@ -37,7 +37,7 @@ push_test:
   script:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
-  - gcloud config set project pos-proxy
+  - gcloud config set project corded-guild-155314
   - gsutil cp -r build_test/* gs://pos-proxy/test/${CI_PIPELINE_ID}/
   only:
   - master
@@ -74,7 +74,7 @@ push_staging:
   script:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
-  - gcloud config set project pos-proxy
+  - gcloud config set project corded-guild-155314
   - gsutil cp -r build_staging/* gs://pos-proxy/staging/${CI_PIPELINE_ID}/
   only:
   - master
@@ -112,7 +112,7 @@ push_manage:
   script:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
-  - gcloud config set project pos-proxy
+  - gcloud config set project corded-guild-155314
   - gsutil cp -r build_manage/* gs://pos-proxy/manage/${CI_PIPELINE_ID}/
   only:
   - master
