@@ -14,7 +14,6 @@ import (
 	gh "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
-	"github.com/TV4/graceful"
 	"pos-proxy/auth"
 	"pos-proxy/config"
 	"pos-proxy/db"
@@ -26,6 +25,8 @@ import (
 	"pos-proxy/sun"
 	"pos-proxy/syncer"
 	"pos-proxy/templateexport"
+
+	"github.com/TV4/graceful"
 )
 
 func init() {
@@ -73,7 +74,7 @@ func main() {
 	r.HandleFunc("/core/getloggedinusergroups/{id}/", auth.GetUserPermissions).Methods("GET")
 
 	// handle FDM requests
-	// r.HandleFunc("/proxy/fdm/status/{rcrs}", handlers.FDMStatus).Methods("GET")
+	r.HandleFunc("/api/fdm/status/{rcrs}", pos.FDMStatus).Methods("GET")
 	// r.HandleFunc("/proxy/fdm/invoices", handlers.SubmitInvoice).Methods("POST")
 	// r.HandleFunc("/proxy/fdm/folio", handlers.Folio).Methods("POST")
 	// r.HandleFunc("/proxy/fdm/payment", handlers.PayInvoice).Methods("POST")
