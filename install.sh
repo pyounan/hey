@@ -73,31 +73,20 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 if [ "$1" == "" ]; then
-    error "Please provide google cloud access key"
-    exit 1
-fi
-
-if [ "$2" == "" ]; then
 	error "Please provide auth username"
 	exit
 fi
 
-if [ "$3" == "" ]; then
+if [ "$2" == "" ]; then
 	error "Please provide auth password"
 	exit
 fi
 
-if [ "$4" == "" ]; then
+if [ "$3" == "" ]; then
 	error "Please provide cloudinn subdomain"
 	exit
 fi
 
-if [ ! -f "$1" ]; then
-    error "Key not found!"
-    exit 1
-fi
-
-GS_KEY=$1
 AUTH_USERNAME=$2
 AUTH_PASSWORD=$3
 SUB_DOMAIN=$4
