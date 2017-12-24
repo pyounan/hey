@@ -19,6 +19,7 @@ import (
 )
 
 func CheckForupdates() {
+	auth.FetchToken()
 	type NewVersion struct {
 		BuildNumber int64 `json:"build_number"`
 	}

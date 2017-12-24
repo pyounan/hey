@@ -148,7 +148,6 @@ func main() {
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
 	r.NotFoundHandler = http.HandlerFunc(proxy.ProxyToBackend)
-	auth.FetchToken()
 
 	go func() {
 		for true {
