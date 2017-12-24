@@ -56,7 +56,7 @@ func CheckForupdates() {
 			log.Println("Failed to parse update data", string(respBody), err.Error())
 		}
 		log.Println(fmt.Sprintf("New version \"%d\"", data.BuildNumber))
-		if data.BuildNumber != 0 {
+		if data.BuildNumber != 0 && data.BuildNumber != *config.Config.BuildNumber {
 			initiateUpdate(data.BuildNumber)
 		}
 
