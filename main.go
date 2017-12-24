@@ -84,6 +84,7 @@ func main() {
 	r.HandleFunc("/income/api/department/{id}/", income.GetDepartment).Methods("GET")
 
 	r.HandleFunc("/income/api/cashier/getposcashier/", income.GetPosCashier).Methods("POST")
+	r.HandleFunc("/income/api/cashier/clockout/", income.Clockout).Methods("POST")
 	r.HandleFunc("/income/api/poscashierpermissions/", income.GetCashierPermissions).Methods("GET")
 	r.HandleFunc("/shadowinn/api/auditdate/", income.GetAuditDate).Methods("GET")
 	r.HandleFunc("/shadowinn/api/company/", income.GetCompany).Methods("GET")

@@ -35,7 +35,7 @@ type Attendance struct {
 	TerminalID   int           `json:"terminal_id" bson:"terminal_id"`
 }
 
-type ClockinRequest struct {
+type clockinRequest struct {
 	Pin          string               `json:"pin" bson:"pin"`
 	ClockinTime  string               `json:"clockin_time" bson:"clockin_time`
 	Action       string               `json:"action" bson:"action"`
@@ -94,13 +94,14 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	q := bson.M{}
 	store, _ := strconv.Atoi(req.URL.Query().Get("store"))
 
-	postBody := ClockinRequest{}
+	postBody := clockinRequest{}
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&postBody)
 	if err != nil {
 		helpers.ReturnSuccessMessage(w, err.Error())
 		return
 	}
+	defer req.Body.Close()
 
 	q["pin"] = postBody.Pin
 	q["store_set"] = store
@@ -175,4 +176,34 @@ func GetCashierPermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	helpers.ReturnSuccessMessage(w, permissions)
+}
+
+type clockoutRequest struct {
+	TerminalID   int                  `json:"terminal_id" bson:"terminal_id"`
+	CashierID    int                  `json:"poscashier_id" bson:"poscashier_id"`
+	ClockoutTime string               `json:"clockout_time" bson:"clockout_time"`
+	Action       string               `json:"action" bson:"clockout"`
+	Description  string               `json:"description" bson:"description`
+	FDMResponses []models.FDMResponse `json:"fdm_responses" bson:"fdm_responses"`
+}
+
+// Clockout logs out a cashier
+func Clockout(w http.ResponseWriter, r *http.Request) {
+	body := clockoutRequest{}
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	defer r.Body.Close()
+	q := bson.M{"cashier_id": body.CashierID, "terminal_id": body.TerminalID}
+	attendance := Attendance{}
+	db.DB.C("attendance").Find(q).Sort("-id").One(&attendance)
+	*attendance.ClockoutTime = body.ClockoutTime
+	err = db.DB.C("attendance").UpdateId(attendance.ID, attendance)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	helpers.ReturnSuccessMessage(w, true)
 }
