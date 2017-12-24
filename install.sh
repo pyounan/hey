@@ -97,4 +97,4 @@ install_deps
 pull_proxy
 write_config
 sudo systemctl restart mongodb.service
-eudo systemctl restart supervisor.service
+sudo systemctl restart supervisor.service
