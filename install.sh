@@ -87,9 +87,9 @@ if [ "$3" == "" ]; then
 	exit
 fi
 
-AUTH_USERNAME=$2
-AUTH_PASSWORD=$3
-SUB_DOMAIN=$4
+AUTH_USERNAME=$1
+AUTH_PASSWORD=$2
+SUB_DOMAIN=$3
 
 apt-get install curl
 add_google_repo
