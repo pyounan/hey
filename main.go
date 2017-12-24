@@ -74,10 +74,7 @@ func main() {
 	r.HandleFunc("/core/getloggedinusergroups/{id}/", auth.GetUserPermissions).Methods("GET")
 
 	// handle FDM requests
-	r.HandleFunc("/api/fdm/status/{rcrs}", pos.FDMStatus).Methods("GET")
-	// r.HandleFunc("/proxy/fdm/invoices", handlers.SubmitInvoice).Methods("POST")
-	// r.HandleFunc("/proxy/fdm/folio", handlers.Folio).Methods("POST")
-	// r.HandleFunc("/proxy/fdm/payment", handlers.PayInvoice).Methods("POST")
+	r.HandleFunc("/api/fdms/status/{rcrs}", pos.FDMStatus).Methods("GET")
 
 	// handle INCOME requests
 	r.HandleFunc("/income/api/currency/", income.ListCurrencies).Methods("GET")
