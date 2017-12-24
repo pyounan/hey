@@ -43,17 +43,20 @@ func CheckForupdates() {
 		resp, err := netClient.Do(req)
 		if err != nil {
 			log.Println("Failed to get update data", err.Error())
+			return
 		}
 
 		respBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			log.Println("Failed to read update data", err.Error())
+			return
 		}
 
 		data := NewVersion{}
 		err = json.Unmarshal(respBody, &data)
 		if err != nil {
 			log.Println("Failed to parse update data", string(respBody), err.Error())
+			return
 		}
 		log.Println(fmt.Sprintf("New version \"%d\"", data.BuildNumber))
 		if data.BuildNumber != 0 && data.BuildNumber != *config.Config.BuildNumber {

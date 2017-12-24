@@ -63,9 +63,7 @@ func FetchToken() {
 			log.Println("Failed to parse update data", string(respBody), err.Error())
 		}
 
-		log.Println("resp", data.Token)
 		Token = data.Token
-		log.Println("Token", Token)
 	} else {
 		log.Println("Failed to fetch token", resp.StatusCode)
 	}
