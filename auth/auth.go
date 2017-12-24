@@ -43,19 +43,30 @@ func FetchToken() {
 	netClient := helpers.NewNetClient()
 	uri := fmt.Sprintf("%s%s", config.Config.BackendURI, "/api/is_authenticated/")
 	req, err := http.NewRequest("GET", uri, strings.NewReader(""))
+	if err != nil {
+		log.Println("Failed to create new request", err.Error())
+	}
 	req = helpers.PrepareRequestHeaders(req)
 	resp, err := netClient.Do(req)
+	if err != nil {
+		log.Println("Failed to perform request", err.Error())
+	}
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Failed to read body", err.Error())
 	}
-	data := TokenResponse{}
-	err = json.Unmarshal(respBody, &data)
-	if err != nil {
-		log.Println("Failed to parse update data", string(respBody), err.Error())
-	}
+	defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		data := TokenResponse{}
+		err = json.Unmarshal(respBody, &data)
+		if err != nil {
+			log.Println("Failed to parse update data", string(respBody), err.Error())
+		}
 
-	log.Println("resp", data.Token)
-	Token = data.Token
-	log.Println("Token", Token)
+		log.Println("resp", data.Token)
+		Token = data.Token
+		log.Println("Token", Token)
+	} else {
+		log.Println("Failed to fetch token", resp.StatusCode)
+	}
 }
