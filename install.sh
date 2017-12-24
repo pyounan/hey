@@ -26,10 +26,7 @@ install_deps(){
 }
 
 pull_proxy(){
-  # fetch the proxy program (binary file)
-  gcloud auth activate-service-account --key-file ${GS_KEY}
-
-
+  # fetch the proxy program (binary file and templates)
   AVAILABLE_VERSIONS=($(gsutil ls gs://pos-proxy/$SUB_DOMAIN/ | cut -d"/" -f 5 | sort -nr))
 
   gsutil -m cp gs://pos-proxy/$SUB_DOMAIN/${AVAILABLE_VERSIONS[0]}/pos-proxy .
@@ -111,4 +108,4 @@ install_deps
 pull_proxy
 write_config
 sudo systemctl restart mongodb.service
-sudo systemctl restart supervisor.service
+eudo systemctl restart supervisor.service
