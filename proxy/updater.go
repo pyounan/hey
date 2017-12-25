@@ -69,7 +69,7 @@ func CheckForupdates() {
 }
 
 func initiateUpdate(buildNumber int64) error {
-	dir, err := ioutil.TempDir("", "example")
+	dir, err := ioutil.TempDir("", "proxyupdates")
 	log.Println("Creating staging area in ", dir)
 	gsPath := fmt.Sprintf("gs://pos-proxy/%s/%d/update.sh", config.VirtualHost, buildNumber)
 	cmd := exec.Command("gsutil", "-m", "cp", gsPath, dir)
@@ -81,6 +81,12 @@ func initiateUpdate(buildNumber int64) error {
 	err = cmd.Run()
 	if err != nil {
 		log.Println("Failed to fetch update script")
+		os.RemoveAll(dir)
+		return err
+	}
+	err = os.Chmod(dir, 0555)
+	if err != nil {
+		log.Println("Failed to chmod on update folder", err.Error())
 		os.RemoveAll(dir)
 		return err
 	}
