@@ -8,7 +8,7 @@ stages:
 
 build_test:
   stage: build_test
-  image: golang:1.8
+  image: golang:1.9
   artifacts:
     expire_in: 1 week
     paths:
@@ -45,7 +45,7 @@ push_test:
 
 build_staging:
   stage: build_staging
-  image: golang:1.8
+  image: golang:1.9
   artifacts:
     expire_in: 1 week
     paths:
@@ -84,7 +84,7 @@ push_staging:
 
 build_manage:
   stage: build_manage
-  image: golang:1.8
+  image: golang:1.9
   artifacts:
     expire_in: 1 week
     paths:
