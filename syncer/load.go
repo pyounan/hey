@@ -257,8 +257,11 @@ func Load() {
 					}
 				}
 			} else {
-				var res []map[string]interface{}
-				json.NewDecoder(response.Body).Decode(&res)
+				res := []map[string]interface{}{}
+				err := json.NewDecoder(response.Body).Decode(&res)
+				if err != nil {
+					log.Println(err)
+				}
 				for _, item := range res {
 					delete(item, "_id")
 					_, err = db.DB.C(collection).Upsert(bson.M{"id": item["id"]}, item)

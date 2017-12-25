@@ -13,7 +13,7 @@ type FDMResponse struct {
 	Error1             string    `json:"error1"`
 	Error2             string    `json:"error2"`
 	Error3             string    `json:"error3"`
-	ProductionNumber   string    `json:"production_number" bson:"production_numer"`
+	ProductionNumber   string    `json:"production_number" bson:"production_number"`
 	VSC                string    `json:"vsc"`
 	Date               time.Time `json:"date"`
 	TimePeriod         time.Time `json:"time_period" bson:"time_period"`

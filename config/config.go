@@ -45,6 +45,7 @@ type FDMConfig struct {
 	FDM_Port  string `json:"port"`
 	BaudSpeed string `json:"baud_speed"`
 	RCRS      string `json:"rcrs"`
+	Language  string `json:"language"`
 }
 
 // Config holds the value of the proxy configuration loaded from

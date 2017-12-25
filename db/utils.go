@@ -1,9 +1,10 @@
 package db
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"sync"
 	"sync/atomic"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type MetaData struct {
@@ -12,15 +13,17 @@ type MetaData struct {
 	RCRS  string `bson:"rcrs"`
 }
 
+var sequenceMutex = &sync.Mutex{}
+var ticketMutex = &sync.Mutex{}
+
 // GetNextSequence checks the database for the last used sequence
 // and returns the next one to be used, the counter fallsback to 1
 // if it exceeds 99.
 func GetNextSequence(rcrs string) (int, error) {
-	var mutex = &sync.Mutex{}
 	var data MetaData
 	valChan := make(chan int)
 	go func() {
-		mutex.Lock()
+		sequenceMutex.Lock()
 		q := bson.M{"key": "last_sequence", "rcrs": rcrs}
 		err := DB.C("metadata").Find(q).One(&data)
 		if err != nil {
@@ -41,7 +44,7 @@ func GetNextSequence(rcrs string) (int, error) {
 			DB.C("metadata").Update(q, bson.M{"$set": bson.M{"value": data.Value}})
 		}
 		valChan <- int(data.Value)
-		mutex.Unlock()
+		sequenceMutex.Unlock()
 	}()
 	val := <-valChan
 	return val, nil
@@ -52,6 +55,8 @@ func GetNextSequence(rcrs string) (int, error) {
 // Then increase the retrieved number by one, if number exceeds 999999, it fallsback
 // to one again.
 func GetNextTicketNumber(rcrs string) (int, error) {
+	ticketMutex.Lock()
+	defer ticketMutex.Unlock()
 	var data MetaData
 	q := bson.M{"key": "last_ticket_number", "rcrs": rcrs}
 	err := DB.C("metadata").Find(q).One(&data)

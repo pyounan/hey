@@ -5,12 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math"
 	"pos-proxy/db"
+	"pos-proxy/libs/libfdm"
 	"pos-proxy/pos/models"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // ApplySHA1 convert text to SHA1
@@ -27,47 +24,6 @@ func generatePLUHash(items []models.EJEvent) string {
 		text += fmt.Sprintf("%s", i.String())
 	}
 	return applySHA1(text)
-}
-
-// FormatSequence formats sequence number as string of 2 letters length
-func formatSequence(val int) string {
-	str := strconv.Itoa(val)
-	if len(str) < 2 {
-		str = "0" + str
-	}
-	return str
-}
-
-func formatAmount(oldVal float64) string {
-	oldVal = math.Abs(oldVal)
-	amount := strconv.FormatFloat(oldVal, 'f', 2, 64)
-	amount = strings.Replace(amount, ".", "", 1)
-	// make sure total amount is 11 length, 9.2
-	for len(amount) < 11 {
-		amount = " " + amount
-	}
-	log.Println("amount: ", amount)
-	return amount
-}
-
-func formatTicketNumber(oldVal string) string {
-	tn := oldVal
-	for len(tn) < 6 {
-		tn = " " + tn
-	}
-	return tn
-}
-
-func formatDate(oldVal string) string {
-	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", oldVal)
-	str := t.Format("20060102")
-	return str
-}
-
-func formatTime(oldVal string) string {
-	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", oldVal)
-	str := t.Format("150405")
-	return str
 }
 
 func calculateVATs(items []models.EJEvent) map[string]float64 {
@@ -94,6 +50,7 @@ func calculateTotalAmount(items []models.EJEvent) float64 {
 	return total
 }
 
+/* TOREMOVE
 func generateLowLevelMessage(message string) []byte {
 	packet := []byte{0x02}
 	msg := []byte(message)
@@ -123,19 +80,19 @@ func incrementRetryCounter(packet *[]byte) {
 	i++
 	(*packet)[4] = byte(i)
 }
-
+*/
 // prepareHashAndSignMsg is a shortcut function that prepares the string that should be sent to the FDM in case of sales or refund
 func prepareHashAndSignMsg(RCRS string, eventLabel string, t models.FDMTicket) string {
 	// format: identifier + sequence + retry + ticket_date + ticket_time_period + user_id + RCRS + string(ticket_number) + eventLabel + total_amount + 4 vats + plu
 	identifier := "H"
 	ns, _ := db.GetNextSequence(RCRS)
 	// db.UpdateLastSequence(ns)
-	sequence := formatSequence(ns)
+	sequence := libfdm.FormatSequenceNumber(ns)
 	retry := "0"
-	dt := formatDate(t.ActionTime)
-	period := formatTime(t.ActionTime)
-	amount := formatAmount(t.TotalAmount)
-	tn := formatTicketNumber(t.TicketNumber)
+	dt := libfdm.FormatDate(t.ActionTime)
+	period := libfdm.FormatTime(t.ActionTime)
+	amount := libfdm.FormatAmount(t.TotalAmount)
+	tn := libfdm.FormatTicketNumber(t.TicketNumber)
 
 	msg := identifier + sequence + retry + dt + period + t.UserID + t.RCRS + tn + eventLabel + amount
 	// add VATs
@@ -153,7 +110,6 @@ func prepareHashAndSignMsg(RCRS string, eventLabel string, t models.FDMTicket) s
 
 // CheckFDMError parses the error values of fdm response and converts them to human readable error
 func CheckFDMError(res models.FDMResponse) error {
-	log.Println(res.Error1, res.Error2)
 	if res.Error1 != "0" {
 		type FDMErrors map[string]map[string]string
 		var fdmErrors = FDMErrors{}

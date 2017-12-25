@@ -35,31 +35,59 @@ type Attendance struct {
 	TerminalID   int           `json:"terminal_id" bson:"terminal_id"`
 }
 
+func (a *Attendance) String() string {
+	return fmt.Sprintf("cashier: %d, clockin_time: %s, clockout_time: %s")
+}
+
 type clockinRequest struct {
+	Description  string               `json:"description" bson:"description"`
 	Pin          string               `json:"pin" bson:"pin"`
-	ClockinTime  string               `json:"clockin_time" bson:"clockin_time`
+	ClockinTime  string               `json:"clockin_time" bson:"clockin_time"`
 	Action       string               `json:"action" bson:"action"`
 	TerminalID   int                  `json:"terminal" bson:"terminal"`
 	FDMResponses []models.FDMResponse `json:"fdm_responses" bson:"fdm_responses"`
 }
 
-func clockin(cashier Cashier, terminal models.Terminal, time string) (models.FDMResponse, error) {
+type clockoutRequest struct {
+	Description  string               `json:"description" bson:"description"`
+	TerminalID   int                  `json:"terminal_id" bson:"terminal_id"`
+	CashierID    int                  `json:"poscashier_id" bson:"poscashier_id"`
+	ClockoutTime string               `json:"clockout_time" bson:"clockout_time"`
+	Action       string               `json:"action" bson:"clockout"`
+	FDMResponses []models.FDMResponse `json:"fdm_responses" bson:"fdm_responses"`
+}
+
+func clockin(cashier Cashier, terminal models.Terminal, time string) (string, models.FDMResponse, error) {
+	description := "Clock In"
 	fdmResponse := models.FDMResponse{}
 	q := bson.M{"cashier_id": cashier.ID, "terminal_id": terminal.ID}
 	attendance := Attendance{}
 	db.DB.C("attendance").Find(q).Sort("-id").One(&attendance)
+	log.Println(attendance)
 	if attendance.CashierID == 0 || attendance.ClockoutTime != nil {
 		a := Attendance{}
+		a.ID = bson.NewObjectId()
 		a.CashierID = cashier.ID
 		a.TerminalID = terminal.ID
 		a.ClockinTime = time
+		log.Println("FDM enabled", config.Config.IsFDMEnabled)
 		if config.Config.IsFDMEnabled {
 			// create fdm connection
 			conn, err := fdm.Connect(terminal.RCRS)
 			if err != nil {
-				return fdmResponse, err
+				return description, fdmResponse, err
 			}
 			defer conn.Close()
+			fdmConfig := config.FDMConfig{}
+			for _, f := range config.Config.FDMs {
+				if f.RCRS == terminal.RCRS {
+					fdmConfig = f
+					break
+				}
+			}
+			log.Println(conn)
+			log.Println(fdmConfig)
+
 			fdmReq := models.InvoicePOSTRequest{}
 			fdmReq.ActionTime = time
 			fdmReq.RCRS = terminal.RCRS
@@ -70,21 +98,79 @@ func clockin(cashier Cashier, terminal models.Terminal, time string) (models.FDM
 			fdmReq.CashierName = cashier.Name
 			fdmReq.CashierNumber = cashier.Number
 			item := models.EJEvent{}
-			item.Description = "ARBEID IN"
+			if fdmConfig.Language == "fr" {
+				description = "TRAVAIL IN"
+			} else {
+				description = "ARBEID IN"
+			}
+			item.Description = description
 			item.VATCode = "D"
-			fdmResponse, err := fdm.SendHashAndSignMessage(conn, "NS", fdmReq, []models.EJEvent{item})
+			fdmReq.Invoice.Items = append(fdmReq.Invoice.Items, models.POSLineItem{})
+			fdmResponse, err = fdm.SendHashAndSignMessage(conn, "NS", fdmReq, []models.EJEvent{item})
 			if err != nil {
-				return fdmResponse, err
+				return description, fdmResponse, err
 			}
 		}
 		err := db.DB.C("attendance").Insert(a)
 		if err != nil {
-			return fdmResponse, err
+			return description, fdmResponse, err
 		}
-		return fdmResponse, nil
+		return description, fdmResponse, nil
 	}
 
-	return fdmResponse, nil
+	return description, fdmResponse, nil
+}
+
+func clockout(cashier Cashier, terminal models.Terminal, time string) (string, models.FDMResponse, error) {
+	description := "Clock Out"
+	fdmResponse := models.FDMResponse{}
+	log.Println("FDM enabled", config.Config.IsFDMEnabled)
+	if config.Config.IsFDMEnabled {
+		// create fdm connection
+		conn, err := fdm.Connect(terminal.RCRS)
+		if err != nil {
+			return description, fdmResponse, err
+		}
+		defer conn.Close()
+		fdmConfig := config.FDMConfig{}
+		for _, f := range config.Config.FDMs {
+			if f.RCRS == terminal.RCRS {
+				fdmConfig = f
+				break
+			}
+		}
+
+		fdmReq := models.InvoicePOSTRequest{}
+		fdmReq.ActionTime = time
+		fdmReq.RCRS = terminal.RCRS
+		fdmReq.TerminalID = terminal.ID
+		fdmReq.TerminalNumber = terminal.Number
+		fdmReq.TerminalName = terminal.Description
+		fdmReq.EmployeeID = cashier.EmployeeID
+		fdmReq.CashierName = cashier.Name
+		fdmReq.CashierNumber = cashier.Number
+		item := models.EJEvent{}
+		if fdmConfig.Language == "fr" {
+			description = "TRAVAIL OUT"
+		} else {
+			description = "ARBEID UIT"
+		}
+		item.Description = description
+		item.VATCode = "D"
+		fdmResponse, err = fdm.SendHashAndSignMessage(conn, "NR", fdmReq, []models.EJEvent{item})
+		if err != nil {
+			return description, fdmResponse, err
+		}
+	}
+	q := bson.M{"cashier_id": cashier.ID, "clockout_time": nil}
+	updateQ := bson.M{"$set": bson.M{"clockout_time": time}}
+	err := db.DB.C("attendance").Update(q, updateQ)
+	if err != nil {
+		return description, fdmResponse, nil
+	}
+	return description, fdmResponse, nil
+
+	return description, fdmResponse, nil
 }
 
 // GetPosCashier used to clockin a cashier and compare his
@@ -95,8 +181,7 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	store, _ := strconv.Atoi(req.URL.Query().Get("store"))
 
 	postBody := clockinRequest{}
-	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(&postBody)
+	err := json.NewDecoder(req.Body).Decode(&postBody)
 	if err != nil {
 		helpers.ReturnSuccessMessage(w, err.Error())
 		return
@@ -140,13 +225,16 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	fdmResponse, err := clockin(cashier, terminal, postBody.ClockinTime)
+	description, fdmResponse, err := clockin(cashier, terminal, postBody.ClockinTime)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	resp["fdm_responses"] = []models.FDMResponse{fdmResponse}
-	postBody.FDMResponses = []models.FDMResponse{fdmResponse}
+	if config.Config.IsFDMEnabled {
+		resp["fdm_responses"] = []models.FDMResponse{fdmResponse}
+		postBody.FDMResponses = []models.FDMResponse{fdmResponse}
+	}
+	postBody.Description = description
 	syncer.QueueRequest(req.RequestURI, req.Method, req.Header, postBody)
 
 	http.SetCookie(w, &http.Cookie{
@@ -178,15 +266,6 @@ func GetCashierPermissions(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, permissions)
 }
 
-type clockoutRequest struct {
-	TerminalID   int                  `json:"terminal_id" bson:"terminal_id"`
-	CashierID    int                  `json:"poscashier_id" bson:"poscashier_id"`
-	ClockoutTime string               `json:"clockout_time" bson:"clockout_time"`
-	Action       string               `json:"action" bson:"clockout"`
-	Description  string               `json:"description" bson:"description`
-	FDMResponses []models.FDMResponse `json:"fdm_responses" bson:"fdm_responses"`
-}
-
 // Clockout logs out a cashier
 func Clockout(w http.ResponseWriter, r *http.Request) {
 	body := clockoutRequest{}
@@ -196,14 +275,30 @@ func Clockout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	q := bson.M{"cashier_id": body.CashierID, "terminal_id": body.TerminalID}
-	attendance := Attendance{}
-	db.DB.C("attendance").Find(q).Sort("-id").One(&attendance)
-	*attendance.ClockoutTime = body.ClockoutTime
-	err = db.DB.C("attendance").UpdateId(attendance.ID, attendance)
+	cashier := Cashier{}
+	q := bson.M{"id": body.CashierID}
+	err = db.DB.C("cashiers").Find(q).One(&cashier)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
+	terminal := models.Terminal{}
+	q = bson.M{"id": body.TerminalID}
+	err = db.DB.C("terminals").Find(q).One(&terminal)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	description, fdmResp, err := clockout(cashier, terminal, body.ClockoutTime)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	locks.UnlockTerminal(terminal.ID)
+	body.Description = description
+	if config.Config.IsFDMEnabled {
+		body.FDMResponses = []models.FDMResponse{fdmResp}
+	}
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
 	helpers.ReturnSuccessMessage(w, true)
 }

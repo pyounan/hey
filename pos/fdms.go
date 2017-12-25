@@ -1,25 +1,43 @@
 package pos
 
 import (
-	"log"
+	"encoding/json"
 	"net/http"
+	"pos-proxy/db"
 	"pos-proxy/helpers"
+	"pos-proxy/libs/libfdm"
 	"pos-proxy/pos/fdm"
-
-	"github.com/gorilla/mux"
 )
 
-// FDMStatus returns an fdm response for a certain rcrs number
-func FDMStatus(w http.ResponseWriter, r *http.Request) {
-	rcrs := mux.Vars(r)["rcrs"]
-	conn, err := fdm.Connect(rcrs)
+// FDMSetPin api returns a json response of FDM SetPIN request
+func FDMSetPin(w http.ResponseWriter, r *http.Request) {
+	type reqBody struct {
+		ProductionNumber string `json:"production_number"`
+		Pin              string `json:"pin"`
+	}
+	body := reqBody{}
+	// read request body
+	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		log.Println(err)
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	defer r.Body.Close()
+	// create FDM connection
+	conn, err := fdm.Connect(body.ProductionNumber)
+	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	defer conn.Close()
-	resp, err := fdm.CheckStatus(conn, rcrs)
+	// get next sequence number for this production number
+	sn, err := db.GetNextSequence(body.ProductionNumber)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	// send setpin request to FDM
+	resp, err := libfdm.SetPin(conn, sn, body.Pin)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

@@ -1,0 +1,17 @@
+{{ define "fdm_status" }}
+	{{ template "header" . }}
+	<h2>FDM Information</h2>
+	{{ if .has_error }}
+		Error: {{ .error }}
+	{{ else }}
+	<h4>Message Type: {{ .response.Identifier }}</h4>
+	<h4>Sequence: {{ .response.Sequence }}</h4>
+	<h4>Retry: {{ .response.Retry }}</h4>
+	<h4>Error1: {{ .response.Error1 }}</h4>
+	<h4>Error2: {{ .response.Error2 }}</h4>
+	<h4>Error3: {{ .response.Error3 }}</h4>
+	<h4>FDM Production Number: {{ .response.ProductionNumber }}</h4>
+	{{ end }}
+	{{ template "footer" . }}
+{{ end }}
+

@@ -60,7 +60,7 @@ func (fdm *FDM) sendAndWaitForACK(packet []byte) (bool, error) {
 		return true, nil
 	}
 
-	return false, nil
+	return false, errors.New("Didn't receive ACK")
 }
 
 // Write writes a message to the fdm, if just_wait_for_ACK is true, then it won't

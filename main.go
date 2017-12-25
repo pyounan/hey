@@ -21,6 +21,7 @@ import (
 	"pos-proxy/income"
 	"pos-proxy/opera"
 	"pos-proxy/pos"
+	"pos-proxy/pos/fdm"
 	"pos-proxy/proxy"
 	"pos-proxy/sun"
 	"pos-proxy/syncer"
@@ -74,7 +75,8 @@ func main() {
 	r.HandleFunc("/core/getloggedinusergroups/{id}/", auth.GetUserPermissions).Methods("GET")
 
 	// handle FDM requests
-	r.HandleFunc("/api/fdms/status/{rcrs}", pos.FDMStatus).Methods("GET")
+	r.HandleFunc("/proxy/fdms/status/{rcrs}/", fDMStatus).Methods("GET")
+	r.HandleFunc("/api/fdms/pins/", pos.FDMSetPin).Methods("POST")
 
 	// handle INCOME requests
 	r.HandleFunc("/income/api/currency/", income.ListCurrencies).Methods("GET")
@@ -147,7 +149,7 @@ func main() {
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
 	r.NotFoundHandler = http.HandlerFunc(proxy.ProxyToBackend)
-	auth.FetchToken()
+	// auth.FetchToken()
 
 	go func() {
 		for true {
@@ -170,7 +172,7 @@ func main() {
 		}
 	}()
 
-	go proxy.CheckForupdates()
+	// go proxy.CheckForupdates()
 
 	lr := gh.LoggingHandler(os.Stdout, r)
 	mr := proxy.StatusMiddleware(lr)
@@ -259,4 +261,31 @@ func syncerResponse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.ReturnSuccessMessage(w, logRecord.ResponseBody)
+}
+
+func fDMStatus(w http.ResponseWriter, r *http.Request) {
+	rcrs := mux.Vars(r)["rcrs"]
+	ctx := bson.M{
+		"has_error": false,
+		"error":     "",
+	}
+	// create FDM connection
+	conn, err := fdm.Connect(rcrs)
+	if err != nil {
+		ctx["error"] = err.Error()
+		ctx["has_error"] = true
+		templateexport.ExportedTemplates.ExecuteTemplate(w, "fdm_status", ctx)
+		return
+	}
+	defer conn.Close()
+	// send status message to FDM
+	resp, err := fdm.CheckStatus(conn, rcrs)
+	if err != nil {
+		ctx["error"] = err.Error()
+		ctx["has_error"] = true
+		templateexport.ExportedTemplates.ExecuteTemplate(w, "fdm_status", ctx)
+		return
+	}
+	ctx["response"] = resp
+	templateexport.ExportedTemplates.ExecuteTemplate(w, "fdm_status", ctx)
 }
