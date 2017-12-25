@@ -56,7 +56,7 @@ func FetchToken() {
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Failed to read body", err.Error())
-		retun
+		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
