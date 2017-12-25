@@ -50,6 +50,7 @@ cat <<EOM >$FILE
 command=/usr/local/bin/pos-proxy --templates="/var/www/templates/*"
 autostart=true
 autorestart=true
+stopsignal=INT
 stderr_logfile=/var/log/pos_proxy.err.log
 stdout_logfile=/var/log/pos_proxy.out.log
 EOM
