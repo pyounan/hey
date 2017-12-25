@@ -84,14 +84,14 @@ func initiateUpdate(buildNumber int64) error {
 		os.RemoveAll(dir)
 		return err
 	}
-	err = os.Chmod(dir, 0555)
+	err = os.Chmod(dir, 0777)
 	if err != nil {
 		log.Println("Failed to chmod on update folder", err.Error())
 		os.RemoveAll(dir)
 		return err
 	}
 	updateCommand := fmt.Sprintf("%s/update.sh", dir)
-	err = os.Chmod(updateCommand, 0555)
+	err = os.Chmod(updateCommand, 0777)
 	if err != nil {
 		log.Println("Failed to chmod on update command", err.Error())
 		os.RemoveAll(dir)
@@ -105,7 +105,7 @@ func initiateUpdate(buildNumber int64) error {
 func update(buildNumber int64, updateCommand, updateDir string) {
 	log.Println("Starting update process")
 	cmd := exec.Command(updateCommand, config.VirtualHost, fmt.Sprintf("%d", buildNumber), updateDir)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true, Setpgid: true}
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
