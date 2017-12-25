@@ -45,15 +45,18 @@ func FetchToken() {
 	req, err := http.NewRequest("GET", uri, strings.NewReader(""))
 	if err != nil {
 		log.Println("Failed to create new request", err.Error())
+		return
 	}
 	req = helpers.PrepareRequestHeaders(req)
 	resp, err := netClient.Do(req)
 	if err != nil {
 		log.Println("Failed to perform request", err.Error())
+		return
 	}
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Failed to read body", err.Error())
+		retun
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
@@ -61,6 +64,7 @@ func FetchToken() {
 		err = json.Unmarshal(respBody, &data)
 		if err != nil {
 			log.Println("Failed to parse update data", string(respBody), err.Error())
+			return
 		}
 
 		Token = data.Token
