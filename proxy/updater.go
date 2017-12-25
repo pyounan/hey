@@ -77,19 +77,23 @@ func initiateUpdate(buildNumber int64) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
+
 	log.Println("Will download")
+
 	err = cmd.Run()
 	if err != nil {
 		log.Println("Failed to fetch update script")
 		os.RemoveAll(dir)
 		return err
 	}
+
 	err = os.Chmod(dir, 0777)
 	if err != nil {
 		log.Println("Failed to chmod on update folder", err.Error())
 		os.RemoveAll(dir)
 		return err
 	}
+
 	updateCommand := fmt.Sprintf("%s/update.sh", dir)
 	err = os.Chmod(updateCommand, 0777)
 	if err != nil {
@@ -97,14 +101,39 @@ func initiateUpdate(buildNumber int64) error {
 		os.RemoveAll(dir)
 		return err
 	}
+
+	runnerCommand := fmt.Sprintf("%s/runner.sh")
+	f, err := os.Create(runnerCommand)
+	if err != nil {
+		log.Println("Couldn't create runner", err.Error())
+		os.RemoveAll(dir)
+		return err
+	}
+
+	err = os.Chmod(runnerCommand, 0777)
+	if err != nil {
+		log.Println("Failed to chmod on runner command", err.Error())
+		os.RemoveAll(dir)
+		return err
+	}
+
+	_, err = f.WriteString("#!/bin/bash\n./update.sh &")
+	if err != nil {
+		log.Println("Failed to write to runner file", err.Error())
+		os.RemoveAll(dir)
+		return err
+	}
+	f.Sync()
+	f.Close()
+
 	log.Println("Done Downloading")
-	update(buildNumber, updateCommand, dir)
+	update(buildNumber, runnerCommand, dir)
 	return nil
 }
 
-func update(buildNumber int64, updateCommand, updateDir string) {
+func update(buildNumber int64, runnerCommand, updateDir string) {
 	log.Println("Starting update process")
-	cmd := exec.Command(updateCommand, config.VirtualHost, fmt.Sprintf("%d", buildNumber), updateDir)
+	cmd := exec.Command(runnerCommand, config.VirtualHost, fmt.Sprintf("%d", buildNumber), updateDir)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
