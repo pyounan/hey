@@ -149,7 +149,7 @@ func main() {
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")
 
 	r.NotFoundHandler = http.HandlerFunc(proxy.ProxyToBackend)
-	// auth.FetchToken()
+	auth.FetchToken()
 
 	go func() {
 		for true {
@@ -172,7 +172,7 @@ func main() {
 		}
 	}()
 
-	// go proxy.CheckForupdates()
+	go proxy.CheckForupdates()
 
 	lr := gh.LoggingHandler(os.Stdout, r)
 	mr := proxy.StatusMiddleware(lr)
