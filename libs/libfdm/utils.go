@@ -3,7 +3,10 @@ package libfdm
 import (
 	"fmt"
 	"log"
+	"math"
 	"strconv"
+	"strings"
+	"time"
 )
 
 func generateLowLevelMessage(message string) []byte {
@@ -34,4 +37,51 @@ func incrementRetryCounter(packet *[]byte) {
 	}
 	i++
 	(*packet)[4] = byte(i)
+}
+
+// FormatSequenceNumber formats sequence number as string of 2 letters length
+func FormatSequenceNumber(val int) string {
+	str := strconv.Itoa(val)
+	if len(str) < 2 {
+		str = "0" + str
+	}
+	return str
+}
+
+// FormatAmount formats a price or amount from float to an fdm amount string
+// which has two numbers on the right acts as numbers after decimal point
+func FormatAmount(oldVal float64) string {
+	oldVal = math.Abs(oldVal)
+	amount := strconv.FormatFloat(oldVal, 'f', 2, 64)
+	amount = strings.Replace(amount, ".", "", 1)
+	// make sure total amount is 11 length, 9.2
+	for len(amount) < 11 {
+		amount = " " + amount
+	}
+	log.Println("amount: ", amount)
+	return amount
+}
+
+// FormatTicketNumber formats ticket number as an FDM ticket number
+// which consists of 6 letters
+func FormatTicketNumber(oldVal string) string {
+	tn := oldVal
+	for len(tn) < 6 {
+		tn = " " + tn
+	}
+	return tn
+}
+
+// FormatDate formats a date to an FDM date string
+func FormatDate(oldVal string) string {
+	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", oldVal)
+	str := t.Format("20060102")
+	return str
+}
+
+// FormatTime formats a time to and FDM time string
+func FormatTime(oldVal string) string {
+	t, _ := time.Parse("2006-01-02 15:04:05Z07:00", oldVal)
+	str := t.Format("150405")
+	return str
 }

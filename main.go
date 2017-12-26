@@ -14,7 +14,6 @@ import (
 	gh "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
-	"github.com/TV4/graceful"
 	"pos-proxy/auth"
 	"pos-proxy/config"
 	"pos-proxy/db"
@@ -22,10 +21,13 @@ import (
 	"pos-proxy/income"
 	"pos-proxy/opera"
 	"pos-proxy/pos"
+	"pos-proxy/pos/fdm"
 	"pos-proxy/proxy"
 	"pos-proxy/sun"
 	"pos-proxy/syncer"
 	"pos-proxy/templateexport"
+
+	"github.com/TV4/graceful"
 )
 
 func init() {
@@ -73,10 +75,8 @@ func main() {
 	r.HandleFunc("/core/getloggedinusergroups/{id}/", auth.GetUserPermissions).Methods("GET")
 
 	// handle FDM requests
-	// r.HandleFunc("/proxy/fdm/status/{rcrs}", handlers.FDMStatus).Methods("GET")
-	// r.HandleFunc("/proxy/fdm/invoices", handlers.SubmitInvoice).Methods("POST")
-	// r.HandleFunc("/proxy/fdm/folio", handlers.Folio).Methods("POST")
-	// r.HandleFunc("/proxy/fdm/payment", handlers.PayInvoice).Methods("POST")
+	r.HandleFunc("/proxy/fdms/status/{rcrs}/", fDMStatus).Methods("GET")
+	r.HandleFunc("/api/fdms/pins/", pos.FDMSetPin).Methods("POST")
 
 	// handle INCOME requests
 	r.HandleFunc("/income/api/currency/", income.ListCurrencies).Methods("GET")
@@ -86,6 +86,7 @@ func main() {
 	r.HandleFunc("/income/api/department/{id}/", income.GetDepartment).Methods("GET")
 
 	r.HandleFunc("/income/api/cashier/getposcashier/", income.GetPosCashier).Methods("POST")
+	r.HandleFunc("/income/api/cashier/clockout/", income.Clockout).Methods("POST")
 	r.HandleFunc("/income/api/poscashierpermissions/", income.GetCashierPermissions).Methods("GET")
 	r.HandleFunc("/shadowinn/api/auditdate/", income.GetAuditDate).Methods("GET")
 	r.HandleFunc("/shadowinn/api/company/", income.GetCompany).Methods("GET")
@@ -259,4 +260,33 @@ func syncerResponse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.ReturnSuccessMessage(w, logRecord.ResponseBody)
+}
+
+func fDMStatus(w http.ResponseWriter, r *http.Request) {
+	rcrs := mux.Vars(r)["rcrs"]
+	ctx := bson.M{
+		"has_error": false,
+		"error":     "",
+		"RCRS":      rcrs,
+		"version":   config.Version,
+	}
+	// create FDM connection
+	conn, err := fdm.Connect(rcrs)
+	if err != nil {
+		ctx["error"] = err.Error()
+		ctx["has_error"] = true
+		templateexport.ExportedTemplates.ExecuteTemplate(w, "fdm_status", ctx)
+		return
+	}
+	defer conn.Close()
+	// send status message to FDM
+	resp, err := fdm.CheckStatus(conn, rcrs)
+	if err != nil {
+		ctx["error"] = err.Error()
+		ctx["has_error"] = true
+		templateexport.ExportedTemplates.ExecuteTemplate(w, "fdm_status", ctx)
+		return
+	}
+	ctx["response"] = resp
+	templateexport.ExportedTemplates.ExecuteTemplate(w, "fdm_status", ctx)
 }

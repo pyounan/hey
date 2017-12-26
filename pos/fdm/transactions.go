@@ -25,7 +25,7 @@ func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
 	if err != nil {
 		return models.FDMResponse{}, err
 	}
-	msg := fmt.Sprintf("S%s0", formatSequence(n))
+	msg := fmt.Sprintf("S%s0", libfdm.FormatSequenceNumber(n))
 	res, err := fdm.Write(msg, false, 21)
 	if err != nil {
 		log.Println("Error: ", err)
@@ -35,6 +35,11 @@ func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
 	log.Println("FDM is ready.")
 	response := models.FDMResponse{}
 	response.ProcessStatus(res)
+	err = CheckFDMError(response)
+	if err != nil {
+		log.Println(err)
+		return response, err
+	}
 	return response, nil
 }
 
@@ -105,7 +110,6 @@ func SendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	pfResponse.SoftwareVersion = config.Version
 	pfResponse.Process(res, t)
 	err = CheckFDMError(pfResponse)
-	log.Println("Checking FDM Errors")
 	if err != nil {
 		log.Println(err)
 		return pfResponse, err
