@@ -12,16 +12,12 @@ gsutil -m cp -r gs://pos-proxy/$SUB_DOMAIN/$BUILD_NUMBER/templates $WORK_DIR
 mkdir -p /usr/local/bin
 mkdir -p /var/www/templates/
 
-echo "Stoping current proxy ..."
-supervisorctl stop all
-
 
 echo "Replacing binaries .."
-cp ./pos-proxy /usr/local/bin/pos-proxy
+chmod +x ./pos-proxy
+mv ./pos-proxy /usr/local/bin/pos-proxy
 cp -r ./templates/* /var/www/templates
-chmod +x /usr/local/bin/pos-proxy
 
-echo "Starting proxy ..."
-supervisorctl start all
+echo "Restarting proxy ..."
+supervisorctl restart all &
 
-sleep 30
