@@ -19,6 +19,7 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/helpers"
 	"pos-proxy/income"
+	"pos-proxy/libs/libfdm"
 	"pos-proxy/opera"
 	"pos-proxy/pos"
 	"pos-proxy/pos/fdm"
@@ -280,7 +281,14 @@ func fDMStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 	// send status message to FDM
-	resp, err := fdm.CheckStatus(conn, rcrs)
+	ns, err := db.GetNextSequence(rcrs)
+	if err != nil {
+		ctx["error"] = err.Error()
+		ctx["has_error"] = true
+		templateexport.ExportedTemplates.ExecuteTemplate(w, "fdm_status", ctx)
+		return
+	}
+	resp, err := libfdm.Identification(conn, ns)
 	if err != nil {
 		ctx["error"] = err.Error()
 		ctx["has_error"] = true

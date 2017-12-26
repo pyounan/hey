@@ -127,7 +127,6 @@ func Load() {
 				log.Println(err.Error())
 			}
 			req = helpers.PrepareRequestHeaders(req)
-			// log.Println("Open Connection for:", req.URL.Path)
 			response, err := netClient.Do(req)
 			if err != nil {
 				logging.Error(err.Error())

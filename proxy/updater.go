@@ -55,7 +55,7 @@ func CheckForupdates() {
 		data := NewVersion{}
 		err = json.Unmarshal(respBody, &data)
 		if err != nil {
-			log.Println("Failed to parse update data", string(respBody), err.Error())
+			log.Println("Failed to parse update data", err.Error())
 			return
 		}
 		log.Println(fmt.Sprintf("New version \"%d\"", data.BuildNumber))
