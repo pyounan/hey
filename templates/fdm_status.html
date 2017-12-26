@@ -11,6 +11,8 @@
 	<h4>Error2: {{ .response.Error2 }}</h4>
 	<h4>Error3: {{ .response.Error3 }}</h4>
 	<h4>FDM Production Number: {{ .response.ProductionNumber }}</h4>
+	<h4>Terminal Identifier: {{ .RCRS }}</h4>
+	<h4>Software Version: {{ .version }}</h4>
 	{{ end }}
 	{{ template "footer" . }}
 {{ end }}

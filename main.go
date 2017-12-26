@@ -268,6 +268,8 @@ func fDMStatus(w http.ResponseWriter, r *http.Request) {
 	ctx := bson.M{
 		"has_error": false,
 		"error":     "",
+		"RCRS":      rcrs,
+		"version":   config.Version,
 	}
 	// create FDM connection
 	conn, err := fdm.Connect(rcrs)
