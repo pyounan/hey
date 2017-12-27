@@ -28,7 +28,8 @@ type Cashier struct {
 
 // Attendance represents cashier attendance log
 type Attendance struct {
-	ID           bson.ObjectId `json:"id" bson:"_id"`
+	BID          bson.ObjectId `json:"_id" bson:"_id"`
+	ID           int           `json:"id" bson:"id"`
 	CashierID    int           `json:"cashier_id" bson:"cashier_id"`
 	ClockinTime  string        `json:"clockin_time" bson:"clockin_time"`
 	ClockoutTime *string       `json:"clockout_time" bson:"clockout_time"`
@@ -66,7 +67,7 @@ func clockin(cashier Cashier, terminal models.Terminal, time string) (string, mo
 	log.Println(attendance)
 	if attendance.CashierID == 0 || attendance.ClockoutTime != nil {
 		a := Attendance{}
-		a.ID = bson.NewObjectId()
+		a.BID = bson.NewObjectId()
 		a.CashierID = cashier.ID
 		a.TerminalID = terminal.ID
 		a.ClockinTime = time
