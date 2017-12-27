@@ -10,7 +10,6 @@ import (
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
-	"pos-proxy/logging"
 	"pos-proxy/pos/models"
 	"pos-proxy/proxy"
 	"strings"
@@ -84,12 +83,13 @@ func PushToBackend() {
 			return
 		}
 		defer func() {
-			// log.Println("Closing connection of", req.URL)
 			response.Body.Close()
 		}()
-		res, _ := ioutil.ReadAll(response.Body)
+		res, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Println(err)
+		}
 		logRecord.ResponseStatus = response.StatusCode
-		logRecord.ResponseBody = fmt.Sprintf("%s", res)
 		log.Println("Response Content-Type", response.Header["Content-Type"])
 		if v, ok := response.Header["Content-Type"]; ok && v[0] == "application/json" {
 			var data json.RawMessage
@@ -97,9 +97,9 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("unmarshal error", err.Error())
 			}
-			logging.Debug(fmt.Sprintf("response body %s", data))
+			logRecord.ResponseBody = data
 		} else {
-			logging.Debug(fmt.Sprintf("response body %s", res))
+			logRecord.ResponseBody = fmt.Sprintf("%s", res)
 		}
 		err = db.DB.C("requests_log").Insert(logRecord)
 		if err != nil {

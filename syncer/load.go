@@ -8,7 +8,6 @@ import (
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
-	"pos-proxy/logging"
 	"pos-proxy/pos/models"
 	"time"
 
@@ -98,15 +97,15 @@ func Load() {
 			req = helpers.PrepareRequestHeaders(req)
 			response, err := netClient.Do(req)
 			if err != nil {
-				logging.Error(err.Error())
+				log.Println(err.Error())
 				return
 			}
 			defer response.Body.Close()
 			if response.StatusCode != 200 {
-				logging.Error(fmt.Sprintf("Failed to load api from backend: %s\n", api))
+				log.Printf("Failed to load api from backend: %s\n", api)
 				return
 			}
-			logging.Info(fmt.Sprintf("syncing %s from %s", collection, api))
+			log.Printf("syncing %s from %s\n", collection, api)
 			if collection == "sunexportdate" {
 				db.DB.C(collection).Remove(nil)
 				type BodyRequest struct {
