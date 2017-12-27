@@ -3,7 +3,6 @@ package syncer
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +19,7 @@ import (
 // FetchConfiguration asks CloudInn servers if the conf were updated,
 // if yes update the current configurations and write them to the conf file
 func FetchConfiguration() {
+	log.Println("Checking for new configuration")
 	uri := fmt.Sprintf("%s/api/pos/proxy/settings/", config.Config.BackendURI)
 	netClient := helpers.NewNetClient()
 	req, err := http.NewRequest("GET", uri, nil)
@@ -34,47 +34,17 @@ func FetchConfiguration() {
 		return
 	}
 	defer response.Body.Close()
-	// open configurations file
-	f, err := os.Open("/etc/cloudinn/pos_config.json")
+	incoming := config.ConfigHolder{}
+	err = json.NewDecoder(response.Body).Decode(&incoming)
 	if err != nil {
 		log.Println(err.Error())
 		return
 	}
-	defer f.Close()
-	data, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	type ProxySettings struct {
-		UpdatedAt      string             `json:"updated_at"`
-		FDMs           []config.FDMConfig `json:"fdms"`
-		IsFDMEnabled   bool               `json:"is_fdm_enabled"`
-		IsOperaEnabled bool               `json:"is_opera_enabled"`
-		OperaIP        string             `json:"opera_ip"`
-	}
-	dataStr := ProxySettings{}
-	err = json.Unmarshal(data, &dataStr)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	t, err := time.Parse(time.RFC3339, fmt.Sprintf("%s", dataStr.UpdatedAt))
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	// Check the configurations coming from the backend are newer than
-	// the current configuration
-	if (config.Config.UpdatedAt != time.Time{}) && !t.After(config.Config.UpdatedAt) {
+	if (config.Config.UpdatedAt != time.Time{}) && !incoming.UpdatedAt.After(config.Config.UpdatedAt) {
 		return
 	}
 	log.Println("New configurations found")
-	config.Config.FDMs = dataStr.FDMs
-	config.Config.IsFDMEnabled = dataStr.IsFDMEnabled
-	config.Config.IsOperaEnabled = dataStr.IsOperaEnabled
-	config.Config.OperaIP = dataStr.OperaIP
-	config.Config.UpdatedAt = t
+	config.Config = &incoming
 	// Write conf to file
 	if err := config.Config.WriteToFile(); err != nil {
 		log.Println(err.Error())
