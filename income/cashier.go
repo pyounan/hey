@@ -171,8 +171,6 @@ func clockout(cashier Cashier, terminal models.Terminal, time string) (string, m
 		return description, fdmResponse, nil
 	}
 	return description, fdmResponse, nil
-
-	return description, fdmResponse, nil
 }
 
 // GetPosCashier used to clockin a cashier and compare his
@@ -235,8 +233,8 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	if config.Config.IsFDMEnabled {
 		resp["fdm_responses"] = []models.FDMResponse{fdmResponse}
 		postBody.FDMResponses = []models.FDMResponse{fdmResponse}
+		postBody.Description = description
 	}
-	postBody.Description = description
 	syncer.QueueRequest(req.RequestURI, req.Method, req.Header, postBody)
 
 	http.SetCookie(w, &http.Cookie{
@@ -297,8 +295,8 @@ func Clockout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	locks.UnlockTerminal(terminal.ID)
-	body.Description = description
 	if config.Config.IsFDMEnabled {
+		body.Description = description
 		body.FDMResponses = []models.FDMResponse{fdmResp}
 	}
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
