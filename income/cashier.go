@@ -63,15 +63,13 @@ func clockin(cashier Cashier, terminal models.Terminal, time string) (string, mo
 	fdmResponse := models.FDMResponse{}
 	q := bson.M{"cashier_id": cashier.ID, "terminal_id": terminal.ID}
 	attendance := Attendance{}
-	db.DB.C("attendance").Find(q).Sort("-id").One(&attendance)
-	log.Println(attendance)
+	db.DB.C("attendance").Find(q).Limit(1).Sort("-_id").One(&attendance)
 	if attendance.CashierID == 0 || attendance.ClockoutTime != nil {
 		a := Attendance{}
 		a.BID = bson.NewObjectId()
 		a.CashierID = cashier.ID
 		a.TerminalID = terminal.ID
 		a.ClockinTime = time
-		log.Println("FDM enabled", config.Config.IsFDMEnabled)
 		if config.Config.IsFDMEnabled {
 			// create fdm connection
 			conn, err := fdm.Connect(terminal.RCRS)
@@ -86,8 +84,6 @@ func clockin(cashier Cashier, terminal models.Terminal, time string) (string, mo
 					break
 				}
 			}
-			log.Println(conn)
-			log.Println(fdmConfig)
 
 			fdmReq := models.InvoicePOSTRequest{}
 			fdmReq.ActionTime = time
@@ -126,7 +122,6 @@ func clockin(cashier Cashier, terminal models.Terminal, time string) (string, mo
 func clockout(cashier Cashier, terminal models.Terminal, time string) (string, models.FDMResponse, error) {
 	description := "Clock Out"
 	fdmResponse := models.FDMResponse{}
-	log.Println("FDM enabled", config.Config.IsFDMEnabled)
 	if config.Config.IsFDMEnabled {
 		// create fdm connection
 		conn, err := fdm.Connect(terminal.RCRS)
@@ -165,9 +160,9 @@ func clockout(cashier Cashier, terminal models.Terminal, time string) (string, m
 			return description, fdmResponse, err
 		}
 	}
-	q := bson.M{"cashier_id": cashier.ID, "clockout_time": nil}
+	q := bson.M{"cashier_id": cashier.ID, "terminal_id": terminal.ID, "clockout_time": nil}
 	updateQ := bson.M{"$set": bson.M{"clockout_time": time}}
-	err := db.DB.C("attendance").Update(q, updateQ)
+	_, err := db.DB.C("attendance").UpdateAll(q, updateQ)
 	if err != nil {
 		return description, fdmResponse, nil
 	}
@@ -193,16 +188,15 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	q["store_set"] = store
 	err = db.DB.C("cashiers").Find(q).One(&cashier)
 	if err != nil {
-		resp := bson.M{"ok": false, "details": "No matching PIN code to selected store."}
-		helpers.ReturnSuccessMessage(w, resp)
+		helpers.ReturnErrorMessageWithStatus(w, 400, "No matching PIN code to selected store.")
 		return
 	}
 	if config.Config.IsFDMEnabled && cashier.EmployeeID == "" {
-		helpers.ReturnSuccessMessage(w, bson.M{"ok": false, "details": "employee id is not set"})
+		helpers.ReturnErrorMessageWithStatus(w, 400, "employee id is not set")
 		return
 	}
 	if config.Config.IsFDMEnabled && len(cashier.EmployeeID) < 11 {
-		helpers.ReturnSuccessMessage(w, bson.M{"ok": false, "details": "employee id is not valid, must be 11 characters"})
+		helpers.ReturnErrorMessageWithStatus(w, 400, "employee id is not valid, must be 11 characters")
 		return
 	}
 
@@ -214,25 +208,23 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	otherCashier, err := locks.LockTerminal(postBody.TerminalID, cashier.ID)
 	if err != nil && ((cashierHashExists && otherCashier == cashier.ID) || otherCashier != cashier.ID) {
 		log.Println(err)
-		resp := bson.M{"ok": false, "details": "Terminal is locked."}
-		helpers.ReturnSuccessMessage(w, resp)
+		helpers.ReturnErrorMessageWithStatus(w, 400, "Terminal is locked.")
 		return
 	}
 
-	resp := bson.M{"ok": true, "details": cashier}
+	resp := cashier
 	terminal := models.Terminal{}
 	err = db.DB.C("terminals").Find(bson.M{"id": postBody.TerminalID}).One(&terminal)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
+		helpers.ReturnErrorMessageWithStatus(w, 500, err.Error())
 		return
 	}
 	description, fdmResponse, err := clockin(cashier, terminal, postBody.ClockinTime)
 	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
+		helpers.ReturnErrorMessageWithStatus(w, 500, err.Error())
 		return
 	}
 	if config.Config.IsFDMEnabled {
-		resp["fdm_responses"] = []models.FDMResponse{fdmResponse}
 		postBody.FDMResponses = []models.FDMResponse{fdmResponse}
 		postBody.Description = description
 	}
