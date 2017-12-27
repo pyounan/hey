@@ -27,10 +27,16 @@ install_deps(){
 
 pull_proxy(){
   # fetch the proxy program (binary file and templates)
-  AVAILABLE_VERSIONS=($(gsutil ls gs://pos-proxy/$SUB_DOMAIN/ | cut -d"/" -f 5 | sort -nr))
+  if [ -z $BUILD_NUMBER ]
+  then
+    AVAILABLE_VERSIONS=($(gsutil ls gs://pos-proxy/$SUB_DOMAIN/ | cut -d"/" -f 5 | sort -nr))
+    VERSION=${AVAILABLE_VERSIONS[0]}
+  else
+      VERSION=$BUILD_NUMBER
+  fi
 
-  gsutil -m cp gs://pos-proxy/$SUB_DOMAIN/${AVAILABLE_VERSIONS[0]}/pos-proxy .
-  gsutil -m cp -r gs://pos-proxy/$SUB_DOMAIN/${AVAILABLE_VERSIONS[0]}/templates .
+  gsutil -m cp gs://pos-proxy/$SUB_DOMAIN/$VERSION/pos-proxy .
+  gsutil -m cp -r gs://pos-proxy/$SUB_DOMAIN/$VERSION/templates .
 
   mkdir -p /usr/local/bin
   sudo supervisorctl stop all || true
@@ -91,6 +97,7 @@ fi
 AUTH_USERNAME=$1
 AUTH_PASSWORD=$2
 SUB_DOMAIN=$3
+BUILD_NUMBER=$4
 
 apt-get install curl
 add_google_repo
