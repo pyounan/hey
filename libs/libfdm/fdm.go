@@ -20,15 +20,17 @@ func New(config *serial.Config) (*FDM, error) {
 	fdm := &FDM{}
 	fdm.c = config
 
-	log.Printf("Trying to stablish connection with port: %s ->\n", fdm.c.Name)
+	log.Printf("Trying to stablish connection with FDM serial port: %s ->\n", fdm.c.Name)
 	s, err := serial.OpenPort(fdm.c)
-	fdm.s = s
 	if err != nil {
-		log.Println("Failed to stablish connection with port")
+		log.Printf("Failed to stablish connection with FDM serial port: %s\n", fdm.c.Name)
 		return nil, err
+	} else if s == nil {
+		return nil, errors.New("Failed to stablish connection with FDM serial port for unknown reason, Kindly check fdm configuration.")
 	}
+	fdm.s = s
 
-	log.Println("Connection to Serial Port has been stablished successfully.")
+	log.Println("Connection to FDM serial port has been stablished successfully.")
 	return fdm, nil
 }
 
@@ -138,7 +140,9 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 
 // Close closes port connection with FDM
 func (fdm *FDM) Close() {
-	fdm.s.Close()
+	if fdm.s != nil {
+		fdm.s.Close()
+	}
 }
 
 func (fdm *FDM) sendACK() {
