@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
