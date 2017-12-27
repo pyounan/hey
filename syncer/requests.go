@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"pos-proxy/config"
@@ -76,43 +75,39 @@ func PushToBackend() {
 		logRecord.ID = bson.NewObjectId()
 		logRecord.CreatedAt = time.Now()
 		logRecord.Request = r
+
 		log.Println("Sending: ", r.Method, req.URL.Path)
 		response, err := netClient.Do(req)
 		if err != nil {
 			log.Println(err.Error())
 			return
 		}
-		defer func() {
-			response.Body.Close()
-		}()
-		res, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			log.Println(err)
-		}
+		defer response.Body.Close()
+
 		logRecord.ResponseStatus = response.StatusCode
-		log.Println("Response Content-Type", response.Header["Content-Type"])
-		if v, ok := response.Header["Content-Type"]; ok && v[0] == "application/json" {
-			var data json.RawMessage
-			err := json.Unmarshal(res, &data)
-			if err != nil {
-				log.Println("unmarshal error", err.Error())
-			}
-			logRecord.ResponseBody = data
-		} else {
-			logRecord.ResponseBody = fmt.Sprintf("%s", res)
-		}
-		err = db.DB.C("requests_log").Insert(logRecord)
-		if err != nil {
-			log.Println("Failed to queue failure to log", err.Error())
-		}
+		// Check status code of the response, continue or abort based on that
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
-			log.Println(response, "Failed to fetch response from backend")
+			log.Println("Error: Failed to fetch response from backend")
 			if response.StatusCode >= 400 && response.StatusCode <= 500 {
+				log.Println("Fatal Error: Proxy operations is going to be halted, please contact support.")
 				proxy.AllowIncomingRequests = false
+			}
+			if v, ok := response.Header["Content-Type"]; ok && v[0] == "application/json" {
+				var data json.RawMessage
+				err := json.NewDecoder(response.Body).Decode(&data)
+				if err != nil {
+					log.Println("unmarshal error", err.Error())
+				}
+				logRecord.ResponseBody = data
+			} else {
+				logRecord.ResponseBody = fmt.Sprintf("%s", response.Body)
+			}
+			err = db.DB.C("requests_log").Insert(logRecord)
+			if err != nil {
+				log.Println("Warning: failed to log syncer record", err.Error())
 			}
 			return
 		}
-		response.Body = ioutil.NopCloser(bytes.NewBuffer(res))
 		proxy.AllowIncomingRequests = true
 		if req.URL.Path == "/api/pos/posinvoices/" {
 			res := models.Invoice{}
@@ -120,12 +115,11 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("decoding error", err.Error())
 			}
-			log.Println("result invoice", res)
 			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
 			if err != nil {
-				log.Println(err.Error())
-				return
+				log.Println("Warning:", err.Error())
 			}
+			logRecord.ResponseBody = res
 		} else if strings.Contains(req.URL.Path, "createpostings") {
 			type RespBody struct {
 				Invoice models.Invoice `json:"posinvoice" bson:"posinvoice"`
@@ -137,48 +131,46 @@ func PushToBackend() {
 			}
 			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.Invoice.InvoiceNumber}, res.Invoice)
 			if err != nil {
-				log.Println(err.Error())
-				return
+				log.Println("Warning:", err.Error())
 			}
+			logRecord.ResponseBody = res
 		} else if strings.Contains(req.URL.Path, "changetable") || strings.Contains(req.URL.Path, "split") {
 			res := []models.Invoice{}
 			json.NewDecoder(response.Body).Decode(&res)
 			for _, inv := range res {
 				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": inv.InvoiceNumber}, inv)
 				if err != nil {
-					log.Println(err.Error())
-					return
+					log.Println("Warning:", err.Error())
 				}
 			}
+			logRecord.ResponseBody = res
 		} else if strings.Contains(req.URL.Path, "folio") {
 			res := models.Invoice{}
 			json.NewDecoder(response.Body).Decode(&res)
 			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
 			if err != nil {
-				log.Println(err.Error())
-				return
+				log.Println("Warning:", err.Error())
 			}
+			logRecord.ResponseBody = res
 		} else if strings.Contains(req.URL.Path, "refund") {
 			type RespBody struct {
-				NewInvoice      models.Invoice `json:"new_invoice" bson:"new_invoice"`
-				OriginalInvoice models.Invoice `json:"original_invoice" bson:"original_invoice"`
+				NewInvoice models.Invoice `json:"new_posinvoice" bson:"new_posinvoice"`
 			}
 			res := RespBody{}
 			json.NewDecoder(response.Body).Decode(&res)
-			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.OriginalInvoice.InvoiceNumber}, res.OriginalInvoice)
-			if err != nil {
-				log.Println(err.Error())
-				return
-			}
 			_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.NewInvoice.InvoiceNumber}, res.NewInvoice)
 			if err != nil {
-				log.Println(err.Error())
-				return
+				log.Println("Warning:", err.Error())
 			}
+			logRecord.ResponseBody = res
+		}
+		err = db.DB.C("requests_log").Insert(logRecord)
+		if err != nil {
+			log.Println("Warning: failed to log syncer record", err.Error())
 		}
 		err = db.DB.C("requests_queue").Remove(bson.M{"_id": r.ID})
 		if err != nil {
-			log.Println(err.Error())
+			log.Println("Warning: failed to remove request from queue after success", err.Error())
 			return
 		}
 	}
