@@ -187,16 +187,15 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	q["store_set"] = store
 	err = db.DB.C("cashiers").Find(q).One(&cashier)
 	if err != nil {
-		resp := bson.M{"ok": false, "details": "No matching PIN code to selected store."}
-		helpers.ReturnSuccessMessage(w, resp)
+		helpers.ReturnErrorMessageWithStatus(w, 400, "No matching PIN code to selected store.")
 		return
 	}
 	if config.Config.IsFDMEnabled && cashier.EmployeeID == "" {
-		helpers.ReturnSuccessMessage(w, bson.M{"ok": false, "details": "employee id is not set"})
+		helpers.ReturnErrorMessageWithStatus(w, 400, "employee id is not set")
 		return
 	}
 	if config.Config.IsFDMEnabled && len(cashier.EmployeeID) < 11 {
-		helpers.ReturnSuccessMessage(w, bson.M{"ok": false, "details": "employee id is not valid, must be 11 characters"})
+		helpers.ReturnErrorMessageWithStatus(w, 400, "employee id is not valid, must be 11 characters")
 		return
 	}
 
@@ -208,25 +207,23 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	otherCashier, err := locks.LockTerminal(postBody.TerminalID, cashier.ID)
 	if err != nil && ((cashierHashExists && otherCashier == cashier.ID) || otherCashier != cashier.ID) {
 		log.Println(err)
-		resp := bson.M{"ok": false, "details": "Terminal is locked."}
-		helpers.ReturnSuccessMessage(w, resp)
+		helpers.ReturnErrorMessageWithStatus(w, 400, "Terminal is locked.")
 		return
 	}
 
-	resp := bson.M{"ok": true, "details": cashier}
+	resp := cashier
 	terminal := models.Terminal{}
 	err = db.DB.C("terminals").Find(bson.M{"id": postBody.TerminalID}).One(&terminal)
 	if err != nil {
-		helpers.ReturnSuccessMessage(w, bson.M{"ok": false, "details": err.Error()})
+		helpers.ReturnErrorMessageWithStatus(w, 500, err.Error())
 		return
 	}
 	description, fdmResponse, err := clockin(cashier, terminal, postBody.ClockinTime)
 	if err != nil {
-		helpers.ReturnSuccessMessage(w, bson.M{"ok": false, "details": err.Error()})
+		helpers.ReturnErrorMessageWithStatus(w, 500, err.Error())
 		return
 	}
 	if config.Config.IsFDMEnabled {
-		resp["fdm_responses"] = []models.FDMResponse{fdmResponse}
 		postBody.FDMResponses = []models.FDMResponse{fdmResponse}
 		postBody.Description = description
 	}
