@@ -77,6 +77,7 @@ func Load() {
 	backendApis["currencies"] = "income/api/currency/"
 	backendApis["permissions"] = "income/api/poscashierpermissions/"
 	backendApis["cashiers"] = "income/api/cashier/sync/"
+	backendApis["attendance"] = "income/api/attendance/"
 	backendApis["usergroups"] = "core/getallusergroups/"
 	backendApis["operasettings"] = "api/pos/opera/"
 
@@ -230,7 +231,9 @@ func Load() {
 					log.Println(err)
 				}
 				for _, item := range res {
-					delete(item, "_id")
+					if _, ok := item["_id"]; ok {
+						delete(item, "_id")
+					}
 					_, err = db.DB.C(collection).Upsert(bson.M{"id": item["id"]}, item)
 					if err != nil {
 						log.Println(err.Error())

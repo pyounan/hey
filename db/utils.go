@@ -71,14 +71,6 @@ func GetNextTicketNumber(rcrs string) (int, error) {
 	}
 }
 
-// UpdateLastSequence updates the last used sequence in the database
-func UpdateLastSequence(rcrs string, val int) error {
-	q := bson.M{"key": "last_sequence", "rcrs": rcrs}
-	err := DB.C("metadata").Update(q,
-		bson.M{"$set": bson.M{"value": val}})
-	return err
-}
-
 // UpdateLastTicketNumber update the last ticket number in database for the passed RCRS.
 func UpdateLastTicketNumber(rcrs string, val int) error {
 	q := bson.M{"key": "last_ticket_number", "rcrs": rcrs}
