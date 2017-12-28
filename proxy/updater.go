@@ -31,11 +31,15 @@ func CheckForupdates() {
 		val, err := strconv.ParseInt(config.BuildNumber, 10, 64)
 		if err != nil {
 			log.Println("Failed to convert build number", err.Error())
+			time.Sleep(5 * time.Minute)
+			continue
 		}
 		config.Config.BuildNumber = &val
 		requestBody, err := json.Marshal(config.Config)
 		if err != nil {
 			log.Println("Failed to marshal config", err.Error())
+			time.Sleep(5 * time.Minute)
+			continue
 		}
 		req, err := http.NewRequest("POST", uri, bytes.NewBuffer(requestBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -43,20 +47,23 @@ func CheckForupdates() {
 		resp, err := netClient.Do(req)
 		if err != nil {
 			log.Println("Failed to get update data", err.Error())
-			return
+			time.Sleep(5 * time.Minute)
+			continue
 		}
 
 		respBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			log.Println("Failed to read update data", err.Error())
-			return
+			time.Sleep(5 * time.Minute)
+			continue
 		}
 
 		data := NewVersion{}
 		err = json.Unmarshal(respBody, &data)
 		if err != nil {
 			log.Println("Failed to parse update data", err.Error())
-			return
+			time.Sleep(5 * time.Minute)
+			continue
 		}
 		log.Println(fmt.Sprintf("New version \"%d\"", data.BuildNumber))
 		if data.BuildNumber != 0 && data.BuildNumber != *config.Config.BuildNumber {
