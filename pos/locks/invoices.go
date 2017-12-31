@@ -27,15 +27,6 @@ func LockInvoices(invoices []models.Invoice, terminalID int) (int, error) {
 		log.Println("failed to obtain invoice lock", lockName)
 		return otherTerminal, err
 	}
-	log.Println("obtain invoice lock", lockName)
-	ok, err := l.Lock()
-	if err != nil {
-		log.Println("failed to renew invoice lock", lockName)
-		return otherTerminal, err
-	} else if !ok {
-		log.Println("failed to renew invoice lock", lockName)
-		return otherTerminal, errors.New("failed to renew lock")
-	}
 	defer l.Unlock()
 
 	keys := []string{}

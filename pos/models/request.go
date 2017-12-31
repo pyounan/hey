@@ -29,11 +29,11 @@ type InvoicePOSTRequest struct {
 // Submit loops over invoice items, and sets the submitted quantity to quantity
 // then updates table status if invoice is not a takeout
 func (req *InvoicePOSTRequest) Submit() (Invoice, error) {
-
 	if req.Invoice.InvoiceNumber == "" {
 		// create a new invoice with a new invoice number
 		invoiceNumber, err := AdvanceInvoiceNumber(req.TerminalID)
 		if err != nil {
+			log.Println("ERROR: ", err.Error())
 			return Invoice{}, err
 		}
 		req.Invoice.InvoiceNumber = invoiceNumber
@@ -50,16 +50,20 @@ func (req *InvoicePOSTRequest) Submit() (Invoice, error) {
 	_, err := db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": req.Invoice.InvoiceNumber},
 		bson.M{"$set": req.Invoice})
 	if err != nil {
+		log.Println("ERROR: ", err.Error())
 		return Invoice{}, err
 	}
 
 	// update table status
-	table := Table{}
-	err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
-	if err != nil {
-		log.Println(err)
-	} else {
-		table.UpdateStatus()
+	if req.Invoice.TableID != nil {
+		table := Table{}
+		err = db.DB.C("tables").Find(bson.M{"id": *req.Invoice.TableID}).One(&table)
+		if err != nil {
+			log.Println(err)
+		} else {
+			table.UpdateStatus()
+		}
+
 	}
 
 	return req.Invoice, nil
