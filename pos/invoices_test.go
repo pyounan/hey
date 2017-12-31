@@ -3,7 +3,6 @@ package pos
 import (
 	"bytes"
 	"encoding/json"
-	"pos-proxy/pos"
 	"pos-proxy/pos/models"
 	"testing"
 )
@@ -1074,8 +1073,7 @@ func TestHandleOperaPayments(t *testing.T) {
   }`)
 	if err := json.NewDecoder(buf).Decode(&invoice); err != nil {
 		t.Error(err)
-
+		t.Fail()
 	}
-	pos.HandleOperaPayments(invoice)
-
+	HandleOperaPayments(invoice, 1)
 }

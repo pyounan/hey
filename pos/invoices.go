@@ -1053,7 +1053,7 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 	postRequest.WorkstationId = fmt.Sprintf("%d", invoice.TerminalID)
 	paymentMethodInt, _ := opera.GetPaymentMethod(department)
 	postRequest.PaymentMethod = paymentMethodInt
-	seqNumber, _ := db.GetNextOperaSequence()
+	seqNumber, _ := opera.GetNextSequence()
 	postRequest.SequenceNumber = seqNumber
 	postRequest.RequestType = 1
 	postRequest.Covers = invoice.Pax

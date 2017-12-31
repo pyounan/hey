@@ -3,7 +3,6 @@ package pos
 import (
 	"encoding/json"
 	"net/http"
-	"pos-proxy/db"
 	"pos-proxy/helpers"
 	"pos-proxy/libs/libfdm"
 	"pos-proxy/pos/fdm"
@@ -31,7 +30,7 @@ func FDMSetPin(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 	// get next sequence number for this production number
-	sn, err := db.GetNextSequence(body.ProductionNumber)
+	sn, err := fdm.GetNextSequence(body.ProductionNumber)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
