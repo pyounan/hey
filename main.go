@@ -169,7 +169,7 @@ func main() {
 
 	go func() {
 		for true {
-			// syncer.Load()
+			syncer.Load()
 			time.Sleep(time.Second * 30)
 		}
 	}()
