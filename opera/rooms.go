@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"log"
-	"pos-proxy/db"
 	"time"
 )
 
@@ -42,7 +41,7 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 	deptID, _ := GetRoomDepartmentID()
 	paymentMethodInt, err := GetPaymentMethod(deptID)
 	postInquiry.PaymentMethod = paymentMethodInt
-	seqNumber, _ := db.GetNextOperaSequence()
+	seqNumber, _ := GetNextSequence()
 	postInquiry.SequenceNumber = seqNumber
 	t := time.Now()
 	val := fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"pos-proxy/db"
 	"pos-proxy/libs/libfdm"
 	"pos-proxy/pos/models"
 )
@@ -85,7 +84,7 @@ func incrementRetryCounter(packet *[]byte) {
 func prepareHashAndSignMsg(RCRS string, eventLabel string, t models.FDMTicket) string {
 	// format: identifier + sequence + retry + ticket_date + ticket_time_period + user_id + RCRS + string(ticket_number) + eventLabel + total_amount + 4 vats + plu
 	identifier := "H"
-	ns, _ := db.GetNextSequence(RCRS)
+	ns, _ := GetNextSequence(RCRS)
 	// db.UpdateLastSequence(ns)
 	sequence := libfdm.FormatSequenceNumber(ns)
 	retry := "0"

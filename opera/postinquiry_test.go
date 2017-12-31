@@ -3,12 +3,11 @@ package opera
 import (
 	"bytes"
 	"encoding/xml"
-	"pos-proxy/opera/models"
 	"testing"
 )
 
 func TestSerializerPostInquiry(t *testing.T) {
-	postInquiry := models.PostInquiry{}
+	postInquiry := PostInquiry{}
 	postInquiry.InquiryInformation = "217"
 	postInquiry.MaximumReturnedMatches = 16
 	postInquiry.SequenceNumber = 1
@@ -29,7 +28,7 @@ func TestSerializerPostInquiry(t *testing.T) {
 }
 
 func TestDeserializerPostInquiry(t *testing.T) {
-	postInquiry := models.PostInquiry{}
+	postInquiry := PostInquiry{}
 	xmlStr := `<PostInquiry InquiryInformation="217" 
 	MaximumReturnedMatches="16" SequenceNumber="1" RequestType="4" 
 	PaymentMethod="16" Date="070905" Time="194121" 
@@ -43,10 +42,10 @@ func TestDeserializerPostInquiry(t *testing.T) {
 }
 
 func TestSerializerPostList(t *testing.T) {
-	postList := models.PostList{}
+	postList := PostList{}
 	postList.SequenceNumber = 1
 	for i := 0; i < 5; i++ {
-		postListItem := models.PostListItem{}
+		postListItem := PostListItem{}
 		postListItem.RoomNumber = "217"
 		postListItem.ReservationId = "24331"
 		postListItem.LastName = "Hundt"
@@ -62,7 +61,7 @@ func TestSerializerPostList(t *testing.T) {
 }
 
 func TestDeserializerPostList(t *testing.T) {
-	postList := models.PostList{}
+	postList := PostList{}
 	xmlStr := `
 	<PostList SequenceNumber="1">
 		<PostListItem RoomNumber="217" ReservationId="24331" FirstName="Heike" LastName="Hundt"></PostListItem>

@@ -21,7 +21,7 @@ func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
 		return models.FDMResponse{}, err
 	}
 	defer l.Unlock()
-	n, err := db.GetNextSequence(RCRS)
+	n, err := GetNextSequence(RCRS)
 	if err != nil {
 		return models.FDMResponse{}, err
 	}
@@ -54,7 +54,7 @@ func SendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	totalAmount := calculateTotalAmount(items)
 	t := models.FDMTicket{}
 	t.ID = bson.NewObjectId()
-	tn, err := db.GetNextTicketNumber(req.RCRS)
+	tn, err := GetNextTicketNumber(req.RCRS)
 	if err != nil {
 		return models.FDMResponse{}, err
 	}
@@ -102,7 +102,7 @@ func SendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	if err != nil {
 		return models.FDMResponse{}, err
 	}
-	if err := db.UpdateLastTicketNumber(req.RCRS, tn); err != nil {
+	if err := UpdateLastTicketNumber(req.RCRS, tn); err != nil {
 		log.Println(err)
 		return models.FDMResponse{}, err
 	}

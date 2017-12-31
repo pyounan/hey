@@ -151,6 +151,8 @@ func main() {
 
 	r.NotFoundHandler = http.HandlerFunc(proxy.ProxyToBackend)
 
+	go syncer.PullSequences()
+
 	go func() {
 		for true {
 			syncer.FetchConfiguration()
@@ -167,7 +169,7 @@ func main() {
 
 	go func() {
 		for true {
-			syncer.Load()
+			// syncer.Load()
 			time.Sleep(time.Second * 30)
 		}
 	}()
@@ -176,7 +178,7 @@ func main() {
 
 	lr := gh.LoggingHandler(os.Stdout, r)
 	mr := proxy.StatusMiddleware(lr)
-	// r = gh.RecoveryHandler()(lr)
+	cors := gh.CORS(originsOk, headersOk, methodsOk)(mr)
 
 	db.ConnectRedis()
 	if config.Config.IsOperaEnabled {
@@ -188,7 +190,7 @@ func main() {
 	graceful.LogListenAndServe(
 		&http.Server{
 			Addr:    ":" + *port,
-			Handler: gh.CORS(originsOk, headersOk, methodsOk)(mr),
+			Handler: cors,
 		},
 	)
 
@@ -281,7 +283,7 @@ func fDMStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 	// send status message to FDM
-	ns, err := db.GetNextSequence(rcrs)
+	ns, err := fdm.GetNextSequence(rcrs)
 	if err != nil {
 		ctx["error"] = err.Error()
 		ctx["has_error"] = true

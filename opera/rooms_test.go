@@ -1,14 +1,14 @@
-package opera_test
+package opera
 
 import (
 	"flag"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
 	"pos-proxy/config"
-	"pos-proxy/opera"
 	"testing"
+
+	"github.com/gorilla/mux"
 )
 
 var (
@@ -21,8 +21,8 @@ func init() {
 	flag.Parse()
 	config.Load(*filePath)
 	r := mux.NewRouter()
-	r.HandleFunc("/api/opera/rooms/", opera.ListOperaRooms).Methods("GET")
-	opera.Connect()
+	r.HandleFunc("/api/opera/rooms/", ListOperaRooms).Methods("GET")
+	Connect()
 	server = httptest.NewServer(r) //Creating new server with the user handlers
 
 	usersUrl = fmt.Sprintf("%s/api/opera/rooms/", server.URL) //Grab the address for the API endpoint
