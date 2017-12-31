@@ -7,20 +7,23 @@ import (
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/libs/libfdm"
-	"pos-proxy/pos/locks"
 	"pos-proxy/pos/models"
 	"strconv"
+	"sync"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
+var mutexesMap = make(map[string]*sync.Mutex)
+
 // CheckStatus sends S000 to the FDM and check if its ready.
 func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
-	l, err := locks.LockFDM(RCRS)
-	if err != nil {
-		return models.FDMResponse{}, err
+	if _, ok := mutexesMap[RCRS]; !ok {
+		mutexesMap[RCRS] = &sync.Mutex{}
 	}
-	defer l.Unlock()
+	mutexesMap[RCRS].Lock()
+	defer mutexesMap[RCRS].Unlock()
+
 	n, err := GetNextSequence(RCRS)
 	if err != nil {
 		return models.FDMResponse{}, err
@@ -126,11 +129,12 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 	if err != nil {
 		return []models.FDMResponse{resp}, err
 	}
-	l, err := locks.LockFDM(data.RCRS)
-	if err != nil {
-		return []models.FDMResponse{}, err
+	if _, ok := mutexesMap[data.RCRS]; !ok {
+		mutexesMap[data.RCRS] = &sync.Mutex{}
 	}
-	defer l.Unlock()
+	mutexesMap[data.RCRS].Lock()
+	defer mutexesMap[data.RCRS].Unlock()
+
 	items := data.Invoice.Events
 	vats := calculateVATs(items)
 	positiveVATs := []string{}
@@ -174,11 +178,11 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 		return []models.FDMResponse{resp}, err
 	}
 
-	l, err := locks.LockFDM(data.RCRS)
-	if err != nil {
-		return []models.FDMResponse{}, err
+	if _, ok := mutexesMap[data.RCRS]; !ok {
+		mutexesMap[data.RCRS] = &sync.Mutex{}
 	}
-	defer l.Unlock()
+	mutexesMap[data.RCRS].Lock()
+	defer mutexesMap[data.RCRS].Unlock()
 
 	responses := []models.FDMResponse{}
 
@@ -224,11 +228,11 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 		return []models.FDMResponse{resp}, err
 	}
 
-	l, err := locks.LockFDM(data.RCRS)
-	if err != nil {
-		return []models.FDMResponse{}, err
+	if _, ok := mutexesMap[data.RCRS]; !ok {
+		mutexesMap[data.RCRS] = &sync.Mutex{}
 	}
-	defer l.Unlock()
+	mutexesMap[data.RCRS].Lock()
+	defer mutexesMap[data.RCRS].Unlock()
 
 	responses := []models.FDMResponse{}
 
@@ -276,11 +280,11 @@ func Payment(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespo
 
 // EmptyPLUHash sends NS ticket with an empty plu hash to fdm
 func EmptyPLUHash(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMResponse, error) {
-	l, err := locks.LockFDM(data.RCRS)
-	if err != nil {
-		return []models.FDMResponse{}, err
+	if _, ok := mutexesMap[data.RCRS]; !ok {
+		mutexesMap[data.RCRS] = &sync.Mutex{}
 	}
-	defer l.Unlock()
+	mutexesMap[data.RCRS].Lock()
+	defer mutexesMap[data.RCRS].Unlock()
 
 	responses := []models.FDMResponse{}
 

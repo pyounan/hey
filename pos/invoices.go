@@ -212,7 +212,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 
 	invoice, err := req.Submit()
 	if err != nil {
-		log.Println(err)
+		log.Println("ERROR:", err.Error())
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
