@@ -619,6 +619,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Invoice = body.NewInvoice
+	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 
 	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.NewInvoice.InvoiceNumber}, body.NewInvoice)
