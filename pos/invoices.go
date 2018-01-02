@@ -697,7 +697,7 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 	postings = append(postings, posting)
 	req.Postings = postings
 
-	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, bson.M{"$set": req.Invoice})
+	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		log.Println("Mongodb error:", err.Error())
 		helpers.ReturnErrorMessage(w, err.Error())
