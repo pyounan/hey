@@ -115,7 +115,7 @@ func PushToBackend() {
 			return
 		}
 		proxy.AllowIncomingRequests = true
-		if req.URL.Path == "/api/pos/posinvoices/" {
+		if req.URL.Path == "/api/pos/posinvoices/" || req.URL.Path == "/api/pos/posinvoices/houseuse/" {
 			res := models.Invoice{}
 			err := json.NewDecoder(response.Body).Decode(&res)
 			if err != nil {
