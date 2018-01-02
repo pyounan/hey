@@ -604,7 +604,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	paidOnOpera := true
-	if config.Config.IsOperaEnabled {
+	if config.Config.IsOperaEnabled && !req.Invoice.HouseUse {
 		paidOnOpera = HandleOperaPayments(req.Invoice, body.DepartmentID)
 		if !paidOnOpera {
 			helpers.ReturnErrorMessage(w, "Failed to refund on Opera")
