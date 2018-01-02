@@ -101,8 +101,7 @@ func (invoice *Invoice) Submit(terminalID int) error {
 
 	invoice.Items = items
 
-	_, err := db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoice.InvoiceNumber},
-		bson.M{"$set": invoice})
+	_, err := db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
 	if err != nil {
 		return err
 	}
