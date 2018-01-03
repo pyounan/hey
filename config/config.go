@@ -2,12 +2,15 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
 // AuthUsername reflects the proxy user's username for backend credentials
@@ -53,22 +56,29 @@ type FDMConfig struct {
 var Config *ConfigHolder = &ConfigHolder{}
 
 // Load loads configuration from a file
-func Load(filePath string) {
-	log.Println("Loading configuration...")
+func Load(filePath string) error {
 	confPath, _ := filepath.Abs(filePath)
-	log.Printf("File: %s\n", confPath)
+	fmt.Printf("Loading configuration file from %s...\n", filePath)
+	bar := pb.StartNew(2)
+
 	f, err := os.Open(confPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
+	bar.Increment()
+
 	decoder := json.NewDecoder(f)
 	err = decoder.Decode(&Config)
 	if err != nil {
-		log.Println("Failed to decode configuration file:")
-		log.Fatal(err)
+		log.Println("Failed to decode configuration file")
+		bar.Finish()
+		return err
 	}
-	log.Println("Configuration loaded successfully...")
+	bar.Increment()
+
+	bar.FinishPrint("Configuration loaded successfully...")
+	return nil
 }
 
 // ParseAuthCredentials reads username and password from auth file
@@ -77,13 +87,6 @@ func ParseAuthCredentials(encKey string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// decrypt the retrieved data
-	/*f = []byte(strings.TrimSpace(string(f[:])))
-	log.Println("data:", string(f[:]))
-	txt, err := decrypt(f, []byte(encKey))
-	if err != nil {
-		return err
-	}*/
 	splitted := strings.Split(string(f), ",")
 	AuthUsername = strings.TrimSpace(splitted[0])
 	AuthPassword = strings.TrimSpace(splitted[1])

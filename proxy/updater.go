@@ -25,7 +25,7 @@ func CheckForupdates() {
 	}
 	netClient := helpers.NewNetClient()
 	for {
-		log.Println("Checking for updates...")
+		fmt.Println("Checking for updates...")
 		uri := fmt.Sprintf("%s%s", config.Config.BackendURI, "/api/proxyversions/getupdate/")
 
 		val, err := strconv.ParseInt(config.BuildNumber, 10, 64)
@@ -65,7 +65,7 @@ func CheckForupdates() {
 			time.Sleep(5 * time.Minute)
 			continue
 		}
-		log.Println(fmt.Sprintf("New version \"%d\"", data.BuildNumber))
+		fmt.Println(fmt.Sprintf("New version \"%d\"", data.BuildNumber))
 		if data.BuildNumber != 0 && data.BuildNumber != *config.Config.BuildNumber {
 			initiateUpdate(data.BuildNumber)
 		}
@@ -77,14 +77,14 @@ func CheckForupdates() {
 
 func initiateUpdate(buildNumber int64) error {
 	dir, err := ioutil.TempDir("", "proxyupdates")
-	log.Println("Creating staging area in ", dir)
+	fmt.Println("Creating staging area in ", dir)
 	gsPath := fmt.Sprintf("gs://pos-proxy/%s/%d/update.sh", config.VirtualHost, buildNumber)
 	cmd := exec.Command("gsutil", "-m", "cp", gsPath, dir)
 	cmd.Env = append(os.Environ())
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
-	log.Println("Will download")
+	fmt.Println("Will download")
 	err = cmd.Run()
 	if err != nil {
 		log.Println("Failed to fetch update script")
@@ -104,13 +104,13 @@ func initiateUpdate(buildNumber int64) error {
 		os.RemoveAll(dir)
 		return err
 	}
-	log.Println("Done Downloading")
+	fmt.Println("Done Downloading")
 	update(buildNumber, updateCommand, dir)
 	return nil
 }
 
 func update(buildNumber int64, updateCommand, updateDir string) {
-	log.Println("Starting update process")
+	fmt.Println("Starting update process")
 	cmd := exec.Command(updateCommand, config.VirtualHost, fmt.Sprintf("%d", buildNumber), updateDir)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdout = os.Stdout

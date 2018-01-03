@@ -35,7 +35,7 @@ func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
 		return models.FDMResponse{}, err
 	}
 
-	log.Println("FDM is ready.")
+	fmt.Println("FDM is ready.")
 	response := models.FDMResponse{}
 	response.ProcessStatus(res)
 	err = CheckFDMError(response)
@@ -95,11 +95,11 @@ func SendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 		return models.FDMResponse{}, err
 	}
 
-	log.Println("========= PLU Items =========")
+	fmt.Println("========= PLU Items =========")
 	for _, i := range items {
-		log.Println(i.String())
+		fmt.Println(i.String())
 	}
-	log.Println("=============================")
+	fmt.Println("=============================")
 	msg := prepareHashAndSignMsg(req.RCRS, eventLabel, t)
 	res, err := fdm.Write(msg, false, 109)
 	if err != nil {

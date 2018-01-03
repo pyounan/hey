@@ -13,8 +13,6 @@ import (
 	"pos-proxy/syncer"
 	"strconv"
 
-	"log"
-
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -207,7 +205,6 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	}
 	otherCashier, err := locks.LockTerminal(postBody.TerminalID, cashier.ID)
 	if err != nil && ((cashierHashExists && otherCashier == cashier.ID) || otherCashier != cashier.ID) {
-		log.Println(err)
 		helpers.ReturnErrorMessageWithStatus(w, 400, "Terminal is locked.")
 		return
 	}

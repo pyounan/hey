@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"log"
 	"pos-proxy/libs/libfdm"
 	"pos-proxy/pos/models"
 )
@@ -49,37 +48,6 @@ func calculateTotalAmount(items []models.EJEvent) float64 {
 	return total
 }
 
-/* TOREMOVE
-func generateLowLevelMessage(message string) []byte {
-	packet := []byte{0x02}
-	msg := []byte(message)
-	BCC := calculateLRC(msg)
-	packet = append(packet, msg...)
-	packet = append(packet, 0x03)
-	packet = append(packet, BCC)
-
-	return packet
-}
-
-func calculateLRC(message []byte) byte {
-	var LRC = byte(0)
-	for _, rune := range message {
-		LRC = (LRC + rune) & 0xFF
-	}
-	LRC = ((LRC ^ 0xFF) + 1) & 0xFF
-	return LRC
-}
-
-func incrementRetryCounter(packet *[]byte) {
-	s := fmt.Sprint((*packet)[4])
-	i, err := strconv.Atoi(s)
-	if err != nil {
-		log.Fatal(err)
-	}
-	i++
-	(*packet)[4] = byte(i)
-}
-*/
 // prepareHashAndSignMsg is a shortcut function that prepares the string that should be sent to the FDM in case of sales or refund
 func prepareHashAndSignMsg(RCRS string, eventLabel string, t models.FDMTicket) string {
 	// format: identifier + sequence + retry + ticket_date + ticket_time_period + user_id + RCRS + string(ticket_number) + eventLabel + total_amount + 4 vats + plu
@@ -103,7 +71,7 @@ func prepareHashAndSignMsg(RCRS string, eventLabel string, t models.FDMTicket) s
 		msg += per + amount
 	}
 	msg += t.PLUHash
-	log.Println("HashAndSignMessage: " + msg)
+	fmt.Println("HashAndSignMessage: " + msg)
 	return msg
 }
 

@@ -57,17 +57,75 @@ func main() {
 	templatesPath := flag.String("templates", "templates/*", "Path of templates directory")
 	filePath := flag.String("config", "/etc/cloudinn/pos_config.json", "Configuration for the POS proxy")
 	flag.Parse()
-	config.Load(*filePath)
-	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "X-CSRFToken", "Accept", "Accept-Lanuage", "Accept-Encoding", "Authorization"})
-	originsOk := gh.AllowedOrigins([]string{"*"})
-	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+	err = config.Load(*filePath)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Load templates
 	templateexport.ParseTemplates(*templatesPath)
 	// Connect to Database
 	db.Connect()
-	// Define routes
+
+	fmt.Println("Loading data & configuration from Cloudinn servers...")
+	if config.Config.IsFDMEnabled {
+		syncer.PullSequences()
+	}
+	syncer.Load(syncer.SingleLoadApis)
+
+	go func() {
+		for true {
+			syncer.FetchConfiguration()
+			time.Sleep(time.Second * 60)
+		}
+	}()
+
+	go func() {
+		for true {
+			syncer.PushToBackend()
+			time.Sleep(time.Second * 5)
+		}
+	}()
+
+	go func() {
+		for true {
+			syncer.Load(syncer.ConfApis)
+			time.Sleep(time.Second * 30)
+		}
+	}()
+
+	go proxy.CheckForupdates()
+
+	err = db.ConnectRedis()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Connection to redis has been stablished successfully...")
+
+	if config.Config.IsOperaEnabled {
+		opera.Connect()
+	}
+
+	handler := createRouter()
+
+	graceful.Timeout = 30 * time.Second
+	graceful.LogListenAndServe(
+		&http.Server{
+			Addr:    ":" + *port,
+			Handler: handler,
+		},
+	)
+
+}
+
+func createRouter() http.Handler {
+	headersOk := gh.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "X-CSRFToken", "Accept", "Accept-Lanuage", "Accept-Encoding", "Authorization"})
+	originsOk := gh.AllowedOrigins([]string{"*"})
+	methodsOk := gh.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+
 	r := mux.NewRouter()
 	r = r.StrictSlash(true)
+
+	// Define routes
 	r.HandleFunc("/proxy/test/", proxy.Status).Methods("GET")
 	r.HandleFunc("/proxy/version/", proxy.Version).Methods("GET")
 
@@ -151,49 +209,10 @@ func main() {
 
 	r.NotFoundHandler = http.HandlerFunc(proxy.ProxyToBackend)
 
-	go syncer.PullSequences()
-
-	go func() {
-		for true {
-			syncer.FetchConfiguration()
-			time.Sleep(time.Second * 60)
-		}
-	}()
-
-	go func() {
-		for true {
-			syncer.PushToBackend()
-			time.Sleep(time.Second * 5)
-		}
-	}()
-
-	go func() {
-		for true {
-			syncer.Load()
-			time.Sleep(time.Second * 30)
-		}
-	}()
-
-	go proxy.CheckForupdates()
-
-	lr := gh.LoggingHandler(os.Stdout, r)
-	mr := proxy.StatusMiddleware(lr)
+	//lr := gh.LoggingHandler(os.Stdout, r)
+	mr := proxy.StatusMiddleware(r)
 	cors := gh.CORS(originsOk, headersOk, methodsOk)(mr)
-
-	db.ConnectRedis()
-	if config.Config.IsOperaEnabled {
-		opera.Connect()
-	}
-
-	log.Printf("Listening on http://localhost:%s\n", *port)
-	graceful.Timeout = 30 * time.Second
-	graceful.LogListenAndServe(
-		&http.Server{
-			Addr:    ":" + *port,
-			Handler: cors,
-		},
-	)
-
+	return cors
 }
 
 func homeView(w http.ResponseWriter, r *http.Request) {

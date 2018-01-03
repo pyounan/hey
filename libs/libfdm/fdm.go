@@ -20,7 +20,7 @@ func New(config *serial.Config) (*FDM, error) {
 	fdm := &FDM{}
 	fdm.c = config
 
-	log.Printf("Trying to stablish connection with FDM serial port: %s ->\n", fdm.c.Name)
+	fmt.Printf("Trying to stablish connection with FDM serial port: %s ->\n", fdm.c.Name)
 	s, err := serial.OpenPort(fdm.c)
 	if err != nil {
 		log.Printf("Failed to stablish connection with FDM serial port: %s\n", fdm.c.Name)
@@ -30,7 +30,7 @@ func New(config *serial.Config) (*FDM, error) {
 	}
 	fdm.s = s
 
-	log.Println("Connection to FDM serial port has been stablished successfully.")
+	fmt.Println("Connection to FDM serial port has been stablished successfully.")
 	return fdm, nil
 }
 
@@ -52,10 +52,10 @@ func (fdm *FDM) sendAndWaitForACK(packet []byte) (bool, error) {
 		}
 		incrementRetryCounter(&packet)
 		if res[0] == 0x06 {
-			log.Println("ACK received.")
+			fmt.Println("ACK received.")
 			ack = 0x06
 		} else {
-			log.Println("ACK wasn't received, retrying...")
+			fmt.Println("ACK wasn't received, retrying...")
 		}
 	}
 	if ack == 0x06 {
@@ -119,10 +119,10 @@ func (fdm *FDM) Write(message string, just_wait_for_ACK bool, response_size int)
 		if fmt.Sprintf("%v", stx) != fmt.Sprintf("%v", 0x02) && fmt.Sprintf("%v", etx) != fmt.Sprintf("%v", 0x03) && bcc != nil && calculateLRC(msg) == bcc[0] {
 			gotResponse = true
 			response = msg
-			log.Println("Received a valid response")
+			fmt.Println("Received a valid response")
 			break
 		} else {
-			log.Println("Not a valid response, sending NACK....")
+			fmt.Println("Not a valid response, sending NACK....")
 			response = msg
 			sentNACKs++
 			fdm.sendNACK()

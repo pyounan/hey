@@ -9,15 +9,17 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/helpers"
 	"pos-proxy/pos/models"
+	"sync"
 	"time"
 
+	pb "gopkg.in/cheggaaa/pb.v1"
 	"gopkg.in/mgo.v2/bson"
 )
 
 // FetchConfiguration asks CloudInn servers if the conf were updated,
 // if yes update the current configurations and write them to the conf file
 func FetchConfiguration() {
-	log.Println("Checking for new configuration")
+	fmt.Println("Checking for new configuration")
 	uri := fmt.Sprintf("%s/api/pos/proxy/settings/", config.Config.BackendURI)
 	netClient := helpers.NewNetClient()
 	req, err := http.NewRequest("GET", uri, nil)
@@ -41,7 +43,7 @@ func FetchConfiguration() {
 	if (config.Config.UpdatedAt != time.Time{}) && !incoming.UpdatedAt.After(config.Config.UpdatedAt) {
 		return
 	}
-	log.Println("New configurations found")
+	fmt.Println("New configurations found")
 	config.Config = &incoming
 	// Write conf to file
 	if err := config.Config.WriteToFile(); err != nil {
@@ -51,16 +53,24 @@ func FetchConfiguration() {
 }
 
 // Load data from the backend and insert to mongodb
-func Load() {
-	// Check if there are items int he requests queue,
+func Load(apis map[string]string) {
+	// Check if there are items in the requests queue,
 	// if there is don't load new items until the requests queue is empty
 	c, _ := db.DB.C("requests_queue").Find(nil).Count()
 	if c > 0 {
 		return
 	}
 
+	// create console progress bar
+	fmt.Println("Pulling data from CloudInn services..")
+	bar := pb.StartNew(len(apis))
+
+	// create wait group
+	wg := new(sync.WaitGroup)
+
 	netClient := helpers.NewNetClient()
-	for collection, api := range backendApis {
+	for collection, api := range apis {
+		wg.Add(1)
 		go func(netClient *http.Client, collection string, api string) {
 			if collection == "terminals" {
 				models.TerminalsOperationsMutex.Lock()
@@ -75,14 +85,19 @@ func Load() {
 			response, err := netClient.Do(req)
 			if err != nil {
 				log.Println(err.Error())
+				bar.Finish()
+				wg.Done()
 				return
 			}
 			defer response.Body.Close()
+			bar.Increment()
 			if response.StatusCode != 200 {
 				log.Printf("Failed to load api from backend: %s\n", api)
+				bar.Finish()
+				wg.Done()
 				return
 			}
-			log.Printf("syncing %s from %s\n", collection, api)
+			// bar.Prefix(fmt.Sprintf("syncing %s from %s\n", collection, api))
 			if collection == "sunexportdate" {
 				db.DB.C(collection).Remove(nil)
 				type BodyRequest struct {
@@ -146,18 +161,24 @@ func Load() {
 					paginationresponse, err := netClient.Do(req)
 					if err != nil {
 						log.Println(err.Error())
+						wg.Done()
 						return
 					}
 					defer paginationresponse.Body.Close()
 					if paginationresponse.StatusCode != 200 {
 						log.Printf("Failed to load api from backend: %s\n", api)
+						wg.Done()
 						return
 					}
-					json.NewDecoder(paginationresponse.Body).Decode(&res)
-					for _, item := range res.Results {
-						_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
-						if err != nil {
-							log.Println(err.Error())
+					err = json.NewDecoder(paginationresponse.Body).Decode(&res)
+					if err != nil {
+						log.Println(err.Error())
+					} else {
+						for _, item := range res.Results {
+							_, err = db.DB.C(collection).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
+							if err != nil {
+								log.Println(err.Error())
+							}
 						}
 					}
 				}
@@ -216,6 +237,11 @@ func Load() {
 					}
 				}
 			}
+			wg.Done()
 		}(netClient, collection, api)
+	}
+	wg.Wait()
+	if !bar.IsFinished() {
+		bar.FinishPrint("All Data has been loaded successfully")
 	}
 }
