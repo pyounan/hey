@@ -153,7 +153,7 @@ func clockout(cashier Cashier, terminal models.Terminal, time string) (string, m
 		item.Description = description
 		item.Quantity = 1
 		item.VATCode = "D"
-		fdmResponse, err = fdm.SendHashAndSignMessage(conn, "NR", fdmReq, []models.EJEvent{item})
+		fdmResponse, err = fdm.SendHashAndSignMessage(conn, "NS", fdmReq, []models.EJEvent{item})
 		if err != nil {
 			return description, fdmResponse, err
 		}
