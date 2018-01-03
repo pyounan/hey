@@ -124,7 +124,8 @@ func PushToBackend() {
 			return
 		}
 		proxy.AllowIncomingRequests = true
-		if req.URL.Path == "/api/pos/posinvoices/" || req.URL.Path == "/api/pos/posinvoices/houseuse/" {
+		if req.URL.Path == "/api/pos/posinvoices/" || req.URL.Path == "/api/pos/posinvoices/houseuse/" ||
+			strings.Contains(req.URL.Path, "folio") || strings.Contains(req.URL.Path, "wasteandvoid") {
 			res := models.Invoice{}
 			err := json.NewDecoder(response.Body).Decode(&res)
 			if err != nil {
@@ -151,6 +152,20 @@ func PushToBackend() {
 				}
 				logRecord.ResponseBody = res
 			}
+		} else if strings.Contains(req.URL.Path, "cancelpostings") {
+			res := []models.Posting{}
+			err := json.NewDecoder(response.Body).Decode(&res)
+			if err != nil {
+				log.Println("Warning:", err.Error())
+			} else {
+				invoiceNumber := strings.Split(req.URL.Path, "/")[3]
+				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoiceNumber},
+					bson.M{"$set": bson.M{"pospayment": res}})
+				if err != nil {
+					log.Println("Warning:", err.Error())
+				}
+				logRecord.ResponseBody = res
+			}
 		} else if strings.Contains(req.URL.Path, "changetable") || strings.Contains(req.URL.Path, "split") ||
 			strings.Contains(req.URL.Path, "bulksubmit") {
 			res := []models.Invoice{}
@@ -163,18 +178,6 @@ func PushToBackend() {
 					if err != nil {
 						log.Println("Warning:", err.Error())
 					}
-				}
-				logRecord.ResponseBody = res
-			}
-		} else if strings.Contains(req.URL.Path, "folio") {
-			res := models.Invoice{}
-			err := json.NewDecoder(response.Body).Decode(&res)
-			if err != nil {
-				log.Println("Warning: ", err.Error())
-			} else {
-				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
-				if err != nil {
-					log.Println("Warning:", err.Error())
 				}
 				logRecord.ResponseBody = res
 			}
