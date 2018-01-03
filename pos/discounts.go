@@ -1,10 +1,10 @@
 package pos
 
 import (
-	"encoding/json"
 	"net/http"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
+	"pos-proxy/proxy"
 	"pos-proxy/syncer"
 	"strconv"
 
@@ -54,50 +54,12 @@ func GetFixedDiscount(w http.ResponseWriter, r *http.Request) {
 
 // CreateFixedDiscount creates a new object of a FixedDiscount
 func CreateFixedDiscount(w http.ResponseWriter, r *http.Request) {
-	d := make(map[string]interface{})
-	err := json.NewDecoder(r.Body).Decode(&d)
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
-		return
-	}
-	defer r.Body.Close()
-
-	err = db.DB.C("fixeddiscounts").Insert(d)
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
-		return
-	}
-
-	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, d)
-
-	helpers.ReturnSuccessMessage(w, d)
+	proxy.ProxyToBackend(w, r)
 }
 
 // UpdateFixedDiscount updated a FixedDiscount object based on ID
 func UpdateFixedDiscount(w http.ResponseWriter, r *http.Request) {
-	idStr, _ := mux.Vars(r)["id"]
-	id, _ := strconv.Atoi(idStr)
-	d := make(map[string]interface{})
-	err := json.NewDecoder(r.Body).Decode(&d)
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
-		return
-	}
-	defer r.Body.Close()
-
-	if _, ok := d["_id"]; ok {
-		delete(d, "_id")
-	}
-
-	err = db.DB.C("fixeddiscounts").Update(bson.M{"id": id}, d)
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
-		return
-	}
-
-	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, d)
-
-	helpers.ReturnSuccessMessage(w, d)
+	proxy.ProxyToBackend(w, r)
 }
 
 // DeleteFixedDiscount deletes a fixed discount by id from mongodb
