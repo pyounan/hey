@@ -551,7 +551,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	body := ReqBody{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		log.Println("########ERRRORRRRR#####", err.Error())
+		log.Println("Error:", err.Error())
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
@@ -1076,7 +1076,6 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 	}
 	postAnswer := opera.PostAnswer{}
 	responseBuf := bytes.NewBufferString(msg)
-	log.Println("msg", msg)
 	if err := xml.NewDecoder(responseBuf).Decode(&postAnswer); err != nil {
 		log.Println("error parsing", err)
 		return false
@@ -1164,13 +1163,11 @@ func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,
 }
 
 func ComputeDiscounts(amount float64, discounts []models.AppliedDiscount) float64 {
-	log.Println("Will discount from", amount)
 	discountsValue := 0.0
 	for _, discount := range discounts {
 		value := amount * discount.Percentage / 100.0
 		discountsValue += value
 		amount -= value
 	}
-	log.Println("Discounted value", discountsValue)
 	return -helpers.Round(discountsValue, 0.05)
 }

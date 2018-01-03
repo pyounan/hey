@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	pb "gopkg.in/cheggaaa/pb.v1"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -37,7 +38,6 @@ func QueueRequest(uri string, method string, headers http.Header, payload interf
 	body.Headers = headers
 	body.Payload = payload
 	body.ActionTime = time.Now()
-	log.Println("inserting request to queue")
 	err := db.DB.C("requests_queue").Insert(body)
 	if err != nil {
 		log.Println(err)
@@ -57,6 +57,14 @@ type RequestLog struct {
 func PushToBackend() {
 	requests := []RequestRow{}
 	db.DB.C("requests_queue").Find(nil).Sort("action_time").All(&requests)
+
+	// return if there is no something to do
+	if len(requests) == 0 {
+		return
+	}
+
+	fmt.Printf("Pushing %d requests to CloudInn services...\n", len(requests))
+	bar := pb.StartNew(len(requests))
 
 	netClient := helpers.NewNetClient()
 	for _, r := range requests {
@@ -78,9 +86,10 @@ func PushToBackend() {
 		logRecord.CreatedAt = time.Now()
 		logRecord.Request = r
 
-		log.Println("Sending: ", r.Method, req.URL.Path)
+		// bar.Postfix(fmt.Sprintf("Sending: %s %s", r.Method, req.URL.Path))
 		response, err := netClient.Do(req)
 		if err != nil {
+			bar.Finish()
 			log.Println("Error", err.Error())
 			return
 		}
@@ -115,7 +124,8 @@ func PushToBackend() {
 			return
 		}
 		proxy.AllowIncomingRequests = true
-		if req.URL.Path == "/api/pos/posinvoices/" || req.URL.Path == "/api/pos/posinvoices/houseuse/" {
+		if req.URL.Path == "/api/pos/posinvoices/" || req.URL.Path == "/api/pos/posinvoices/houseuse/" ||
+			strings.Contains(req.URL.Path, "folio") || strings.Contains(req.URL.Path, "wasteandvoid") {
 			res := models.Invoice{}
 			err := json.NewDecoder(response.Body).Decode(&res)
 			if err != nil {
@@ -142,7 +152,22 @@ func PushToBackend() {
 				}
 				logRecord.ResponseBody = res
 			}
-		} else if strings.Contains(req.URL.Path, "changetable") || strings.Contains(req.URL.Path, "split") {
+		} else if strings.Contains(req.URL.Path, "cancelpostings") {
+			res := []models.Posting{}
+			err := json.NewDecoder(response.Body).Decode(&res)
+			if err != nil {
+				log.Println("Warning:", err.Error())
+			} else {
+				invoiceNumber := strings.Split(req.URL.Path, "/")[3]
+				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoiceNumber},
+					bson.M{"$set": bson.M{"pospayment": res}})
+				if err != nil {
+					log.Println("Warning:", err.Error())
+				}
+				logRecord.ResponseBody = res
+			}
+		} else if strings.Contains(req.URL.Path, "changetable") || strings.Contains(req.URL.Path, "split") ||
+			strings.Contains(req.URL.Path, "bulksubmit") {
 			res := []models.Invoice{}
 			err := json.NewDecoder(response.Body).Decode(&res)
 			if err != nil {
@@ -153,18 +178,6 @@ func PushToBackend() {
 					if err != nil {
 						log.Println("Warning:", err.Error())
 					}
-				}
-				logRecord.ResponseBody = res
-			}
-		} else if strings.Contains(req.URL.Path, "folio") {
-			res := models.Invoice{}
-			err := json.NewDecoder(response.Body).Decode(&res)
-			if err != nil {
-				log.Println("Warning: ", err.Error())
-			} else {
-				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
-				if err != nil {
-					log.Println("Warning:", err.Error())
 				}
 				logRecord.ResponseBody = res
 			}
@@ -190,8 +203,11 @@ func PushToBackend() {
 		}
 		err = db.DB.C("requests_queue").Remove(bson.M{"_id": r.ID})
 		if err != nil {
+			bar.Finish()
 			log.Println("Error: failed to remove request from queue after success", err.Error())
 			return
 		}
+		bar.Increment()
 	}
+	bar.Finish()
 }

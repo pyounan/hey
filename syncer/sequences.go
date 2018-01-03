@@ -10,27 +10,34 @@ import (
 	"pos-proxy/helpers"
 	"pos-proxy/pos/models"
 
+	pb "gopkg.in/cheggaaa/pb.v1"
 	"gopkg.in/mgo.v2/bson"
 )
 
 var SequencesAPI = "/api/pos/proxy/sequences/"
 
 func PullSequences() {
+	fmt.Println("Pulling FDM Sequences from CloudInn services...")
+	// create console progress bar
+	bar := pb.StartNew(3)
 	netClient := helpers.NewNetClient()
 	uri := fmt.Sprintf("%s%s", config.Config.BackendURI, SequencesAPI)
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
 		log.Println(err.Error())
 	}
+	bar.Increment()
 	req = helpers.PrepareRequestHeaders(req)
 	response, err := netClient.Do(req)
 	if err != nil {
-		log.Println(err.Error())
+		bar.FinishPrint(err.Error())
 		return
 	}
 	defer response.Body.Close()
+	bar.Increment()
 	if response.StatusCode != 200 {
 		log.Printf("Failed to load api from backend: %s\n", uri)
+		bar.Finish()
 		return
 	}
 	list := []models.Sequence{}
@@ -52,4 +59,6 @@ func PullSequences() {
 			db.DB.C("metadata").Upsert(q, s)
 		}
 	}
+	bar.Increment()
+	bar.Finish()
 }

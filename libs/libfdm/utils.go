@@ -33,7 +33,7 @@ func incrementRetryCounter(packet *[]byte) {
 	s := fmt.Sprint((*packet)[4])
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	i++
 	(*packet)[4] = byte(i)
@@ -58,7 +58,6 @@ func FormatAmount(oldVal float64) string {
 	for len(amount) < 11 {
 		amount = " " + amount
 	}
-	log.Println("amount: ", amount)
 	return amount
 }
 
