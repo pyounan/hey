@@ -197,10 +197,12 @@ func Load(apis map[string]string) {
 				}
 			} else if api == "shadowinn/api/company/" {
 				var res map[string]interface{}
-				json.NewDecoder(response.Body).Decode(&res)
-				_, err := db.DB.C(collection).Upsert(bson.M{"name": res["name"]}, res)
+				err := json.NewDecoder(response.Body).Decode(&res)
 				if err != nil {
-					db.DB.C(collection).Insert(res)
+					log.Println(err)
+				} else {
+					db.DB.C(collection).RemoveAll(nil)
+					db.DB.C(collection).Upsert(bson.M{"name": res["name"].(string)}, res)
 				}
 			} else if api == "income/api/poscashierpermissions/" {
 				var res []map[string]interface{}

@@ -325,6 +325,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	fdmResponses := []models.FDMResponse{}
+	fdmSubmitResCount := 0
 	// if fdm is enabled submit items to fdm first
 	if config.Config.IsFDMEnabled == true {
 		// create fdm connection
@@ -339,6 +340,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
+		fdmSubmitResCount += len(responses)
 		fdmResponses = append(fdmResponses, responses...)
 	}
 
@@ -367,6 +369,14 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+	// remove the FDM submit response from fdm responses
+	// so that the folio would render correct data. Since
+	// the EJ should know about the submit + folio transactions
+	// but the UI only needs the FDM folio response
+	if config.Config.IsFDMEnabled {
+		req.Invoice.FDMResponses = req.Invoice.FDMResponses[fdmSubmitResCount:]
+	}
+
 	req.Invoice.Events = []models.EJEvent{}
 
 	req.Invoice.PrintCount++
