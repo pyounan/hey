@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
+	"pos-proxy/proxy"
 	"pos-proxy/syncer"
 	"strconv"
 
@@ -36,6 +37,29 @@ func ListFixedDiscounts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	helpers.ReturnSuccessMessage(w, fixedDiscounts)
+}
+
+// GetFixedDiscount returns an object of a FixedDiscount based on ID
+func GetFixedDiscount(w http.ResponseWriter, r *http.Request) {
+	idStr, _ := mux.Vars(r)["id"]
+	id, _ := strconv.Atoi(idStr)
+	d := make(map[string]interface{})
+	err := db.DB.C("fixeddiscounts").Find(bson.M{"id": id}).One(&d)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	helpers.ReturnSuccessMessage(w, d)
+}
+
+// CreateFixedDiscount creates a new object of a FixedDiscount
+func CreateFixedDiscount(w http.ResponseWriter, r *http.Request) {
+	proxy.ProxyToBackend(w, r)
+}
+
+// UpdateFixedDiscount updated a FixedDiscount object based on ID
+func UpdateFixedDiscount(w http.ResponseWriter, r *http.Request) {
+	proxy.ProxyToBackend(w, r)
 }
 
 // DeleteFixedDiscount deletes a fixed discount by id from mongodb

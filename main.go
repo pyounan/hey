@@ -191,10 +191,15 @@ func createRouter() http.Handler {
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/cancelpostings/", pos.CancelPostings).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/unlock/", pos.UnlockInvoice).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/getlatestchanges/", pos.GetInvoiceLatestChanges).Methods("POST")
+	// fixed discounts
+	r.HandleFunc("/api/pos/fixeddiscount/", pos.ListFixedDiscounts).Methods("GET")
+	r.HandleFunc("/api/pos/fixeddiscount/", pos.CreateFixedDiscount).Methods("POST")
+	r.HandleFunc("/api/pos/fixeddiscount/{id}/", pos.GetFixedDiscount).Methods("GET")
+	r.HandleFunc("/api/pos/fixeddiscount/{id}/", pos.UpdateFixedDiscount).Methods("PUT")
 	r.HandleFunc("/api/pos/fixeddiscount/{id}/", pos.DeleteFixedDiscount).Methods("DELETE")
+
 	r.HandleFunc("/api/pos/condiment/", pos.ListCondiments).Methods("GET")
 
-	r.HandleFunc("/api/pos/fixeddiscount/", pos.ListFixedDiscounts).Methods("GET")
 	// HTML Views
 	r.HandleFunc("/", homeView).Methods("GET")
 	r.HandleFunc("/syncer/logs", requestsLogView).Methods("GET")
