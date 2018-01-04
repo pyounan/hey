@@ -24,7 +24,7 @@ func ListDepartments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	departments := []map[string]interface{}{}
-	err := db.DB.C("departments").Find(query).All(&departments)
+	err := db.DB.C("departments").With(db.Session.Copy()).Find(query).All(&departments)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -39,7 +39,7 @@ func GetDepartment(w http.ResponseWriter, r *http.Request) {
 	q["id"] = id
 
 	department := make(map[string]interface{})
-	err := db.DB.C("departments").Find(q).One(&department)
+	err := db.DB.C("departments").With(db.Session.Copy()).Find(q).One(&department)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

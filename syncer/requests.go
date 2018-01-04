@@ -38,7 +38,7 @@ func QueueRequest(uri string, method string, headers http.Header, payload interf
 	body.Headers = headers
 	body.Payload = payload
 	body.ActionTime = time.Now()
-	err := db.DB.C("requests_queue").Insert(body)
+	err := db.DB.C("requests_queue").With(db.Session.Copy()).Insert(body)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -56,7 +56,7 @@ type RequestLog struct {
 
 func PushToBackend() {
 	requests := []RequestRow{}
-	db.DB.C("requests_queue").Find(nil).Sort("action_time").All(&requests)
+	db.DB.C("requests_queue").With(db.Session.Copy()).Find(nil).Sort("action_time").All(&requests)
 
 	// return if there is no something to do
 	if len(requests) == 0 {
@@ -117,7 +117,7 @@ func PushToBackend() {
 			} else {
 				logRecord.ResponseBody = string(data)
 			}
-			err = db.DB.C("requests_log").Insert(logRecord)
+			err = db.DB.C("requests_log").With(db.Session.Copy()).Insert(logRecord)
 			if err != nil {
 				log.Println("Warning: failed to log syncer record", err.Error())
 			}
@@ -131,7 +131,7 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("Warning:", err.Error())
 			} else {
-				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
+				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
 				if err != nil {
 					log.Println("Warning:", err.Error())
 				}
@@ -146,7 +146,7 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("Warning:", err.Error())
 			} else {
-				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.Invoice.InvoiceNumber}, res.Invoice)
+				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": res.Invoice.InvoiceNumber}, res.Invoice)
 				if err != nil {
 					log.Println("Warning:", err.Error())
 				}
@@ -159,7 +159,7 @@ func PushToBackend() {
 				log.Println("Warning:", err.Error())
 			} else {
 				invoiceNumber := strings.Split(req.URL.Path, "/")[3]
-				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoiceNumber},
+				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": invoiceNumber},
 					bson.M{"$set": bson.M{"pospayment": res}})
 				if err != nil {
 					log.Println("Warning:", err.Error())
@@ -174,7 +174,7 @@ func PushToBackend() {
 				log.Println("Warning: ", err.Error())
 			} else {
 				for _, inv := range res {
-					_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": inv.InvoiceNumber}, inv)
+					_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": inv.InvoiceNumber}, inv)
 					if err != nil {
 						log.Println("Warning:", err.Error())
 					}
@@ -190,18 +190,18 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("Warning: ", err.Error())
 			} else {
-				_, err = db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": res.NewInvoice.InvoiceNumber}, res.NewInvoice)
+				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": res.NewInvoice.InvoiceNumber}, res.NewInvoice)
 				if err != nil {
 					log.Println("Warning:", err.Error())
 				}
 				logRecord.ResponseBody = res
 			}
 		}
-		err = db.DB.C("requests_log").Insert(logRecord)
+		err = db.DB.C("requests_log").With(db.Session.Copy()).Insert(logRecord)
 		if err != nil {
 			log.Println("Warning: failed to log syncer record", err.Error())
 		}
-		err = db.DB.C("requests_queue").Remove(bson.M{"_id": r.ID})
+		err = db.DB.C("requests_queue").With(db.Session.Copy()).Remove(bson.M{"_id": r.ID})
 		if err != nil {
 			bar.Finish()
 			log.Println("Error: failed to remove request from queue after success", err.Error())

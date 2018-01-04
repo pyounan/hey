@@ -48,15 +48,15 @@ func PullSequences() {
 	for _, s := range list {
 		oldS := models.Sequence{}
 		q := bson.M{"key": s.Key, "rcrs": s.RCRS}
-		err := db.DB.C("metadata").Find(q).One(&oldS)
+		err := db.DB.C("metadata").With(db.Session.Copy()).Find(q).One(&oldS)
 		if err != nil {
 			log.Println("inserting new sequnce")
-			db.DB.C("metadata").Insert(s)
+			db.DB.C("metadata").With(db.Session.Copy()).Insert(s)
 			continue
 		}
 		if s.UpdatedAt.After(oldS.UpdatedAt) {
 			log.Println("updating sequnce")
-			db.DB.C("metadata").Upsert(q, s)
+			db.DB.C("metadata").With(db.Session.Copy()).Upsert(q, s)
 		}
 	}
 	bar.Increment()

@@ -237,8 +237,8 @@ func requestsLogView(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := bson.M{}
 	logs := []syncer.RequestLog{}
-	recordCount, _ := db.DB.C("requests_log").Count()
-	db.DB.C("requests_log").Find(nil).Sort("-created_at").Limit(limit).Skip(offset).All(&logs)
+	recordCount, _ := db.DB.C("requests_log").With(db.Session.Copy()).Count()
+	db.DB.C("requests_log").With(db.Session.Copy()).Find(nil).Sort("-created_at").Limit(limit).Skip(offset).All(&logs)
 	ctx["logs"] = logs
 	if offset+limit >= recordCount {
 		ctx["hasNext"] = false
@@ -267,7 +267,7 @@ func syncerRequest(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	logRecord := syncer.RequestLog{}
-	err := db.DB.C("requests_log").FindId(bson.ObjectIdHex(id)).One(&logRecord)
+	err := db.DB.C("requests_log").With(db.Session.Copy()).FindId(bson.ObjectIdHex(id)).One(&logRecord)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -280,7 +280,7 @@ func syncerResponse(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	logRecord := syncer.RequestLog{}
-	err := db.DB.C("requests_log").FindId(bson.ObjectIdHex(id)).One(&logRecord)
+	err := db.DB.C("requests_log").With(db.Session.Copy()).FindId(bson.ObjectIdHex(id)).One(&logRecord)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

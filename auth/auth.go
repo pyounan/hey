@@ -3,8 +3,6 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,6 +11,9 @@ import (
 	"pos-proxy/helpers"
 	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var Token string
@@ -28,7 +29,7 @@ func GetUserPermissions(w http.ResponseWriter, req *http.Request) {
 	id, _ := strconv.Atoi(idStr)
 	q := bson.M{}
 	q["id"] = id
-	err := db.DB.C("usergroups").Find(q).One(&perms)
+	err := db.DB.C("usergroups").With(db.Session.Copy()).Find(q).One(&perms)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

@@ -1,6 +1,5 @@
 package income
 
-
 import (
 	"net/http"
 	"pos-proxy/db"
@@ -9,7 +8,7 @@ import (
 
 func GetCompany(w http.ResponseWriter, r *http.Request) {
 	company := make(map[string]interface{})
-	db.DB.C("company").Find(nil).One(&company)
+	db.DB.C("company").With(db.Session.Copy()).Find(nil).One(&company)
 
 	helpers.ReturnSuccessMessage(w, company)
 }

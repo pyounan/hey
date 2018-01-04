@@ -42,14 +42,14 @@ func AdvanceInvoiceNumber(terminalID int) (string, error) {
 
 	invoiceNumber := ""
 	terminal := Terminal{}
-	err = db.DB.C("terminals").Find(bson.M{"id": terminalID}).One(&terminal)
+	err = db.DB.C("terminals").With(db.Session.Copy()).Find(bson.M{"id": terminalID}).One(&terminal)
 	if err != nil {
 		return "", err
 	}
 
 	id := terminal.LastInvoiceID + 1
 	invoiceNumber = fmt.Sprintf("%d-%d", terminal.Number, id)
-	err = db.DB.C("terminals").Update(bson.M{"id": terminal.ID},
+	err = db.DB.C("terminals").With(db.Session.Copy()).Update(bson.M{"id": terminal.ID},
 		bson.M{"$set": bson.M{"last_invoice_id": terminal.LastInvoiceID + 1}})
 	if err != nil {
 		return "", err
