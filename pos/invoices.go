@@ -642,11 +642,13 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	resp := &RespBody{}
 	resp.NewInvoice = req.Invoice
 	resp.OriginalInvoice = models.Invoice{}
-	resp.Postings = []models.Posting{}
-	body.Posting.PosPostingInformations = []models.Posting{}
-	body.Posting.PosPostingInformations = append(body.Posting.PosPostingInformations, models.Posting{})
-	resp.Postings = append(resp.Postings, body.Posting)
-	resp.NewInvoice.Postings = resp.Postings
+	if body.NewInvoice.HouseUse == false {
+		resp.Postings = []models.Posting{}
+		body.Posting.PosPostingInformations = []models.Posting{}
+		body.Posting.PosPostingInformations = append(body.Posting.PosPostingInformations, models.Posting{})
+		resp.Postings = append(resp.Postings, body.Posting)
+		resp.NewInvoice.Postings = resp.Postings
+	}
 	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OriginalInvoice.InvoiceNumber}).One(&resp.OriginalInvoice)
 	// change the returned_qty of the line items that haven refunded
 	for _, item := range body.NewInvoice.Items {
