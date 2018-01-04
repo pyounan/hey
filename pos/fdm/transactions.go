@@ -90,7 +90,7 @@ func SendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 
 	t.VATs[3].Percentage = 0
 	t.VATs[3].FixedAmount = math.Abs(VATs["D"])
-	err = db.DB.C("tickets").Insert(&t)
+	err = db.DB.C("tickets").With(db.Session.Copy()).Insert(&t)
 	if err != nil {
 		return models.FDMResponse{}, err
 	}

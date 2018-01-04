@@ -1,13 +1,14 @@
 package opera
 
 import (
-	"github.com/gorilla/mux"
-	"gopkg.in/mgo.v2/bson"
 	"net/http"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
 	"pos-proxy/syncer"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type OperaConfigValue struct {
@@ -40,7 +41,7 @@ func FlattenToMap(operaConfigs []OperaConfig) map[int]string {
 
 func GetPaymentMethod(department int) (int, error) {
 	paymentConfig := []OperaConfig{}
-	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "payment_method"}).All(&paymentConfig)
+	_ = db.DB.C("operasettings").With(db.Session.Copy()).Find(bson.M{"config_name": "payment_method"}).All(&paymentConfig)
 	paymentMethod := ""
 	for _, p := range paymentConfig {
 		for _, dept := range p.Value.Departments {
@@ -55,7 +56,7 @@ func GetPaymentMethod(department int) (int, error) {
 
 func GetRoomDepartmentID() (int, error) {
 	var roomDepartment RoomDepartmentConfig
-	err := db.DB.C("operasettings").Find(bson.M{"config_name": "room_department"}).One(&roomDepartment)
+	err := db.DB.C("operasettings").With(db.Session.Copy()).Find(bson.M{"config_name": "room_department"}).One(&roomDepartment)
 	deptID := -1
 	if err != nil {
 		return deptID, err
@@ -66,7 +67,7 @@ func GetRoomDepartmentID() (int, error) {
 func DeleteConfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	configID, _ := strconv.Atoi(vars["id"])
-	db.DB.C("operasettings").Remove(bson.M{"id": configID})
+	db.DB.C("operasettings").With(db.Session.Copy()).Remove(bson.M{"id": configID})
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, nil)
 	helpers.ReturnSuccessMessage(w, true)
 }

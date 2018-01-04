@@ -13,7 +13,7 @@ import (
 
 func ListStores(w http.ResponseWriter, r *http.Request) {
 	stores := []map[string]interface{}{}
-	err := db.DB.C("stores").Find(bson.M{}).All(&stores)
+	err := db.DB.C("stores").With(db.Session.Copy()).Find(bson.M{}).All(&stores)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -41,7 +41,7 @@ func GetStoreDetails(w http.ResponseWriter, r *http.Request) {
 	q["id"] = val
 
 	var storedetails map[string]interface{}
-	err = db.DB.C("storedetails").Find(q).One(&storedetails)
+	err = db.DB.C("storedetails").With(db.Session.Copy()).Find(q).One(&storedetails)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

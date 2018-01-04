@@ -25,7 +25,7 @@ func ListTables(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tables := []models.Table{}
-	err := db.DB.C("tables").Find(q).All(&tables)
+	err := db.DB.C("tables").With(db.Session.Copy()).Find(q).All(&tables)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -45,7 +45,7 @@ func GetTable(w http.ResponseWriter, r *http.Request) {
 	q["number"] = id
 
 	table := models.Table{}
-	err = db.DB.C("tables").Find(q).One(&table)
+	err = db.DB.C("tables").With(db.Session.Copy()).Find(q).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -71,7 +71,7 @@ func UpdateTable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.DB.C("tables").Update(q, table)
+	err = db.DB.C("tables").With(db.Session.Copy()).Update(q, table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -99,20 +99,20 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 	}
 
 	table := models.Table{}
-	err = db.DB.C("tables").Find(bson.M{"id": q["table_number"]}).One(&table)
+	err = db.DB.C("tables").With(db.Session.Copy()).Find(bson.M{"id": q["table_number"]}).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	q["is_settled"] = false
 	invoices := []models.Invoice{}
-	err = db.DB.C("posinvoices").Find(q).All(&invoices)
+	err = db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	terminal := models.Terminal{}
-	err = db.DB.C("terminals").Find(bson.M{"id": terminalID}).One(&terminal)
+	err = db.DB.C("terminals").With(db.Session.Copy()).Find(bson.M{"id": terminalID}).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

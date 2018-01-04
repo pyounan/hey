@@ -102,14 +102,14 @@ func (invoice *Invoice) Submit(terminalID int) error {
 
 	invoice.Items = items
 
-	_, err := db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
+	_, err := db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
 	if err != nil {
 		return err
 	}
 
 	// update table status
 	table := Table{}
-	err = db.DB.C("tables").Find(bson.M{"id": invoice.TableID}).One(&table)
+	err = db.DB.C("tables").With(db.Session.Copy()).Find(bson.M{"id": invoice.TableID}).One(&table)
 	if err != nil {
 		log.Println(err)
 	} else {

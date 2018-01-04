@@ -52,7 +52,7 @@ func ListInvoicesLite(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	invoices := []models.InvoiceLite{}
-	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
+	err := db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).Sort("-created_on").All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -84,7 +84,7 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	invoices := []models.Invoice{}
-	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
+	err := db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).Sort("-created_on").All(&invoices)
 	if err != nil || len(invoices) == 0 {
 		// if invoice is settled, get it from the backend & save it to mongo
 		if _, ok := q["invoice_number"]; ok {
@@ -114,7 +114,7 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if len(invoices) > 0 {
-				db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoices[0].InvoiceNumber}, invoices[0])
+				db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": invoices[0].InvoiceNumber}, invoices[0])
 			}
 			w.Write(respbody)
 		} else {
@@ -141,7 +141,7 @@ func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 	if store != "" {
 		q["store"], _ = strconv.Atoi(store)
 	}
-	err := db.DB.C("posinvoices").Find(q).Sort("-created_on").All(&invoices)
+	err := db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).Sort("-created_on").All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -161,7 +161,7 @@ func GetInvoice(w http.ResponseWriter, r *http.Request) {
 	q["invoice_number"] = id
 
 	invoice := models.Invoice{}
-	err := db.DB.C("posinvoices").Find(q).One(&invoice)
+	err := db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).One(&invoice)
 	if err != nil {
 		//helpers.ReturnErrorMessage(w, err.Error())
 		proxy.ProxyToBackend(w, r)
@@ -219,7 +219,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice = invoice
 	req.Invoice.Events = []models.EJEvent{}
-	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+	err = db.DB.C("posinvoices").With(db.Session.Copy()).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		log.Println(err)
 	}
@@ -227,7 +227,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		locks.LockInvoices([]models.Invoice{invoice}, invoice.TerminalID)
 	}
 	req.Invoice.CreateLock = false
-	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+	err = db.DB.C("posinvoices").With(db.Session.Copy()).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		log.Println(err)
 	}
@@ -295,7 +295,7 @@ func BulkSubmitInvoices(w http.ResponseWriter, r *http.Request) {
 	// clear events
 	for _, invoice := range req.Invoices {
 		invoice.Events = []models.EJEvent{}
-		db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
+		db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
 	}
 	helpers.ReturnSuccessMessage(w, bson.M{"status": 200})
 }
@@ -306,7 +306,7 @@ func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	invoiceNumber := vars["invoice_number"]
 	invoice := models.Invoice{}
-	err := db.DB.C("posinvoices").Find(bson.M{"invoice_number": invoiceNumber}).One(&invoice)
+	err := db.DB.C("posinvoices").With(db.Session.Copy()).Find(bson.M{"invoice_number": invoiceNumber}).One(&invoice)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 	}
@@ -381,7 +381,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 
 	req.Invoice.PrintCount++
 
-	db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+	db.DB.C("posinvoices").With(db.Session.Copy()).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
@@ -436,7 +436,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice.PaidAmount = req.Invoice.Total
 	req.Invoice.Change = req.ChangeAmount
 
-	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+	err = db.DB.C("posinvoices").With(db.Session.Copy()).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		log.Println("failed to find posinvoice with this invoice number")
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -446,7 +446,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	// update table status
 	if req.Invoice.TableID != nil {
 		table := models.Table{}
-		err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
+		err = db.DB.C("tables").With(db.Session.Copy()).Find(bson.M{"id": req.Invoice.TableID}).One(&table)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
@@ -486,7 +486,7 @@ func CancelPostings(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	invoiceNumber, _ := vars["invoice_number"]
 	invoice := models.Invoice{}
-	err = db.DB.C("posinvoices").Find(bson.M{"invoice_number": invoiceNumber}).One(&invoice)
+	err = db.DB.C("posinvoices").With(db.Session.Copy()).Find(bson.M{"invoice_number": invoiceNumber}).One(&invoice)
 	if err != nil {
 		log.Println("failed to find posinvoice with this invoice number")
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -527,7 +527,7 @@ func CancelPostings(w http.ResponseWriter, r *http.Request) {
 	}
 	invoice.Postings = append(invoice.Postings, newPayments...)
 
-	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
+	err = db.DB.C("posinvoices").With(db.Session.Copy()).Update(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
 	if err != nil {
 		log.Println("failed to find posinvoice with this invoice number")
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -632,7 +632,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 
-	db.DB.C("posinvoices").Upsert(bson.M{"invoice_number": body.NewInvoice.InvoiceNumber}, req.Invoice)
+	db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": body.NewInvoice.InvoiceNumber}, req.Invoice)
 
 	type RespBody struct {
 		NewInvoice      models.Invoice   `json:"new_invoice" bson:"new_invoice"`
@@ -649,7 +649,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 		resp.Postings = append(resp.Postings, body.Posting)
 		resp.NewInvoice.Postings = resp.Postings
 	}
-	db.DB.C("posinvoices").Find(bson.M{"invoice_number": body.OriginalInvoice.InvoiceNumber}).One(&resp.OriginalInvoice)
+	db.DB.C("posinvoices").With(db.Session.Copy()).Find(bson.M{"invoice_number": body.OriginalInvoice.InvoiceNumber}).One(&resp.OriginalInvoice)
 	// change the returned_qty of the line items that haven refunded
 	for _, item := range body.NewInvoice.Items {
 		for i, oldItem := range resp.OriginalInvoice.Items {
@@ -659,7 +659,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	db.DB.C("posinvoices").Update(bson.M{"invoice_number": body.OriginalInvoice.InvoiceNumber}, resp.OriginalInvoice)
+	db.DB.C("posinvoices").With(db.Session.Copy()).Update(bson.M{"invoice_number": body.OriginalInvoice.InvoiceNumber}, resp.OriginalInvoice)
 	helpers.ReturnSuccessMessage(w, resp)
 
 }
@@ -709,7 +709,7 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 	postings = append(postings, posting)
 	req.Postings = postings
 
-	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+	err = db.DB.C("posinvoices").With(db.Session.Copy()).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		log.Println("Mongodb error:", err.Error())
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -719,7 +719,7 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 	// update table status
 	if req.Invoice.TableID != nil && *req.Invoice.TableID != 0 {
 		table := models.Table{}
-		err = db.DB.C("tables").Find(bson.M{"id": req.Invoice.TableID}).One(&table)
+		err = db.DB.C("tables").With(db.Session.Copy()).Find(bson.M{"id": req.Invoice.TableID}).One(&table)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
@@ -747,7 +747,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 
 	// update invoices in db
 	for _, i := range body.Invoices {
-		err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": i.InvoiceNumber}, i)
+		err = db.DB.C("posinvoices").With(db.Session.Copy()).Update(bson.M{"invoice_number": i.InvoiceNumber}, i)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
@@ -755,7 +755,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newTable := models.Table{}
-	err = db.DB.C("tables").Find(bson.M{"id": body.NewTable}).One(&newTable)
+	err = db.DB.C("tables").With(db.Session.Copy()).Find(bson.M{"id": body.NewTable}).One(&newTable)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -765,7 +765,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 
 	// Update Status of old Table
 	oldTable := models.Table{}
-	err = db.DB.C("tables").Find(bson.M{"id": body.OldTable}).One(&oldTable)
+	err = db.DB.C("tables").With(db.Session.Copy()).Find(bson.M{"id": body.OldTable}).One(&oldTable)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -776,7 +776,7 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 
 	// get invoices on the new table
 	newInvoices := []models.Invoice{}
-	err = db.DB.C("posinvoices").Find(bson.M{"table_number": body.NewTable, "is_settled": false}).All(&newInvoices)
+	err = db.DB.C("posinvoices").With(db.Session.Copy()).Find(bson.M{"table_number": body.NewTable, "is_settled": false}).All(&newInvoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -862,7 +862,7 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 	terminalIDStr := r.URL.Query().Get("terminal_id")
 	terminalID, _ := strconv.Atoi(terminalIDStr)
 	terminal := models.Terminal{}
-	err = db.DB.C("terminals").Find(bson.M{"id": terminalID}).One(&terminal)
+	err = db.DB.C("terminals").With(db.Session.Copy()).Find(bson.M{"id": terminalID}).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -891,7 +891,7 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice.Events = []models.EJEvent{}
 
-	err = db.DB.C("posinvoices").Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+	err = db.DB.C("posinvoices").With(db.Session.Copy()).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -908,7 +908,7 @@ func ToggleLocking(w http.ResponseWriter, r *http.Request) {
 	target := r.URL.Query().Get("target")
 
 	invoices := []models.Invoice{}
-	err := db.DB.C("posinvoices").Find(bson.M{"invoice_number": bson.M{"$in": numbers}}).All(&invoices)
+	err := db.DB.C("posinvoices").With(db.Session.Copy()).Find(bson.M{"invoice_number": bson.M{"$in": numbers}}).All(&invoices)
 	if err != nil {
 		log.Println(err.Error())
 		helpers.ReturnSuccessMessage(w, err.Error())
@@ -1007,9 +1007,9 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 	revenueConfig := []opera.OperaConfig{}
 	serviceConfig := []opera.OperaConfig{}
 
-	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "tax"}).All(&taxConfig)
-	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "revenue_department"}).All(&revenueConfig)
-	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "service_charge"}).All(&serviceConfig)
+	_ = db.DB.C("operasettings").With(db.Session.Copy()).Find(bson.M{"config_name": "tax"}).All(&taxConfig)
+	_ = db.DB.C("operasettings").With(db.Session.Copy()).Find(bson.M{"config_name": "revenue_department"}).All(&revenueConfig)
+	_ = db.DB.C("operasettings").With(db.Session.Copy()).Find(bson.M{"config_name": "service_charge"}).All(&serviceConfig)
 
 	taxFlattenedMap := opera.FlattenToMap(taxConfig)
 	revenueFlattenedMap := opera.FlattenToMap(revenueConfig)
@@ -1021,7 +1021,7 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 
 		departmentID := lineitem.AttachedAttributes["revenue_department"]
 		department := incomemodels.Department{}
-		_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&department)
+		_ = db.DB.C("departments").With(db.Session.Copy()).Find(bson.M{"id": departmentID}).One(&department)
 
 		price := float64(lineitem.Price)
 		roundedPrice := helpers.ConvertToInt(helpers.Round(price, 0.05))
@@ -1038,7 +1038,7 @@ func HandleOperaPayments(invoice models.Invoice, department int) bool {
 		for _, condimentlineitem := range lineitem.CondimentLineItems {
 			condimentDepartment := incomemodels.Department{}
 			departmentID := condimentlineitem.AttachedAttributes["revenue_department"]
-			_ = db.DB.C("departments").Find(bson.M{"id": departmentID}).One(&condimentDepartment)
+			_ = db.DB.C("departments").With(db.Session.Copy()).Find(bson.M{"id": departmentID}).One(&condimentDepartment)
 
 			condimentPrice := float64(lineitem.Quantity * condimentlineitem.Price)
 			roundedPrice := helpers.ConvertToInt(helpers.Round(condimentPrice, 0.05))
@@ -1107,8 +1107,8 @@ func ComputeTaxes(amount float64, tax_defs map[string][]incomemodels.TaxDef,
 	serviceMap := map[int]float64{}
 	taxMapInt := map[int]int64{}
 	serviceMapInt := map[int]int64{}
-	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "service_charge"}).One(&serviceConfig)
-	_ = db.DB.C("operasettings").Find(bson.M{"config_name": "tax"}).One(&taxConfig)
+	_ = db.DB.C("operasettings").With(db.Session.Copy()).Find(bson.M{"config_name": "service_charge"}).One(&serviceConfig)
+	_ = db.DB.C("operasettings").With(db.Session.Copy()).Find(bson.M{"config_name": "tax"}).One(&taxConfig)
 	w := float64(1.0)
 	requiredTax := ""
 	if takeout {

@@ -21,7 +21,7 @@ type Table struct {
 func (t *Table) UpdateStatus() error {
 	invoices := []Invoice{}
 	q := bson.M{"table_number": t.ID, "is_settled": false}
-	err := db.DB.C("posinvoices").Find(q).All(&invoices)
+	err := db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).All(&invoices)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (t *Table) UpdateStatus() error {
 	}
 	updateQuery := bson.M{"updated_on": time.Now().UTC().Format("2006-01-02T15:04:05-0700"), "status": t.Status, "has_invoice": t.HasInvoice, "invoices_count": len(invoices)}
 
-	err = db.DB.C("tables").Update(bson.M{"id": t.ID}, bson.M{"$set": updateQuery})
+	err = db.DB.C("tables").With(db.Session.Copy()).Update(bson.M{"id": t.ID}, bson.M{"$set": updateQuery})
 	if err != nil {
 		return err
 	}
