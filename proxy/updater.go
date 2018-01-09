@@ -57,6 +57,7 @@ func CheckForupdates() {
 			time.Sleep(5 * time.Minute)
 			continue
 		}
+		resp.Body.Close()
 
 		data := NewVersion{}
 		err = json.Unmarshal(respBody, &data)
@@ -70,7 +71,6 @@ func CheckForupdates() {
 			initiateUpdate(data.BuildNumber)
 		}
 
-		resp.Body.Close()
 		time.Sleep(5 * time.Minute)
 	}
 }
