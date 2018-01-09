@@ -18,10 +18,11 @@ import (
 	"time"
 )
 
+type NewVersion struct {
+	BuildNumber int64 `json:"build_number"`
+}
+
 func CheckForupdates() {
-	type NewVersion struct {
-		BuildNumber int64 `json:"build_number"`
-	}
 	netClient := helpers.NewNetClient()
 	for {
 		auth.FetchToken()
@@ -51,21 +52,12 @@ func CheckForupdates() {
 			continue
 		}
 
-		respBody, err := ioutil.ReadAll(resp.Body)
+		data, err := parseBody(resp)
 		if err != nil {
-			log.Println("Failed to read update data", err.Error())
 			time.Sleep(5 * time.Minute)
 			continue
 		}
-		resp.Body.Close()
 
-		data := NewVersion{}
-		err = json.Unmarshal(respBody, &data)
-		if err != nil {
-			log.Println("Failed to parse update data", err.Error())
-			time.Sleep(5 * time.Minute)
-			continue
-		}
 		fmt.Println(fmt.Sprintf("Configured version \"%d\"", data.BuildNumber))
 		if data.BuildNumber != 0 && data.BuildNumber != *config.Config.BuildNumber {
 			initiateUpdate(data.BuildNumber)
@@ -73,6 +65,23 @@ func CheckForupdates() {
 
 		time.Sleep(5 * time.Minute)
 	}
+}
+
+func parseBody(resp *http.Response) (NewVersion, error) {
+	respBody, err := ioutil.ReadAll(resp.Body)
+	data := NewVersion{}
+	if err != nil {
+		log.Println("Failed to read update data")
+		return data, err
+	}
+	defer resp.Body.Close()
+
+	err = json.Unmarshal(respBody, &data)
+	if err != nil {
+		log.Println("Failed to parse update data")
+		return data, err
+	}
+	return data, nil
 }
 
 func initiateUpdate(buildNumber int64) error {
