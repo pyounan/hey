@@ -19,12 +19,12 @@ import (
 )
 
 func CheckForupdates() {
-	auth.FetchToken()
 	type NewVersion struct {
 		BuildNumber int64 `json:"build_number"`
 	}
 	netClient := helpers.NewNetClient()
 	for {
+		auth.FetchToken()
 		fmt.Println("Checking for updates...")
 		uri := fmt.Sprintf("%s%s", config.Config.BackendURI, "/api/proxyversions/getupdate/")
 
@@ -65,7 +65,7 @@ func CheckForupdates() {
 			time.Sleep(5 * time.Minute)
 			continue
 		}
-		fmt.Println(fmt.Sprintf("New version \"%d\"", data.BuildNumber))
+		fmt.Println(fmt.Sprintf("Configured version \"%d\"", data.BuildNumber))
 		if data.BuildNumber != 0 && data.BuildNumber != *config.Config.BuildNumber {
 			initiateUpdate(data.BuildNumber)
 		}
