@@ -98,8 +98,10 @@ func Load(apis map[string]string) {
 				return
 			}
 			// bar.Prefix(fmt.Sprintf("syncing %s from %s\n", collection, api))
+			session := db.Session.Copy()
+			defer session.Close()
 			if collection == "sunexportdate" {
-				db.DB.C(collection).With(db.Session.Copy()).Remove(nil)
+				db.DB.C(collection).With(session).Remove(nil)
 				type BodyRequest struct {
 					Dt string `json:"dt" bson:"dt"`
 				}
@@ -114,15 +116,15 @@ func Load(apis map[string]string) {
 				for _, terminal := range terminals {
 					// get old terminal
 					t := models.Terminal{}
-					err := db.DB.C(collection).Find(bson.M{"id": terminal.ID}).One(&t)
+					err := db.DB.C(collection).With(session).Find(bson.M{"id": terminal.ID}).One(&t)
 					if err != nil {
 						// terminal not found, create a new one
-						db.DB.C(collection).Insert(terminal)
+						db.DB.C(collection).With(session).Insert(terminal)
 					} else {
 						// terminal already exists, check that the incoming last_invoice_id is larger
 						// than the current one, update if true, otherwise continue to the next terminal.
 						if t.LastInvoiceID < terminal.LastInvoiceID {
-							db.DB.C(collection).With(db.Session.Copy()).Upsert(bson.M{"id": terminal.ID}, terminal)
+							db.DB.C(collection).With(session).Upsert(bson.M{"id": terminal.ID}, terminal)
 						}
 					}
 				}
@@ -139,7 +141,7 @@ func Load(apis map[string]string) {
 				for _, item := range res.Results {
 					// Check if invoice is already settled, don't update it.
 					oldInvoice := models.Invoice{}
-					err := db.DB.C(collection).With(db.Session.Copy()).Find(bson.M{"invoice_number": item.InvoiceNumber}).One(&oldInvoice)
+					err := db.DB.C(collection).With(session).Find(bson.M{"invoice_number": item.InvoiceNumber}).One(&oldInvoice)
 					// if older invoice was found, check if it is settled, then don't update it.
 					if err == nil {
 						if oldInvoice.IsSettled == true {
@@ -147,7 +149,7 @@ func Load(apis map[string]string) {
 						}
 					}
 
-					_, err = db.DB.C(collection).With(db.Session.Copy()).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
+					_, err = db.DB.C(collection).With(session).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}
@@ -175,7 +177,7 @@ func Load(apis map[string]string) {
 						log.Println(err.Error())
 					} else {
 						for _, item := range res.Results {
-							_, err = db.DB.C(collection).With(db.Session.Copy()).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
+							_, err = db.DB.C(collection).With(session).Upsert(bson.M{"invoice_number": item.InvoiceNumber}, item)
 							if err != nil {
 								log.Println(err.Error())
 							}
@@ -186,11 +188,11 @@ func Load(apis map[string]string) {
 				var res map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
 				oldAuditDate := make(map[string]interface{})
-				err := db.DB.C(collection).With(db.Session.Copy()).Find(nil).One(&oldAuditDate)
+				err := db.DB.C(collection).With(session).Find(nil).One(&oldAuditDate)
 				if err != nil {
-					db.DB.C(collection).With(db.Session.Copy()).Insert(res)
+					db.DB.C(collection).With(session).Insert(res)
 				} else {
-					err = db.DB.C(collection).With(db.Session.Copy()).Update(bson.M{"_id": oldAuditDate["_id"]}, bson.M{"$set": bson.M{"audit_date": res["audit_date"]}})
+					err = db.DB.C(collection).With(session).Update(bson.M{"_id": oldAuditDate["_id"]}, bson.M{"$set": bson.M{"audit_date": res["audit_date"]}})
 					if err != nil {
 						log.Println(err.Error())
 					}
@@ -201,15 +203,15 @@ func Load(apis map[string]string) {
 				if err != nil {
 					log.Println(err)
 				} else {
-					db.DB.C(collection).With(db.Session.Copy()).RemoveAll(nil)
-					db.DB.C(collection).With(db.Session.Copy()).Upsert(bson.M{"name": res["name"].(string)}, res)
+					db.DB.C(collection).With(session).RemoveAll(nil)
+					db.DB.C(collection).With(session).Upsert(bson.M{"name": res["name"].(string)}, res)
 				}
 			} else if api == "income/api/poscashierpermissions/" {
 				var res []map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
 				for _, item := range res {
 					delete(item, "_id")
-					_, err = db.DB.C(collection).With(db.Session.Copy()).Upsert(bson.M{"poscashier_id": item["poscashier_id"]}, item)
+					_, err = db.DB.C(collection).With(session).Upsert(bson.M{"poscashier_id": item["poscashier_id"]}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}
@@ -218,7 +220,7 @@ func Load(apis map[string]string) {
 				var res []map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
 				for _, item := range res {
-					_, err := db.DB.C(collection).With(db.Session.Copy()).Upsert(bson.M{"id": item["id"]}, item)
+					_, err := db.DB.C(collection).With(session).Upsert(bson.M{"id": item["id"]}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}
@@ -233,7 +235,7 @@ func Load(apis map[string]string) {
 					if _, ok := item["_id"]; ok {
 						delete(item, "_id")
 					}
-					_, err = db.DB.C(collection).With(db.Session.Copy()).Upsert(bson.M{"id": item["id"]}, item)
+					_, err = db.DB.C(collection).With(session).Upsert(bson.M{"id": item["id"]}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}

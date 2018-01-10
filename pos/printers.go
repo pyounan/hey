@@ -10,7 +10,9 @@ import (
 
 func ListPrinters(w http.ResponseWriter, r *http.Request) {
 	printers := []map[string]interface{}{}
-	err := db.DB.C("printers").With(db.Session.Copy()).Find(bson.M{}).All(&printers)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("printers").With(session).Find(bson.M{}).All(&printers)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -20,7 +22,9 @@ func ListPrinters(w http.ResponseWriter, r *http.Request) {
 
 func ListPrinterSettings(w http.ResponseWriter, r *http.Request) {
 	settings := []map[string]interface{}{}
-	err := db.DB.C("printersettings").With(db.Session.Copy()).Find(bson.M{}).All(&settings)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("printersettings").With(session).Find(bson.M{}).All(&settings)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

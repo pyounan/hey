@@ -17,7 +17,9 @@ func GetCurrency(w http.ResponseWriter, r *http.Request) {
 	q["id"] = id
 
 	c := make(map[string]interface{})
-	err := db.DB.C("currencies").With(db.Session.Copy()).Find(q).One(&c)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("currencies").With(session).Find(q).One(&c)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -36,7 +38,9 @@ func ListCurrencies(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	currencies := []map[string]interface{}{}
-	err := db.DB.C("currencies").With(db.Session.Copy()).Find(query).All(&currencies)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("currencies").With(session).Find(query).All(&currencies)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

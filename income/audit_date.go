@@ -8,7 +8,9 @@ import (
 
 func GetAuditDate(w http.ResponseWriter, req *http.Request) {
 	auditDate := make(map[string]interface{})
-	err := db.DB.C("audit_date").With(db.Session.Copy()).Find(nil).One(&auditDate)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("audit_date").With(session).Find(nil).One(&auditDate)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

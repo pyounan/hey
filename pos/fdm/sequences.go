@@ -22,7 +22,9 @@ func GetNextSequence(rcrs string) (int, error) {
 	sequenceMutex.Lock()
 	defer sequenceMutex.Unlock()
 	q := bson.M{"key": "last_sequence", "rcrs": rcrs}
-	err := db.DB.C("metadata").With(db.Session.Copy()).Find(q).One(&data)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("metadata").With(session).Find(q).One(&data)
 	if err != nil {
 		// if sequence number doesnt exist for this rcrs, create new one with zero value
 		data = models.Sequence{}
@@ -31,18 +33,18 @@ func GetNextSequence(rcrs string) (int, error) {
 		atomic.AddUint64(&data.Value, 1)
 		data.RCRS = rcrs
 		data.UpdatedAt = time.Now()
-		db.DB.C("metadata").With(db.Session.Copy()).Insert(data)
+		db.DB.C("metadata").With(session).Insert(data)
 		go syncer.QueueRequest(syncer.SequencesAPI, "POST", nil, data)
 	} else if data.Value == 99 {
 		data.Value = 0
 		atomic.AddUint64(&data.Value, 1)
 		data.UpdatedAt = time.Now()
-		db.DB.C("metadata").With(db.Session.Copy()).Update(q, bson.M{"$set": bson.M{"value": data.Value}})
+		db.DB.C("metadata").With(session).Update(q, bson.M{"$set": bson.M{"value": data.Value}})
 		go syncer.QueueRequest(syncer.SequencesAPI, "POST", nil, data)
 	} else {
 		atomic.AddUint64(&data.Value, 1)
 		data.UpdatedAt = time.Now()
-		db.DB.C("metadata").With(db.Session.Copy()).Update(q, bson.M{"$set": bson.M{"value": data.Value}})
+		db.DB.C("metadata").With(session).Update(q, bson.M{"$set": bson.M{"value": data.Value}})
 		go syncer.QueueRequest(syncer.SequencesAPI, "POST", nil, data)
 	}
 	return int(data.Value), nil
@@ -57,14 +59,16 @@ func GetNextTicketNumber(rcrs string) (int, error) {
 	defer ticketMutex.Unlock()
 	var data models.Sequence
 	q := bson.M{"key": "last_ticket_number", "rcrs": rcrs}
-	err := db.DB.C("metadata").With(db.Session.Copy()).Find(q).One(&data)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("metadata").With(session).Find(q).One(&data)
 	if err != nil {
 		// if ticket number doesnt exist for this rcrs, create new one with zero value
 		data = models.Sequence{}
 		data.Key = "last_ticket_number"
 		data.Value = 0
 		data.RCRS = rcrs
-		db.DB.C("metadata").With(db.Session.Copy()).Insert(data)
+		db.DB.C("metadata").With(session).Insert(data)
 	}
 
 	if data.Value == 999999 {
@@ -76,9 +80,11 @@ func GetNextTicketNumber(rcrs string) (int, error) {
 
 // UpdateLastTicketNumber update the last ticket number in database for the passed RCRS.
 func UpdateLastTicketNumber(rcrs string, val int) error {
+	session := db.Session.Copy()
+	defer session.Close()
 	q := bson.M{"key": "last_ticket_number", "rcrs": rcrs}
 	t := time.Now()
-	err := db.DB.C("metadata").With(db.Session.Copy()).Update(q,
+	err := db.DB.C("metadata").With(session).Update(q,
 		bson.M{"$set": bson.M{"value": val, "updated_at": t}})
 	if err != nil {
 		return err

@@ -7,8 +7,10 @@ import (
 )
 
 func GetCompany(w http.ResponseWriter, r *http.Request) {
+	session := db.Session.Copy()
+	defer session.Close()
 	company := make(map[string]interface{})
-	db.DB.C("company").With(db.Session.Copy()).Find(nil).One(&company)
+	db.DB.C("company").With(session).Find(nil).One(&company)
 
 	helpers.ReturnSuccessMessage(w, company)
 }

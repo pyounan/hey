@@ -59,7 +59,9 @@ func Serialize(jvs []JournalVoucher, exportType string) error {
 	f.WriteString("VERSION                         42601\r\n")
 	layout := "2006-01-02T15:04:05Z"
 	defaultCurrency := make(map[string]interface{})
-	db.DB.C("currencies").With(db.Session.Copy()).Find(bson.M{"is_default": true}).One(&defaultCurrency)
+	session := db.Session.Copy()
+	defer session.Close()
+	db.DB.C("currencies").With(session).Find(bson.M{"is_default": true}).One(&defaultCurrency)
 	for _, jv := range jvs {
 		splitted := strings.Split(jv.GLPeriod, "-")
 		glPeriodMonth, err := strconv.Atoi(splitted[0])
@@ -160,7 +162,9 @@ func Serialize(jvs []JournalVoucher, exportType string) error {
 
 func ImportJournalVouchers(w http.ResponseWriter, r *http.Request) {
 	lastDate := make(map[string]string)
-	db.DB.C("sunexportdate").With(db.Session.Copy()).Find(nil).One(&lastDate)
+	session := db.Session.Copy()
+	defer session.Close()
+	db.DB.C("sunexportdate").With(session).Find(nil).One(&lastDate)
 	log.Println("Before return from post", lastDate["dt"])
 	layout := "2006-01-02"
 	if r.Method == "GET" {
@@ -209,8 +213,8 @@ func ImportJournalVouchers(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		db.DB.C("sunexportdate").With(db.Session.Copy()).Remove(nil)
-		db.DB.C("sunexportdate").With(db.Session.Copy()).Insert(bson.M{"dt": dt})
+		db.DB.C("sunexportdate").With(session).Remove(nil)
+		db.DB.C("sunexportdate").With(session).Insert(bson.M{"dt": dt})
 		syncer.QueueRequest("/api/inventory/sunexportdate/", "POST",
 			r.Header, bson.M{"dt": dt})
 		log.Println("After after return from post", dt)

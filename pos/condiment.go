@@ -15,7 +15,9 @@ func ListCondiments(w http.ResponseWriter, r *http.Request) {
 		query[key] = val
 	}
 	var condiments []map[string]interface{}
-	err := db.DB.C("condiments").With(db.Session.Copy()).Find(query).All(&condiments)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("condiments").With(session).Find(query).All(&condiments)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
