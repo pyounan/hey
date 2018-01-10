@@ -131,9 +131,15 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("Warning:", err.Error())
 			} else {
-				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": res.InvoiceNumber}, res)
-				if err != nil {
-					log.Println("Warning:", err.Error())
+				// find the current invoice in the datastore, compare updated_on field
+				currentInvoice := models.Invoice{}
+				q := bson.M{"invoice_number": res.InvoiceNumber}
+				err = db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).One(&currentInvoice)
+				if err == nil && (res.UpdatedOn.After(currentInvoice.UpdatedOn) || res.UpdatedOn == currentInvoice.UpdatedOn) {
+					_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(q, res)
+					if err != nil {
+						log.Println("Warning:", err.Error())
+					}
 				}
 				logRecord.ResponseBody = res
 			}
@@ -146,9 +152,15 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("Warning:", err.Error())
 			} else {
-				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": res.Invoice.InvoiceNumber}, res.Invoice)
-				if err != nil {
-					log.Println("Warning:", err.Error())
+				// find the current invoice in the datastore, compare updated_on field
+				currentInvoice := models.Invoice{}
+				q := bson.M{"invoice_number": res.Invoice.InvoiceNumber}
+				err = db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).One(&currentInvoice)
+				if err == nil && (res.Invoice.UpdatedOn.After(currentInvoice.UpdatedOn) || res.Invoice.UpdatedOn == currentInvoice.UpdatedOn) {
+					_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(q, res.Invoice)
+					if err != nil {
+						log.Println("Warning:", err.Error())
+					}
 				}
 				logRecord.ResponseBody = res
 			}
@@ -159,7 +171,8 @@ func PushToBackend() {
 				log.Println("Warning:", err.Error())
 			} else {
 				invoiceNumber := strings.Split(req.URL.Path, "/")[3]
-				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": invoiceNumber},
+				q := bson.M{"invoice_number": invoiceNumber}
+				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(q,
 					bson.M{"$set": bson.M{"pospayment": res}})
 				if err != nil {
 					log.Println("Warning:", err.Error())
@@ -174,9 +187,15 @@ func PushToBackend() {
 				log.Println("Warning: ", err.Error())
 			} else {
 				for _, inv := range res {
-					_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": inv.InvoiceNumber}, inv)
-					if err != nil {
-						log.Println("Warning:", err.Error())
+					// find the current invoice in the datastore, compare updated_on field
+					currentInvoice := models.Invoice{}
+					q := bson.M{"invoice_number": inv.InvoiceNumber}
+					err := db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).One(&currentInvoice)
+					if err == nil && (inv.UpdatedOn.After(currentInvoice.UpdatedOn) || inv.UpdatedOn == currentInvoice.UpdatedOn) {
+						_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(q, inv)
+						if err != nil {
+							log.Println("Warning:", err.Error())
+						}
 					}
 				}
 				logRecord.ResponseBody = res
@@ -190,9 +209,15 @@ func PushToBackend() {
 			if err != nil {
 				log.Println("Warning: ", err.Error())
 			} else {
-				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": res.NewInvoice.InvoiceNumber}, res.NewInvoice)
-				if err != nil {
-					log.Println("Warning:", err.Error())
+				// find the current invoice in the datastore, compare updated_on field
+				currentInvoice := models.Invoice{}
+				q := bson.M{"invoice_number": res.NewInvoice.InvoiceNumber}
+				err := db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).One(&currentInvoice)
+				if err == nil && (res.NewInvoice.UpdatedOn.After(currentInvoice.UpdatedOn) || res.NewInvoice.UpdatedOn == currentInvoice.UpdatedOn) {
+					_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(q, res.NewInvoice)
+					if err != nil {
+						log.Println("Warning:", err.Error())
+					}
 				}
 				logRecord.ResponseBody = res
 			}
