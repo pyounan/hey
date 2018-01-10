@@ -18,7 +18,9 @@ func ListCourses(w http.ResponseWriter, r *http.Request) {
 		query["id"] = id
 	}
 	courses := []map[string]interface{}{}
-	err := db.DB.C("courses").With(db.Session.Copy()).Find(query).Sort("id").All(&courses)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("courses").With(session).Find(query).Sort("id").All(&courses)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

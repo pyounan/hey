@@ -61,7 +61,9 @@ func clockin(cashier Cashier, terminal models.Terminal, time string) (string, mo
 	fdmResponse := models.FDMResponse{}
 	q := bson.M{"cashier_id": cashier.ID, "terminal_id": terminal.ID}
 	attendance := Attendance{}
-	db.DB.C("attendance").With(db.Session.Copy()).Find(q).Limit(1).Sort("-_id").One(&attendance)
+	session := db.Session.Copy()
+	defer session.Close()
+	db.DB.C("attendance").With(session).Find(q).Limit(1).Sort("-_id").One(&attendance)
 	if attendance.CashierID == 0 || attendance.ClockoutTime != nil {
 		a := Attendance{}
 		a.BID = bson.NewObjectId()
@@ -107,7 +109,7 @@ func clockin(cashier Cashier, terminal models.Terminal, time string) (string, mo
 				return description, fdmResponse, err
 			}
 		}
-		err := db.DB.C("attendance").With(db.Session.Copy()).Insert(a)
+		err := db.DB.C("attendance").With(session).Insert(a)
 		if err != nil {
 			return description, fdmResponse, err
 		}
@@ -160,7 +162,9 @@ func clockout(cashier Cashier, terminal models.Terminal, time string) (string, m
 	}
 	q := bson.M{"cashier_id": cashier.ID, "terminal_id": terminal.ID, "clockout_time": nil}
 	updateQ := bson.M{"$set": bson.M{"clockout_time": time}}
-	_, err := db.DB.C("attendance").With(db.Session.Copy()).UpdateAll(q, updateQ)
+	session := db.Session.Copy()
+	defer session.Close()
+	_, err := db.DB.C("attendance").With(session).UpdateAll(q, updateQ)
 	if err != nil {
 		return description, fdmResponse, nil
 	}
@@ -184,7 +188,9 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 
 	q["pin"] = postBody.Pin
 	q["store_set"] = store
-	err = db.DB.C("cashiers").With(db.Session.Copy()).Find(q).One(&cashier)
+	session := db.Session.Copy()
+	defer session.Close()
+	err = db.DB.C("cashiers").With(session).Find(q).One(&cashier)
 	if err != nil {
 		helpers.ReturnErrorMessageWithStatus(w, 400, "No matching PIN code to selected store.")
 		return
@@ -211,7 +217,7 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 
 	resp := cashier
 	terminal := models.Terminal{}
-	err = db.DB.C("terminals").With(db.Session.Copy()).Find(bson.M{"id": postBody.TerminalID}).One(&terminal)
+	err = db.DB.C("terminals").With(session).Find(bson.M{"id": postBody.TerminalID}).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessageWithStatus(w, 500, err.Error())
 		return
@@ -248,7 +254,9 @@ func GetCashierPermissions(w http.ResponseWriter, r *http.Request) {
 		query[key] = val
 	}
 	permissions := []map[string]interface{}{}
-	err := db.DB.C("permissions").With(db.Session.Copy()).Find(query).All(&permissions)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("permissions").With(session).Find(query).All(&permissions)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -267,14 +275,16 @@ func Clockout(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	cashier := Cashier{}
 	q := bson.M{"id": body.CashierID}
-	err = db.DB.C("cashiers").With(db.Session.Copy()).Find(q).One(&cashier)
+	session := db.Session.Copy()
+	defer session.Close()
+	err = db.DB.C("cashiers").With(session).Find(q).One(&cashier)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	terminal := models.Terminal{}
 	q = bson.M{"id": body.TerminalID}
-	err = db.DB.C("terminals").With(db.Session.Copy()).Find(q).One(&terminal)
+	err = db.DB.C("terminals").With(session).Find(q).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

@@ -25,7 +25,9 @@ func ListTables(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tables := []models.Table{}
-	err := db.DB.C("tables").With(db.Session.Copy()).Find(q).All(&tables)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("tables").With(session).Find(q).All(&tables)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -45,7 +47,9 @@ func GetTable(w http.ResponseWriter, r *http.Request) {
 	q["number"] = id
 
 	table := models.Table{}
-	err = db.DB.C("tables").With(db.Session.Copy()).Find(q).One(&table)
+	session := db.Session.Copy()
+	defer session.Close()
+	err = db.DB.C("tables").With(session).Find(q).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -71,7 +75,9 @@ func UpdateTable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.DB.C("tables").With(db.Session.Copy()).Update(q, table)
+	session := db.Session.Copy()
+	defer session.Close()
+	err = db.DB.C("tables").With(session).Update(q, table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -98,21 +104,23 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	session := db.Session.Copy()
+	defer session.Close()
 	table := models.Table{}
-	err = db.DB.C("tables").With(db.Session.Copy()).Find(bson.M{"id": q["table_number"]}).One(&table)
+	err = db.DB.C("tables").With(session).Find(bson.M{"id": q["table_number"]}).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	q["is_settled"] = false
 	invoices := []models.Invoice{}
-	err = db.DB.C("posinvoices").With(db.Session.Copy()).Find(q).All(&invoices)
+	err = db.DB.C("posinvoices").With(session).Find(q).All(&invoices)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	terminal := models.Terminal{}
-	err = db.DB.C("terminals").With(db.Session.Copy()).Find(bson.M{"id": terminalID}).One(&terminal)
+	err = db.DB.C("terminals").With(session).Find(bson.M{"id": terminalID}).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

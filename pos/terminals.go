@@ -34,7 +34,10 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	terminals := []models.Terminal{}
-	err := db.DB.C("terminals").With(db.Session.Copy()).Find(query).All(&terminals)
+	session := db.Session.Copy()
+	defer session.Close()
+
+	err := db.DB.C("terminals").With(session).Find(query).All(&terminals)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -59,7 +62,9 @@ func GetTerminal(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(idStr)
 	query["id"] = id
 	terminal := models.Terminal{}
-	err := db.DB.C("terminals").With(db.Session.Copy()).Find(query).One(&terminal)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("terminals").With(session).Find(query).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -75,7 +80,9 @@ func UpdateTerminal(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(idStr)
 	query["id"] = id
 	terminal := models.Terminal{}
-	err := db.DB.C("terminals").With(db.Session.Copy()).Find(query).One(&terminal)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("terminals").With(session).Find(query).One(&terminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -86,7 +93,7 @@ func UpdateTerminal(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	err = db.DB.C("terminals").With(db.Session.Copy()).Update(query, newTerminal)
+	err = db.DB.C("terminals").With(session).Update(query, newTerminal)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

@@ -31,7 +31,9 @@ func ListFixedDiscounts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fixedDiscounts := []map[string]interface{}{}
-	err := db.DB.C("fixeddiscounts").With(db.Session.Copy()).Find(query).Sort("id").All(&fixedDiscounts)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("fixeddiscounts").With(session).Find(query).Sort("id").All(&fixedDiscounts)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -44,7 +46,9 @@ func GetFixedDiscount(w http.ResponseWriter, r *http.Request) {
 	idStr, _ := mux.Vars(r)["id"]
 	id, _ := strconv.Atoi(idStr)
 	d := make(map[string]interface{})
-	err := db.DB.C("fixeddiscounts").With(db.Session.Copy()).Find(bson.M{"id": id}).One(&d)
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("fixeddiscounts").With(session).Find(bson.M{"id": id}).One(&d)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -67,7 +71,9 @@ func UpdateFixedDiscount(w http.ResponseWriter, r *http.Request) {
 func DeleteFixedDiscount(w http.ResponseWriter, r *http.Request) {
 	idStr, _ := mux.Vars(r)["id"]
 	id, _ := strconv.Atoi(idStr)
-	err := db.DB.C("fixeddiscounts").With(db.Session.Copy()).Remove(bson.M{"id": id})
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("fixeddiscounts").With(session).Remove(bson.M{"id": id})
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return

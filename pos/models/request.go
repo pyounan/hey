@@ -47,7 +47,9 @@ func (req *InvoicePOSTRequest) Submit() (Invoice, error) {
 
 	req.Invoice.Items = items
 
-	_, err := db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+	session := db.Session.Copy()
+	defer session.Close()
+	_, err := db.DB.C("posinvoices").With(session).Upsert(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		log.Println("ERROR: ", err.Error())
 		return Invoice{}, err
@@ -56,7 +58,7 @@ func (req *InvoicePOSTRequest) Submit() (Invoice, error) {
 	// update table status
 	if req.Invoice.TableID != nil {
 		table := Table{}
-		err = db.DB.C("tables").With(db.Session.Copy()).Find(bson.M{"id": *req.Invoice.TableID}).One(&table)
+		err = db.DB.C("tables").With(session).Find(bson.M{"id": *req.Invoice.TableID}).One(&table)
 		if err != nil {
 			log.Println(err)
 		} else {
