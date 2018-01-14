@@ -3,6 +3,7 @@ package income
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"pos-proxy/config"
 	"pos-proxy/db"
@@ -26,16 +27,13 @@ type Cashier struct {
 
 // Attendance represents cashier attendance log
 type Attendance struct {
-	BID          bson.ObjectId `json:"_id" bson:"_id"`
-	ID           int           `json:"id" bson:"id"`
-	CashierID    int           `json:"cashier_id" bson:"cashier_id"`
-	ClockinTime  string        `json:"clockin_time" bson:"clockin_time"`
-	ClockoutTime *string       `json:"clockout_time" bson:"clockout_time"`
-	TerminalID   int           `json:"terminal_id" bson:"terminal_id"`
-}
-
-func (a *Attendance) String() string {
-	return fmt.Sprintf("cashier: %d, clockin_time: %s, clockout_time: %s")
+	BID                bson.ObjectId `json:"_id" bson:"_id"`
+	ID                 int           `json:"id" bson:"id"` // cloudinn's id
+	CashierID          int           `json:"cashier_id" bson:"cashier_id"`
+	ClockinTime        string        `json:"clockin_time" bson:"clockin_time"`
+	ClockinTerminalID  int           `json:"clockin_terminal_id" bson:"clockin_terminal_id"`
+	ClockoutTime       *string       `json:"clockout_time" bson:"clockout_time"`
+	ClockoutTerminalID *int          `json:"clockout_terminal_id" bson:"clockout_terminal_id"`
 }
 
 type clockinRequest struct {
@@ -59,16 +57,20 @@ type clockoutRequest struct {
 func clockin(cashier Cashier, terminal models.Terminal, time string) (string, models.FDMResponse, error) {
 	description := "Clock In"
 	fdmResponse := models.FDMResponse{}
-	q := bson.M{"cashier_id": cashier.ID, "terminal_id": terminal.ID}
+	q := bson.M{"cashier_id": cashier.ID}
 	attendance := Attendance{}
 	session := db.Session.Copy()
 	defer session.Close()
-	db.DB.C("attendance").With(session).Find(q).Limit(1).Sort("-_id").One(&attendance)
+	if err := db.DB.C("attendance").With(session).Find(q).Limit(1).Sort("-_id").One(&attendance); err != nil {
+		// just log the error, in most cases it means no record was found, so
+		// we will create a new one
+		log.Println("WARNING", err)
+	}
 	if attendance.CashierID == 0 || attendance.ClockoutTime != nil {
 		a := Attendance{}
 		a.BID = bson.NewObjectId()
 		a.CashierID = cashier.ID
-		a.TerminalID = terminal.ID
+		a.ClockinTerminalID = terminal.ID
 		a.ClockinTime = time
 		if config.Config.IsFDMEnabled {
 			// create fdm connection
@@ -160,8 +162,8 @@ func clockout(cashier Cashier, terminal models.Terminal, time string) (string, m
 			return description, fdmResponse, err
 		}
 	}
-	q := bson.M{"cashier_id": cashier.ID, "terminal_id": terminal.ID, "clockout_time": nil}
-	updateQ := bson.M{"$set": bson.M{"clockout_time": time}}
+	q := bson.M{"cashier_id": cashier.ID, "clockout_time": nil}
+	updateQ := bson.M{"$set": bson.M{"clockout_time": time, "clockout_terminal_id": terminal.ID}}
 	session := db.Session.Copy()
 	defer session.Close()
 	_, err := db.DB.C("attendance").With(session).UpdateAll(q, updateQ)
