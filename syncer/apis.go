@@ -26,6 +26,7 @@ func init() {
 
 	ConfApis["sunexportdate"] = "api/inventory/sunexportdate/"
 
-	SingleLoadApis["tables"] = "api/pos/tables/"
+	confApis["tables"] = "api/pos/tables/"
+
 	SingleLoadApis["posinvoices"] = "api/pos/posinvoices/?is_settled=false"
 }
