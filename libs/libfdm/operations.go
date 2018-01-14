@@ -27,7 +27,16 @@ func (r *SetPinResponse) Parse(data []byte) {
 // CheckErrors reads the errors part of an FDM response and
 // returns error mesasge if any.
 func (r *SetPinResponse) CheckErrors() error {
-	if r.Error1 != "0" {
+	if r.Error1 == "2" {
+		return errors.New(fdmErrors[r.Error1][r.Error2])
+	}
+	return nil
+}
+
+// CheckWarning reads the errors part of an FDM response and
+// returns warning mesasge if any.
+func (r *SetPinResponse) CheckWarning() error {
+	if r.Error1 == "1" {
 		return errors.New(fdmErrors[r.Error1][r.Error2])
 	}
 	return nil
@@ -45,8 +54,14 @@ func SetPin(conn *FDM, sequence int, pin string) (SetPinResponse, error) {
 		return resp, err
 	}
 	resp.Parse(data)
-	err = resp.CheckErrors()
-	return resp, err
+	if err := resp.CheckErrors(); err != nil {
+		return resp, err
+	}
+	if err := resp.CheckWarning(); err != nil {
+		resp.HasWarning = true
+		resp.Warning = err.Error()
+	}
+	return resp, nil
 }
 
 // IdentificationResponse defines the data types of the I message
@@ -80,7 +95,16 @@ func (r *IdentificationResponse) Parse(data []byte) {
 // CheckErrors reads the errors part of an FDM response and
 // returns error mesasge if any.
 func (r *IdentificationResponse) CheckErrors() error {
-	if r.Error1 != "0" {
+	if r.Error1 == "2" {
+		return errors.New(fdmErrors[r.Error1][r.Error2])
+	}
+	return nil
+}
+
+// CheckWarning reads the errors part of an FDM response and
+// returns error mesasge if any.
+func (r *IdentificationResponse) CheckWarning() error {
+	if r.Error1 == "1" {
 		return errors.New(fdmErrors[r.Error1][r.Error2])
 	}
 	return nil
@@ -98,6 +122,9 @@ func Identification(conn *FDM, sequence int) (IdentificationResponse, error) {
 		return resp, err
 	}
 	resp.Parse(data)
-	err = resp.CheckErrors()
-	return resp, err
+	if err := resp.CheckErrors(); err != nil {
+		resp.HasWarning = true
+		resp.Warning = err.Error()
+	}
+	return resp, nil
 }
