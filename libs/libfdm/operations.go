@@ -52,10 +52,10 @@ func SetPin(conn *FDM, sequence int, pin string) (SetPinResponse, error) {
 // IdentificationResponse defines the data types of the I message
 type IdentificationResponse struct {
 	BaseResponse
-	FDMFirmware              string
-	FDMCommunicationProtocol string
-	VSCID                    string
-	VSCVersion               string
+	FDMFirmware              string `json:"fdm_firmware"`
+	FDMCommunicationProtocol string `json:"fdm_communication_protocol"`
+	VSCID                    string `json:"vsc_id"`
+	VSCVersion               string `json:"vsc_version"`
 }
 
 // Parse parses the Identification response and set the object values
