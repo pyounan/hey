@@ -27,7 +27,7 @@ build_test:
    - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_test
    - cp -r templates $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_test
   only:
-  - master
+  - development
 
 push_test:
   image: google/cloud-sdk
@@ -41,7 +41,7 @@ push_test:
   - gsutil cp -r build_test/* gs://pos-proxy/test/${CI_PIPELINE_ID}/
   - gsutil acl -r ch -u AllUsers:R gs://pos-proxy/test/${CI_PIPELINE_ID}/*
   only:
-  - master
+  - development
 
 build_staging:
   stage: build_staging
@@ -64,8 +64,7 @@ build_staging:
    - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_staging
    - cp -r templates $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_staging
   only:
-  - master
-  when: manual
+  - staging
 
 push_staging:
   image: google/cloud-sdk
@@ -79,8 +78,7 @@ push_staging:
   - gsutil cp -r build_staging/* gs://pos-proxy/staging/${CI_PIPELINE_ID}/
   - gsutil acl -r ch -u AllUsers:R gs://pos-proxy/staging/${CI_PIPELINE_ID}/*
   only:
-  - master
-  when: manual
+  - staging
 
 build_manage:
   stage: build_manage
@@ -104,7 +102,6 @@ build_manage:
    - cp -r templates $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_manage
   only:
   - master
-  when: manual
 
 push_manage:
   image: google/cloud-sdk
