@@ -32,13 +32,13 @@ type FDMResponse interface {
 
 // BaseResponse defines the shared part of the FDM response for all messages
 type BaseResponse struct {
-	Identifier          string
-	Sequence            string
-	Retry               string
-	Error1              string
-	Error2              string
-	Error3              string
-	FDMProductionNumber string
-	HasWarning          bool
-	Warning             string
+	Identifier          string `json:"identifier"`
+	Sequence            string `json:"sequence"`
+	Retry               string `json:"retry"`
+	Error1              string `json:"error1"`
+	Error2              string `json:"error2"`
+	Error3              string `json:"error3"`
+	FDMProductionNumber string `json:"fdm_production_number"`
+	HasWarning          bool   `json:"has_warning"`
+	Warning             string `json:warning`
 }
