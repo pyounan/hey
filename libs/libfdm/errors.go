@@ -27,6 +27,7 @@ func init() {
 type FDMResponse interface {
 	Parse(data []byte) FDMResponse
 	CheckErrors() error
+	CheckWarning() error
 }
 
 // BaseResponse defines the shared part of the FDM response for all messages
@@ -38,4 +39,6 @@ type BaseResponse struct {
 	Error2              string
 	Error3              string
 	FDMProductionNumber string
+	HasWarning          bool
+	Warning             string
 }
