@@ -87,7 +87,7 @@ func parseBody(resp *http.Response) (NewVersion, error) {
 func initiateUpdate(buildNumber int64) error {
 	dir, err := ioutil.TempDir("", "proxyupdates")
 	fmt.Println("Creating staging area in ", dir)
-	gsPath := fmt.Sprintf("gs://pos-proxy/%s/%d/update.sh", config.VirtualHost, buildNumber)
+	gsPath := fmt.Sprintf("gs://pos-proxy/%s/%d/update.sh", config.Config.VirtualHost, buildNumber)
 	cmd := exec.Command("gsutil", "-m", "cp", gsPath, dir)
 	cmd.Env = append(os.Environ())
 	cmd.Stdout = os.Stdout
@@ -120,7 +120,7 @@ func initiateUpdate(buildNumber int64) error {
 
 func update(buildNumber int64, updateCommand, updateDir string) {
 	fmt.Println("Starting update process")
-	cmd := exec.Command(updateCommand, config.VirtualHost, fmt.Sprintf("%d", buildNumber), updateDir)
+	cmd := exec.Command(updateCommand, config.Config.VirtualHost, fmt.Sprintf("%d", buildNumber), updateDir)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin

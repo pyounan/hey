@@ -25,9 +25,6 @@ var Version string
 // BuildNumber reflects the current build number
 var BuildNumber string
 
-// Sub domain of the backend environment
-var VirtualHost string
-
 // ConfigHolder struct of the proxy configuration
 type ConfigHolder struct {
 	BackendURI     string      `json:"backend_uri"`
@@ -41,6 +38,7 @@ type ConfigHolder struct {
 	OperaIP        string      `json:"opera_ip"`
 	UpdatedAt      time.Time   `json:"updated_at"`
 	BuildNumber    *int64      `json:"build_number"`
+	VirtualHost    tring       `json:"virtual_host"`
 }
 
 // FDMConfig struct of each proxy configuration

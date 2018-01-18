@@ -1,10 +1,9 @@
 stages:
   - build_test
   - push_test
-  - build_staging
   - push_staging
-  - build_manage
   - push_manage
+  - push_fod
 
 build_test:
   stage: build_test
@@ -12,20 +11,20 @@ build_test:
   artifacts:
     expire_in: 1 week
     paths:
-      - build_test/
+      - build/
   script:
    - apt-get update && apt-get install -y --no-install-recommends git
-   - mkdir build_test
+   - mkdir build
    - mkdir -p $GOPATH/src/pos-proxy
    - cp -r * $GOPATH/src/pos-proxy
    - cd $GOPATH/src/pos-proxy
    - echo $CI_PIPELINE_ID
    - go get
-   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pos-proxy/config.VirtualHost=test"
+   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0"
    - $GOPATH/src/pos-proxy/pos-proxy versions
-   - cp $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_test
-   - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_test
-   - cp -r templates $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_test
+   - cp $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build
+   - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build
+   - cp -r templates $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build
   only:
   - master
 
@@ -38,70 +37,20 @@ push_test:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project corded-guild-155314
-  - gsutil cp -r build_test/* gs://pos-proxy/test/${CI_PIPELINE_ID}/
+  - gsutil cp -r build/* gs://pos-proxy/test/${CI_PIPELINE_ID}/
   - gsutil acl -r ch -u AllUsers:R gs://pos-proxy/test/${CI_PIPELINE_ID}/*
   only:
   - master
 
-build_staging:
-  stage: build_staging
-  image: golang:1.9
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - build_staging/
-  script:
-   - apt-get update && apt-get install -y --no-install-recommends git
-   - mkdir build_staging
-   - mkdir -p $GOPATH/src/pos-proxy
-   - cp -r * $GOPATH/src/pos-proxy
-   - cd $GOPATH/src/pos-proxy
-   - echo $CI_PIPELINE_ID
-   - go get
-   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pos-proxy/config.VirtualHost=staging"
-   - $GOPATH/src/pos-proxy/pos-proxy versions
-   - cp $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_staging
-   - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_staging
-   - cp -r templates $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_staging
-  only:
-  - master
-  when: manual
-
 push_staging:
   image: google/cloud-sdk
   stage: push_staging
-  dependencies:
-    - build_staging
   script:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project corded-guild-155314
-  - gsutil cp -r build_staging/* gs://pos-proxy/staging/${CI_PIPELINE_ID}/
+  - gsutil cp -r gs://pos-proxy/test/${CI_PIPELINE_ID}/* gs://pos-proxy/staging/${CI_PIPELINE_ID}/
   - gsutil acl -r ch -u AllUsers:R gs://pos-proxy/staging/${CI_PIPELINE_ID}/*
-  only:
-  - master
-  when: manual
-
-build_manage:
-  stage: build_manage
-  image: golang:1.9
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - build_manage/
-  script:
-   - apt-get update && apt-get install -y --no-install-recommends git
-   - mkdir build_manage
-   - mkdir -p $GOPATH/src/pos-proxy
-   - cp -r * $GOPATH/src/pos-proxy
-   - cd $GOPATH/src/pos-proxy
-   - echo $CI_PIPELINE_ID
-   - go get
-   - go build -ldflags "-X pos-proxy/config.BuildNumber=${CI_PIPELINE_ID} -X pos-proxy/config.Version=2.0.0 -X pos-proxy/config.VirtualHost=manage"
-   - $GOPATH/src/pos-proxy/pos-proxy versions
-   - cp $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_manage
-   - cp $GOPATH/src/pos-proxy/update.sh $CI_PROJECT_DIR/build_manage
-   - cp -r templates $GOPATH/src/pos-proxy/pos-proxy $CI_PROJECT_DIR/build_manage
   only:
   - master
   when: manual
@@ -115,8 +64,21 @@ push_manage:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
   - gcloud config set project corded-guild-155314
-  - gsutil cp -r build_manage/* gs://pos-proxy/manage/${CI_PIPELINE_ID}/
+  - gsutil cp -r gs://pos-proxy/test/${CI_PIPELINE_ID}/* gs://pos-proxy/manage/${CI_PIPELINE_ID}/
   - gsutil acl -r ch -u AllUsers:R gs://pos-proxy/manage/${CI_PIPELINE_ID}/*
+  only:
+  - master
+  when: manual
+
+push_fod:
+  image: google/cloud-sdk
+  stage: push_fod
+  script:
+  - echo "$GOOGLE_KEY" > key.json
+  - gcloud auth activate-service-account --key-file key.json
+  - gcloud config set project corded-guild-155314
+  - gsutil cp -r gs://pos-proxy/test/${CI_PIPELINE_ID}/* gs://pos-proxy/fod/${CI_PIPELINE_ID}/
+  - gsutil acl -r ch -u AllUsers:R gs://pos-proxy/fod/${CI_PIPELINE_ID}/*
   only:
   - master
   when: manual
