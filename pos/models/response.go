@@ -27,6 +27,9 @@ type FDMResponse struct {
 	// Attached attributes from ticket
 	PLUHash    string                `json:"plu_hash" bson:"plu_hash"`
 	VATSummary map[string]VATSummary `json:"vat_summary" bson:"vat_summary"`
+	// FDM Warning
+	HasWarning bool   `json:"has_warning" bson:"has_warning"`
+	Warning    string `json:"warning" bson:"warning"`
 }
 
 func (r *FDMResponse) ProcessStatus(fdm_response []byte) {
