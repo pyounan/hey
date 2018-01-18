@@ -44,7 +44,7 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "versions" {
 		fmt.Println(fmt.Sprintf("Version: %s", config.Version))
 		fmt.Println(fmt.Sprintf("Build number: %s", config.BuildNumber))
-		fmt.Println(fmt.Sprintf("Virtual host: %s", config.VirtualHost))
+		fmt.Println(fmt.Sprintf("Virtual host: %s", config.Config.VirtualHost))
 		os.Exit(0)
 	}
 	// read encryption key from environment variables
@@ -135,6 +135,7 @@ func createRouter() http.Handler {
 
 	// handle FDM requests
 	r.HandleFunc("/proxy/fdms/status/{rcrs}/", fDMStatus).Methods("GET")
+	r.HandleFunc("/api/fdms/{rcrs}/", fDMInformationAPI).Methods("GET")
 	r.HandleFunc("/api/fdms/pins/", pos.FDMSetPin).Methods("POST")
 
 	// handle INCOME requests
@@ -329,4 +330,32 @@ func fDMStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx["response"] = resp
 	templateexport.ExportedTemplates.ExecuteTemplate(w, "fdm_status", ctx)
+}
+
+func fDMInformationAPI(w http.ResponseWriter, r *http.Request) {
+	rcrs := mux.Vars(r)["rcrs"]
+	ctx := bson.M{
+		"RCRS":    rcrs,
+		"version": config.Version,
+	}
+	// create FDM connection
+	conn, err := fdm.Connect(rcrs)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	defer conn.Close()
+	// send status message to FDM
+	ns, err := fdm.GetNextSequence(rcrs)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	resp, err := libfdm.Identification(conn, ns)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	ctx["fdm_response"] = resp
+	helpers.ReturnSuccessMessage(w, ctx)
 }

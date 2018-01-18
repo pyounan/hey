@@ -8,6 +8,29 @@ import (
 	"pos-proxy/pos/models"
 )
 
+type FDMErrors map[string]map[string]string
+
+var fdmErrors = FDMErrors{}
+
+func init() {
+	fdmErrors["1"] = make(map[string]string)
+	fdmErrors["1"]["01"] = "FDM Data Storage 90% Full"
+	fdmErrors["1"]["02"] = "Request Already Answered"
+	fdmErrors["1"]["03"] = "No Record"
+	fdmErrors["2"] = make(map[string]string)
+	fdmErrors["2"]["01"] = "No VSC or faulty VSC"
+	fdmErrors["2"]["02"] = "VSC not initialized with pin"
+	fdmErrors["2"]["03"] = "VSC locked"
+	fdmErrors["2"]["04"] = "PIN not valid"
+	fdmErrors["2"]["05"] = "FDM Data Storage Full"
+	fdmErrors["2"]["06"] = "Unkown message identifier"
+	fdmErrors["2"]["07"] = "Invalid data in message"
+	fdmErrors["2"]["08"] = "FDM not operational"
+	fdmErrors["2"]["09"] = "FDM realtime clock corrupted"
+	fdmErrors["2"]["10"] = "VSC version not supported by FDM"
+	fdmErrors["2"]["11"] = "Port 4 not ready"
+}
+
 // ApplySHA1 convert text to SHA1
 func applySHA1(text string) string {
 	msg := sha1.New()
@@ -75,27 +98,17 @@ func prepareHashAndSignMsg(RCRS string, eventLabel string, t models.FDMTicket) s
 	return msg
 }
 
-// CheckFDMError parses the error values of fdm response and converts them to human readable error
+// CheckFDMError parses the error values of fdm response and converts them to human readable error, if any
 func CheckFDMError(res models.FDMResponse) error {
-	if res.Error1 != "0" {
-		type FDMErrors map[string]map[string]string
-		var fdmErrors = FDMErrors{}
-		fdmErrors["1"] = make(map[string]string)
-		fdmErrors["1"]["01"] = "FDM Data Storage 90% Full"
-		fdmErrors["1"]["02"] = "Request Already Answered"
-		fdmErrors["1"]["03"] = "No Record"
-		fdmErrors["2"] = make(map[string]string)
-		fdmErrors["2"]["01"] = "No VSC or faulty VSC"
-		fdmErrors["2"]["02"] = "VSC not initialized with pin"
-		fdmErrors["2"]["03"] = "VSC locked"
-		fdmErrors["2"]["04"] = "PIN not valid"
-		fdmErrors["2"]["05"] = "FDM Data Storage Full"
-		fdmErrors["2"]["06"] = "Unkown message identifier"
-		fdmErrors["2"]["07"] = "Invalid data in message"
-		fdmErrors["2"]["08"] = "FDM not operational"
-		fdmErrors["2"]["09"] = "FDM realtime clock corrupted"
-		fdmErrors["2"]["10"] = "VSC version not supported by FDM"
-		fdmErrors["2"]["11"] = "Port 4 not ready"
+	if res.Error1 == "2" {
+		return errors.New(fdmErrors[res.Error1][res.Error2])
+	}
+	return nil
+}
+
+// CheckFDMWarning parses the error values of fdm response and converts them to human readable warning, if any
+func CheckFDMWarning(res models.FDMResponse) error {
+	if res.Error1 == "1" {
 		return errors.New(fdmErrors[res.Error1][res.Error2])
 	}
 	return nil

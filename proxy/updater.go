@@ -120,7 +120,7 @@ func initiateUpdate(buildNumber int64) error {
 
 func update(buildNumber int64, updateCommand, updateDir string) {
 	fmt.Println("Starting update process")
-	cmd := exec.Command(updateCommand, config.Config.VirtualHost, fmt.Sprintf("%d", buildNumber), updateDir)
+	cmd := exec.Command(updateCommand, *config.Config.VirtualHost, fmt.Sprintf("%d", buildNumber), updateDir)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin

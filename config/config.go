@@ -38,7 +38,7 @@ type ConfigHolder struct {
 	OperaIP        string      `json:"opera_ip"`
 	UpdatedAt      time.Time   `json:"updated_at"`
 	BuildNumber    *int64      `json:"build_number"`
-	VirtualHost    tring       `json:"virtual_host"`
+	VirtualHost    *string     `json:"virtual_host"`
 }
 
 // FDMConfig struct of each proxy configuration

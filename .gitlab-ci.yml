@@ -45,6 +45,8 @@ push_test:
 push_staging:
   image: google/cloud-sdk
   stage: push_staging
+  dependencies:
+    - build_staging
   script:
   - echo "$GOOGLE_KEY" > key.json
   - gcloud auth activate-service-account --key-file key.json
