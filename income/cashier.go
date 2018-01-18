@@ -50,7 +50,7 @@ type clockoutRequest struct {
 	TerminalID   int                  `json:"terminal_id" bson:"terminal_id"`
 	CashierID    int                  `json:"poscashier_id" bson:"poscashier_id"`
 	ClockoutTime string               `json:"clockout_time" bson:"clockout_time"`
-	Action       string               `json:"action" bson:"clockout"`
+	Action       string               `json:"action" bson:"action"`
 	FDMResponses []models.FDMResponse `json:"fdm_responses" bson:"fdm_responses"`
 }
 
