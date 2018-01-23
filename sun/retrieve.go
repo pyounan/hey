@@ -3,7 +3,6 @@ package sun
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -20,31 +19,39 @@ import (
 )
 
 func FetchJournalVouchers(dt string) ([]JournalVoucher, error) {
-	jvs := []JournalVoucher{}
-	apiURL := fmt.Sprintf("%s/api/inventory/journalvoucher/", config.Config.BackendURI)
-	req, _ := http.NewRequest("GET", apiURL, nil)
+	type Body struct {
+		Results []JournalVoucher `json:"results"`
+		Next    *string          `json:"next"`
+	}
+
 	netClient := helpers.NewNetClient()
-	req = helpers.PrepareRequestHeaders(req)
-	q := req.URL.Query()
-	q.Add("dt", dt)
-	req.URL.RawQuery = q.Encode()
-	response, err := netClient.Do(req)
-	if err != nil {
-		log.Println("Failed to fetch jvs", err)
-		return jvs, err
+	apiURL := fmt.Sprintf("%s/api/inventory/journalvoucher/?dt=%s",
+		config.Config.BackendURI, dt)
+
+	retJVs := []JournalVoucher{}
+	for apiURL != "" {
+		req, _ := http.NewRequest("GET", apiURL, nil)
+		req = helpers.PrepareRequestHeaders(req)
+		body := Body{}
+		response, err := netClient.Do(req)
+		if err != nil {
+			log.Println("Failed to fetch jvs", err)
+			return []JournalVoucher{}, err
+		}
+		defer response.Body.Close()
+		err = json.NewDecoder(response.Body).Decode(&body)
+		if err != nil {
+			log.Println("Failed to fetch jvs", err)
+			return []JournalVoucher{}, err
+		}
+		retJVs = append(retJVs, body.Results...)
+		if body.Next != nil {
+			apiURL = *body.Next
+		} else {
+			apiURL = ""
+		}
 	}
-	defer response.Body.Close()
-	respBody, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Println("Failed to fetch jvs", err)
-		return jvs, err
-	}
-	err = json.Unmarshal(respBody, &jvs)
-	if err != nil {
-		log.Println("Failed to fetch jvs", err)
-		return jvs, err
-	}
-	return jvs, nil
+	return retJVs, nil
 }
 
 func Serialize(jvs []JournalVoucher, exportType string) error {
