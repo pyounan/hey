@@ -190,6 +190,14 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+	// validate that all the items has and item id, otherwise return error
+	// It's a safe guard for the bug of created item without any info
+	for _, item := range req.Invoice.Items {
+		if item.Item == 0 {
+			helpers.ReturnErrorMessage(w, "One of the items is corrupted, please discard and try again")
+			return
+		}
+	}
 
 	fdmResponses := []models.FDMResponse{}
 	// if fdm is enabled submit items to fdm first
