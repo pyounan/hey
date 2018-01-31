@@ -12,6 +12,7 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/helpers"
 	incomemodels "pos-proxy/income/models"
+	"pos-proxy/libs/libfdm"
 	"pos-proxy/opera"
 	"pos-proxy/pos/fdm"
 	"pos-proxy/pos/locks"
@@ -282,9 +283,11 @@ func BulkSubmitInvoices(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
+	var conn *libfdm.FDM
 	if config.Config.IsFDMEnabled == true {
 		// create fdm connection
-		conn, err := fdm.Connect(req.RCRS)
+		var err error
+		conn, err = fdm.Connect(req.RCRS)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
