@@ -53,9 +53,9 @@ func CheckStatus(fdm *libfdm.FDM, RCRS string) (models.FDMResponse, error) {
 func SendHashAndSignMessage(fdm *libfdm.FDM, eventLabel string,
 	req models.InvoicePOSTRequest, items []models.EJEvent) (models.FDMResponse, error) {
 	// If invoice is not void and there is no new items to add, then return
-	if req.Invoice.VoidReason == "" && len(items) == 0 {
+	/*if req.Invoice.VoidReason == "" && len(items) == 0 {
 		return models.FDMResponse{}, nil
-	}
+	}*/
 	VATs := calculateVATs(items)
 	totalAmount := calculateTotalAmount(items)
 	t := models.FDMTicket{}
@@ -159,7 +159,7 @@ func Submit(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespon
 
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
-	if len(positiveItems) > 0 {
+	if len(positiveItems) > 0 || len(items) == 0 {
 		res, err := SendHashAndSignMessage(fdm, "PS", data, positiveItems)
 		if err != nil {
 			return responses, err
