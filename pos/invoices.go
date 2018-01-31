@@ -850,47 +850,19 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	newInvoices := []models.Invoice{}
 	for _, i := range body.Invoices {
-		req := models.InvoicePOSTRequest{}
-		req.ActionTime = body.ActionTime
-		req.CashierName = body.CashierName
-		req.CashierNumber = body.CashierNumber
-		req.EmployeeID = body.EmployeeID
-		req.RCRS = body.RCRS
-		req.TerminalName = body.TerminalDescription
-		req.TerminalID = body.TerminalID
-		req.TerminalNumber = body.TerminalNumber
-		req.Invoice = i
-		// if fdm is enabled submit items to fdm first
-		if config.Config.IsFDMEnabled == true {
-			// create fdm connection
-			conn, err := fdm.Connect(req.RCRS)
-			if err != nil {
-				helpers.ReturnErrorMessage(w, err.Error())
-				return
-			}
-			defer conn.Close()
-			_, err = fdm.Submit(conn, req)
-			if err != nil {
-				helpers.ReturnErrorMessage(w, err.Error())
-				return
-			}
-			req.Invoice.Events = []models.EJEvent{}
-		}
 
-		invoice, err := req.Submit()
+		err := db.DB.C("posinvoices").Update(bson.M{"invoice_number": i.InvoiceNumber}, i)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
 
-		newInvoices = append(newInvoices, invoice)
 	}
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
 
-	helpers.ReturnSuccessMessage(w, newInvoices)
+	helpers.ReturnSuccessMessage(w, body.Invoices)
 }
 
 // WasteAndVoid wastes a lineitem
