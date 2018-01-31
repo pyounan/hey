@@ -282,15 +282,18 @@ func BulkSubmitInvoices(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
+	if config.Config.IsFDMEnabled == true {
+		// create fdm connection
+		conn, err := fdm.Connect(req.RCRS)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		defer conn.Close()
+	}
+
 	for _, invoice := range req.Invoices {
 		if config.Config.IsFDMEnabled == true {
-			// create fdm connection
-			conn, err := fdm.Connect(req.RCRS)
-			if err != nil {
-				helpers.ReturnErrorMessage(w, err.Error())
-				return
-			}
-			defer conn.Close()
 			// build a normal request model
 			invoiceReq := models.InvoicePOSTRequest{}
 			invoiceReq.RCRS = req.RCRS
