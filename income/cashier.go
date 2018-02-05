@@ -19,10 +19,11 @@ import (
 
 // Cashier models data of a Cashier
 type Cashier struct {
-	ID         int    `json:"id" bson:"id"`
-	Name       string `json:"name" bson:"name"`
-	Number     int    `json:"number" bson:"number"`
-	EmployeeID string `json:"employee_id" bson:"employee_id"`
+	ID          int    `json:"id" bson:"id"`
+	Name        string `json:"name" bson:"name"`
+	Number      int    `json:"number" bson:"number"`
+	EmployeeID  string `json:"employee_id" bson:"employee_id"`
+	FDMLanguage string `json:"fdm_language,omitempty" bson:"-"` // used only to return in the login response
 }
 
 // Attendance represents cashier attendance log
@@ -234,6 +235,15 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 		postBody.Description = description
 	}
 	syncer.QueueRequest(req.RequestURI, req.Method, req.Header, postBody)
+
+	if config.Config.IsFDMEnabled {
+		for _, fdm := range config.Config.FDMs {
+			if fdm.RCRS == terminal.RCRS {
+				resp.FDMLanguage = fdm.Language
+				break
+			}
+		}
+	}
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "cashier_id",
