@@ -64,7 +64,12 @@ func main() {
 	// Load templates
 	templateexport.ParseTemplates(*templatesPath)
 	// Connect to Database
-	db.Connect()
+	err = db.Connect()
+	if err != nil {
+		log.Println("Couldn't connect to database")
+		panic(err)
+	}
+	defer db.Close()
 
 	fmt.Println("Loading data & configuration from Cloudinn servers...")
 	if config.Config.IsFDMEnabled {
@@ -152,6 +157,7 @@ func createRouter() http.Handler {
 	r.HandleFunc("/shadowinn/api/company/", income.GetCompany).Methods("GET")
 
 	// handle POS requests
+	r.HandleFunc("/api/pos/course/", pos.ListCourses).Methods("GET")
 	r.HandleFunc("/api/pos/course/{id}/", pos.ListCourses).Methods("GET")
 
 	r.HandleFunc("/api/pos/store/", pos.ListStores).Methods("GET")
@@ -171,8 +177,6 @@ func createRouter() http.Handler {
 	r.HandleFunc("/api/pos/terminal/{id}/", pos.GetTerminal).Methods("GET")
 	r.HandleFunc("/api/pos/terminal/{id}/", pos.UpdateTerminal).Methods("PUT")
 	r.HandleFunc("/api/pos/terminal/{id}/unlockterminal/", pos.UnlockTerminal).Methods("POST")
-
-	r.HandleFunc("/api/pos/course/", pos.ListCourses).Methods("GET")
 
 	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoicesPaginated).Methods("GET").Queries("is_settled", "")
 	r.HandleFunc("/api/pos/posinvoices/", pos.ListInvoicesLite).Methods("GET").Queries("simplified", "")

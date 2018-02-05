@@ -211,6 +211,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer conn.Close()
+
 		responses, err := fdm.Submit(conn, req)
 		if err != nil {
 			log.Println(err)
@@ -225,7 +226,6 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-
 		fdmResponses = append(fdmResponses, responses...)
 		req.Invoice.FDMResponses = fdmResponses
 	}
@@ -856,10 +856,14 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
+	session := db.Session.Copy()
+	defer session.Close()
+
 	for _, i := range body.Invoices {
 
-		err := db.DB.C("posinvoices").Update(bson.M{"invoice_number": i.InvoiceNumber}, i)
+		err := db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": i.InvoiceNumber}, i)
 		if err != nil {
+			log.Println("DB ERROR", err)
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
