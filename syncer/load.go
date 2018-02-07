@@ -113,7 +113,9 @@ func Load(apis map[string]string) {
 			} else if collection == "terminals" {
 				terminals := []models.Terminal{}
 				json.NewDecoder(response.Body).Decode(&terminals)
+				retrievedIDs := []int{}
 				for _, terminal := range terminals {
+					retrievedIDs = append(retrievedIDs, terminal.ID)
 					// get old terminal
 					t := models.Terminal{}
 					err := db.DB.C(collection).With(session).Find(bson.M{"id": terminal.ID}).One(&t)
@@ -127,6 +129,11 @@ func Load(apis map[string]string) {
 							db.DB.C(collection).With(session).Upsert(bson.M{"id": terminal.ID}, terminal)
 						}
 					}
+				}
+				// delete orphan terminals (terminals that have been deleted from backend
+				err := db.DB.C(collection).With(session).Remove(bson.M{"id": bson.M{"$nin": retrievedIDs}})
+				if err != nil {
+					log.Println(err)
 				}
 			} else if api == "api/pos/posinvoices/?is_settled=false" {
 				type Links struct {
@@ -219,11 +226,20 @@ func Load(apis map[string]string) {
 			} else if api == "core/getallusergroups/" {
 				var res []map[string]interface{}
 				json.NewDecoder(response.Body).Decode(&res)
+				retrievedIDs := []int{}
 				for _, item := range res {
-					_, err := db.DB.C(collection).With(session).Upsert(bson.M{"id": item["id"]}, item)
+					id := int(item["id"].(float64))
+					retrievedIDs = append(retrievedIDs, id)
+					_, err := db.DB.C(collection).With(session).Upsert(bson.M{"id": id}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}
+				}
+				// remove extra records from the db (records that has been deleted from the backend,
+				// should be deleted here too).
+				err := db.DB.C(collection).With(session).Remove(bson.M{"id": bson.M{"$nin": retrievedIDs}})
+				if err != nil {
+					log.Println(err.Error())
 				}
 			} else {
 				res := []map[string]interface{}{}
@@ -231,14 +247,23 @@ func Load(apis map[string]string) {
 				if err != nil {
 					log.Println(err)
 				}
+				retrievedIDs := []int{}
 				for _, item := range res {
 					if _, ok := item["_id"]; ok {
 						delete(item, "_id")
 					}
-					_, err = db.DB.C(collection).With(session).Upsert(bson.M{"id": item["id"]}, item)
+					id := int(item["id"].(float64))
+					retrievedIDs = append(retrievedIDs, id)
+					_, err = db.DB.C(collection).With(session).Upsert(bson.M{"id": id}, item)
 					if err != nil {
 						log.Println(err.Error())
 					}
+				}
+				// remove extra records from the db (records that has been deleted from the backend,
+				// should be deleted here too).
+				err = db.DB.C(collection).With(session).Remove(bson.M{"id": bson.M{"$nin": retrievedIDs}})
+				if err != nil {
+					log.Println(err.Error())
 				}
 			}
 			wg.Done()
