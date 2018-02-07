@@ -209,7 +209,7 @@ func Folio(fdm *libfdm.FDM, data models.InvoicePOSTRequest) ([]models.FDMRespons
 
 	// send positive msg
 	positiveItems := splitItemsByVATRates(items, positiveVATs)
-	if len(positiveItems) > 0 {
+	if len(positiveItems) > 0 || len(items) == 0 {
 		res, err := SendHashAndSignMessage(fdm, "PS", data, positiveItems)
 		if err != nil {
 			return responses, err
