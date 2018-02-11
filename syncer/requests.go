@@ -107,7 +107,7 @@ func PushToBackend() {
 		// Check status code of the response, continue or abort based on that
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
 			log.Println("Error: Failed to fetch response from backend")
-			if response.StatusCode >= 400 && response.StatusCode <= 500 {
+			if response.StatusCode >= 400 && response.StatusCode <= 500 && response.StatusCode != 423 {
 				log.Println("Fatal Error: Proxy operations is going to be halted, please contact support.")
 				proxy.AllowIncomingRequests = false
 			}
