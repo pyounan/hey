@@ -641,17 +641,13 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer conn.Close()
-		_, err = fdm.Submit(conn, req)
-		if err != nil {
-			helpers.ReturnErrorMessage(w, err.Error())
-			return
-		}
 		responses, err := fdm.Payment(conn, req)
 		if err != nil {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
 		fdmResponses = append(fdmResponses, responses...)
+		req.Invoice.FDMResponses = fdmResponses
 		body.NewInvoice.FDMResponses = fdmResponses
 	}
 
