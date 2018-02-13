@@ -218,14 +218,6 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
-		if req.Invoice.VoidReason != "" {
-			responses, err = fdm.EmptyPLUHash(conn, req)
-			if err != nil {
-				log.Println(err)
-				helpers.ReturnErrorMessage(w, err.Error())
-				return
-			}
-		}
 		fdmResponses = append(fdmResponses, responses...)
 		req.Invoice.FDMResponses = fdmResponses
 	}
@@ -250,6 +242,50 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		locks.LockInvoices([]models.Invoice{invoice}, invoice.TerminalID)
 	}
 	req.Invoice.CreateLock = false
+	err = db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
+	if err != nil {
+		log.Println(err)
+	}
+	helpers.ReturnSuccessMessage(w, req.Invoice)
+}
+
+// VoidInvoice closes invoice and sets the void reason
+func VoidInvoice(w http.ResponseWriter, r *http.Request) {
+	var req models.InvoicePOSTRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	// if fdm is enabled submit items to fdm first
+	if config.Config.IsFDMEnabled == true {
+		// create fdm connection
+		conn, err := fdm.Connect(req.RCRS)
+		if err != nil {
+			log.Println(err)
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		defer conn.Close()
+
+		responses, err := fdm.EmptyPLUHash(conn, req)
+		if err != nil {
+			log.Println(err)
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		fdmResponses := []models.FDMResponse{}
+		fdmResponses = append(fdmResponses, responses...)
+		req.Invoice.FDMResponses = fdmResponses
+	}
+
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+
+	session := db.Session.Copy()
+	defer session.Close()
+
 	err = db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		log.Println(err)
