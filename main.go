@@ -196,6 +196,7 @@ func createRouter() http.Handler {
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/cancelpostings/", pos.CancelPostings).Methods("POST")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/unlock/", pos.UnlockInvoice).Methods("GET")
 	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/getlatestchanges/", pos.GetInvoiceLatestChanges).Methods("POST")
+	r.HandleFunc("/api/pos/posinvoices/{invoice_number}/void/", pos.VoidInvoice).Methods("POST")
 	// fixed discounts
 	r.HandleFunc("/api/pos/fixeddiscount/", pos.ListFixedDiscounts).Methods("GET")
 	r.HandleFunc("/api/pos/fixeddiscount/", pos.CreateFixedDiscount).Methods("POST")
