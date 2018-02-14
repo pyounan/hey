@@ -16,6 +16,7 @@ type InvoiceLite struct {
 	ID                  *int64     `json:"id" bson:"id,omitempty"`
 	InvoiceNumber       string     `json:"invoice_number" bson:"invoice_number"`
 	TableNumber         *int64     `json:"table" bson:"table"`
+	TableDetails        *string    `json:"table_details" bson:"table_details"`
 	AuditDate           string     `json:"audit_date" bson:"audit_date"`
 	Cashier             int        `json:"cashier" bson:"cashier"`
 	CashierDetails      string     `json:"cashier_details" bson:"cashier_details"`
@@ -58,6 +59,7 @@ type Invoice struct {
 	StoreDescription    string                 `json:"store_description" bson:"store_description"`
 	Subtotal            float64                `json:"subtotal" bson:"subtotal"`
 	TableID             *int64                 `json:"table_number" bson:"table_number"`
+	TableDetails        *string                `json:"table_details" bson:"table_details"`
 	GuestName           string                 `json:"guest_name" bson:"guest_name"`
 	TakeOut             bool                   `json:"takeout" bson:"takeout"`
 	TerminalID          int                    `json:"terminal_id" bson:"terminal_id"`
