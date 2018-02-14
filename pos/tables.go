@@ -49,7 +49,7 @@ func GetTable(w http.ResponseWriter, r *http.Request) {
 	table := models.Table{}
 	session := db.Session.Copy()
 	defer session.Close()
-	err = db.DB.C("tables").With(session).Find(q).One(&table)
+	err = db.DB.C("tables").With(session).Find(q).Sort("id").One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
