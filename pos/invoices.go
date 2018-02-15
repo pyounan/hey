@@ -286,9 +286,20 @@ func VoidInvoice(w http.ResponseWriter, r *http.Request) {
 	session := db.Session.Copy()
 	defer session.Close()
 
+	req.Invoice.IsSettled = true
 	err = db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		log.Println(err)
+	}
+	// update table status
+	if req.Invoice.TableID != nil {
+		table := models.Table{}
+		err = db.DB.C("tables").With(session).Find(bson.M{"id": req.Invoice.TableID}).One(&table)
+		if err != nil {
+			helpers.ReturnErrorMessage(w, err.Error())
+			return
+		}
+		table.UpdateStatus()
 	}
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
