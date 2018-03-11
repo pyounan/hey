@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"pos-proxy/auth"
+	"pos-proxy/callaccounting"
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
@@ -109,6 +110,9 @@ func main() {
 	if config.Config.IsOperaEnabled {
 		opera.Connect()
 	}
+
+	// check if call accounting is enabled, then start
+	callaccounting.Start()
 
 	handler := createRouter()
 
