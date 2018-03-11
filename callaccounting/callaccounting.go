@@ -15,11 +15,10 @@ type CallAccounting interface {
 
 var callAccounting CallAccounting
 
-// Start initiates the loading process of call_accounting plugin
-func Start() {
-	if !config.Config.CallAccountingEnabled {
-		return
-	}
+// LoadPlugin checks if the callaccounting flag is enabled then loads the plugin
+// into memory.
+// NOTICE: it should be the first thing to call before any other methods
+func LoadPlugin() {
 	p, err := plugin.Open("plugins/call_accounting.so")
 	if err != nil {
 		log.Println(err)
@@ -39,11 +38,15 @@ func Start() {
 		return
 	}
 
+}
+
+// Start initiates the loading process of call_accounting plugin
+func Start() {
 	callAccounting.Start()
 }
 
-// SetSettings updates the Configuration for the plugin
-func SetSettings(cfg Config) {
+// UpdateSettings updates the Configuration for the plugin
+func UpdateSettings(cfg Config) {
 	configMap := make(map[string]string)
 	configMap["tenant_id"] = fmt.Sprintf("%d", config.Config.InstanceID)
 	configMap["realm"] = config.Config.InstanceName

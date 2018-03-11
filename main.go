@@ -78,10 +78,15 @@ func main() {
 	}
 	syncer.Load(syncer.SingleLoadApis)
 
+	syncer.FetchConfiguration()
+	if config.Config.CallAccountingEnabled {
+		callaccounting.LoadPlugin()
+		syncer.FetchCallAccountingSettings()
+	}
 	go func() {
 		for true {
-			syncer.FetchConfiguration()
 			time.Sleep(time.Second * 60)
+			syncer.FetchConfiguration()
 		}
 	}()
 

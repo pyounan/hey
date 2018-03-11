@@ -51,10 +51,6 @@ func FetchConfiguration() {
 		log.Println(err.Error())
 		return
 	}
-	// check if call_accounting_enabled is true then fetch its settings
-	if config.Config.CallAccountingEnabled {
-		go fetchCallAccountingSettings()
-	}
 }
 
 // Load data from the backend and insert to mongodb
@@ -280,7 +276,9 @@ func Load(apis map[string]string) {
 	}
 }
 
-func fetchCallAccountingSettings() {
+// FetchCallAccountingSettings sends a GET request to the backend to fetch the configuration
+// of call accounting for this tenant
+func FetchCallAccountingSettings() {
 	uri := fmt.Sprintf("%s/api/clients/%d/settings/call_accounting", config.Config.BackendURI, config.Config.InstanceID)
 	netClient := helpers.NewNetClient()
 	req, err := http.NewRequest("GET", uri, nil)
@@ -294,6 +292,7 @@ func fetchCallAccountingSettings() {
 		log.Println(err.Error())
 		return
 	}
+	// TOFIX: check the response code and handle error
 	defer response.Body.Close()
 	data := callaccounting.Config{}
 	err = json.NewDecoder(response.Body).Decode(&data)
@@ -301,5 +300,5 @@ func fetchCallAccountingSettings() {
 		log.Println(err.Error())
 		return
 	}
-	callaccounting.SetSettings(data)
+	callaccounting.UpdateSettings(data)
 }
