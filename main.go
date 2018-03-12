@@ -117,7 +117,9 @@ func main() {
 	}
 
 	// check if call accounting is enabled, then start
-	callaccounting.Start()
+	if config.Config.CallAccountingEnabled {
+		callaccounting.Start()
+	}
 
 	handler := createRouter()
 
