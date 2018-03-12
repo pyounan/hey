@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"pos-proxy/auth"
+	"pos-proxy/callaccounting"
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
@@ -77,10 +78,15 @@ func main() {
 	}
 	syncer.Load(syncer.SingleLoadApis)
 
+	syncer.FetchConfiguration()
+	if config.Config.CallAccountingEnabled {
+		callaccounting.LoadPlugin()
+		syncer.FetchCallAccountingSettings()
+	}
 	go func() {
 		for true {
-			syncer.FetchConfiguration()
 			time.Sleep(time.Second * 60)
+			syncer.FetchConfiguration()
 		}
 	}()
 
@@ -109,6 +115,9 @@ func main() {
 	if config.Config.IsOperaEnabled {
 		opera.Connect()
 	}
+
+	// check if call accounting is enabled, then start
+	callaccounting.Start()
 
 	handler := createRouter()
 

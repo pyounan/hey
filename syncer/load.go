@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"pos-proxy/callaccounting"
 	"pos-proxy/config"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
@@ -273,4 +274,31 @@ func Load(apis map[string]string) {
 	if !bar.IsFinished() {
 		bar.FinishPrint("All Data has been loaded successfully")
 	}
+}
+
+// FetchCallAccountingSettings sends a GET request to the backend to fetch the configuration
+// of call accounting for this tenant
+func FetchCallAccountingSettings() {
+	uri := fmt.Sprintf("%s/api/clients/%d/settings/call_accounting", config.Config.BackendURI, config.Config.InstanceID)
+	netClient := helpers.NewNetClient()
+	req, err := http.NewRequest("GET", uri, nil)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	req = helpers.PrepareRequestHeaders(req)
+	response, err := netClient.Do(req)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	// TOFIX: check the response code and handle error
+	defer response.Body.Close()
+	data := callaccounting.Config{}
+	err = json.NewDecoder(response.Body).Decode(&data)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	callaccounting.UpdateSettings(data)
 }
