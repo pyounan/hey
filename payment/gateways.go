@@ -8,6 +8,7 @@ type PaymentGateway interface {
 	Sale(data interface{})
 	Refund()
 	Abort()
+	Reprint()
 	Output(data interface{})
 }
 

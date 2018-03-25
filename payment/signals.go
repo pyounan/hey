@@ -50,6 +50,8 @@ func handleInputSignals() {
 			// go handleCCVSignals(ccvChan)
 			if payload.Action == "sale" {
 				v.Sale(payload.Data)
+			} else if payload.Action == "reprint" {
+				v.Reprint()
 			} else if event.Type == "output" {
 				v.Output(payload.Data)
 			}
