@@ -1,11 +1,14 @@
 package payment
 
-import "pos-proxy/payment/gateways/ccv"
+import (
+	"encoding/json"
+	"pos-proxy/payment/gateways/ccv"
+)
 
 var gateways map[string]PaymentGateway
 
 type PaymentGateway interface {
-	Sale(data interface{})
+	Sale(data json.RawMessage)
 	Refund()
 	Abort()
 	Reprint()

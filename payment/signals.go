@@ -23,7 +23,7 @@ func init() {
 type PaymentPayload struct {
 	Gateway string      `json:"gateway"`
 	Action  string      `json:"action"`
-	Data    interface{} `json:"data"`
+	Data    json.RawMessage `json:"data"`
 }
 
 func handleInputSignals() {
