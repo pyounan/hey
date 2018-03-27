@@ -9,7 +9,7 @@ var gateways map[string]PaymentGateway
 
 type PaymentGateway interface {
 	Sale(data json.RawMessage)
-	Refund()
+	Refund(data json.RawMessage)
 	Abort()
 	Reprint()
 	Output(data interface{})

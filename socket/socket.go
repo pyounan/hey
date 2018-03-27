@@ -35,15 +35,8 @@ func StartSocket(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		if v, ok := registry[event.Module]; ok {
-			log.Println("sending event to module", event.Module)
 			v <- event
 		}
-		log.Print("received message", event)
-		// err = Send(message)
-		// if err != nil {
-		// 	log.Println("write:", err)
-		// 	continue
-		// }
 	}
 }
 
@@ -61,7 +54,6 @@ func read() (Event, error) {
 		log.Println(err)
 		return message, err
 	}
-	log.Printf("recv: %#v", message)
 
 	return message, nil
 }

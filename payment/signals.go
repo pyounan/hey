@@ -21,15 +21,14 @@ func init() {
 }
 
 type PaymentPayload struct {
-	Gateway string      `json:"gateway"`
-	Action  string      `json:"action"`
+	Gateway string          `json:"gateway"`
+	Action  string          `json:"action"`
 	Data    json.RawMessage `json:"data"`
 }
 
 func handleInputSignals() {
 	log.Println("waiting for incoming payment events")
 	for event := range inputSignal {
-		log.Println("i should make payment now !", event.Payload)
 		var payload PaymentPayload
 		err := json.Unmarshal(event.Payload, &payload)
 		if err != nil {
@@ -48,34 +47,34 @@ func handleInputSignals() {
 			log.Println("handling incoming message for ", payload.Gateway)
 			// ccvChan := make(chan ccv.Command)
 			// go handleCCVSignals(ccvChan)
-			if payload.Action == "sale" {
+			switch payload.Action {
+
+			case "sale":
 				v.Sale(payload.Data)
-			} else if payload.Action == "reprint" {
+			case "reprint":
 				v.Reprint()
-			} else if event.Type == "output" {
+			case "output":
 				v.Output(payload.Data)
+			case "abort":
+				v.Abort()
+			case "refund":
+				v.Refund(payload.Data)
 			}
+		} else {
+			e := socket.Event{
+				Module: "payment",
+				Type:   "error",
+			}
+			body := map[string]string{"error": "This payment module is not registered"}
+			payload, _ := json.Marshal(body)
+			e.Payload = payload
+			socket.Send(e)
 		}
 	}
 }
 
 func handleOutputSignals() {
 	for v := range outputSignal {
-		log.Println("should send this from ccv to socket")
 		socket.Send(v)
 	}
 }
-
-/*
-func handleCCVSignals(c chan ccv.Command) {
-	for com := range c {
-		log.Printf("received command, %#v\n", com)
-
-		m := socket.Message{
-			Type:    com.GetType(),
-			Payload: com.GetPayload(),
-		}
-		socket.Output <- m
-	}
-}
-*/
