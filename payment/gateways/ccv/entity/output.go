@@ -18,21 +18,21 @@ type TextLine struct {
 }
 
 type EJournal struct {
-	XMLName         xml.Name        `xml:"E-Journal,omitempty"`
+	XMLName         xml.Name        `xml:"E-Journal,omitempty" json:"-"`
 	ShopInfo        ShopInfo        `json:"shop_info"`
 	TransactionInfo TransactionInfo `json:"transaction_info"`
 	CardInfo        CardInfo        `json:"card_info"`
 }
 
 type ShopInfo struct {
-	XMLName                xml.Name `xml:"ShopInfo"`
+	XMLName                xml.Name `xml:"ShopInfo" json:"-"`
 	ShopLocation           string   `json:"shop_location"`
 	TerminalIdentifier     string   `json:"terminal_identifier"`
 	MerchantUserIdentifier string   `json:"merchant_user_identifier"`
 }
 
 type TransactionInfo struct {
-	XMLName                xml.Name `xml:"TransactionInfo"`
+	XMLName                xml.Name `xml:"TransactionInfo" json:"-"`
 	TransactionIdentifier  string   `json:"transaction_identifier"`
 	ServiceLabelName       string   `json:"service_label_name"`
 	DateAndTime            string   `json:"date_and_time"`
@@ -45,7 +45,7 @@ type TransactionInfo struct {
 }
 
 type CardInfo struct {
-	XMLName               xml.Name `xml:"CardInfo"`
+	XMLName               xml.Name `xml:"CardInfo" json:"-"`
 	CardLabelName         string   `json:"card_label_name"`
 	ApplicationIdentifier string   `json:"application_idenfitifer"`
 	IssuerLabelName       string   `json:"issuer_label_name"`
