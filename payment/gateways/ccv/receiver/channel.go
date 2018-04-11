@@ -114,6 +114,9 @@ func processMessage(conn *net.Conn, notif chan<- socket.Event) (*entity.DeviceRe
 		for _, t := range resp.Output.TextLines {
 			payload.Body = append(payload.Body.([]string), t.Text)
 		}
+	} else if resp.Output.Target == "E-Journal" && resp.Output.EJournal != nil {
+		payload.Body = *resp.Output.EJournal
+		payload.Target = resp.Output.Target
 	}
 	encodedPayload, err := json.Marshal(payload)
 	if err != nil {

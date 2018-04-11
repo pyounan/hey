@@ -18,40 +18,40 @@ type TextLine struct {
 }
 
 type EJournal struct {
-	XMLName         xml.Name `xml:"E-Journal,omitempty"`
-	ShopInfo        ShopInfo
-	TransactionInfo TransactionInfo
-	CardInfo        CardInfo
+	XMLName         xml.Name        `xml:"E-Journal,omitempty"`
+	ShopInfo        ShopInfo        `json:"shop_info"`
+	TransactionInfo TransactionInfo `json:"transaction_info"`
+	CardInfo        CardInfo        `json:"card_info"`
 }
 
 type ShopInfo struct {
 	XMLName                xml.Name `xml:"ShopInfo"`
-	ShopLocation           string
-	TerminalIdentifier     string
-	MerchantUserIdentifier string
+	ShopLocation           string   `json:"shop_location"`
+	TerminalIdentifier     string   `json:"terminal_identifier"`
+	MerchantUserIdentifier string   `json:"merchant_user_identifier"`
 }
 
 type TransactionInfo struct {
 	XMLName                xml.Name `xml:"TransactionInfo"`
-	TransactionIdentifier  string
-	ServiceLabelName       string
-	DateAndTime            string
-	DetailedAmount         string
-	TotalAmount            string
-	TransactionResultText  string
-	AcquirerIdentifier     string
-	ErrorDiagnosisCode     string
-	TrxTermTreatmentResult string
+	TransactionIdentifier  string   `json:"transaction_identifier"`
+	ServiceLabelName       string   `json:"service_label_name"`
+	DateAndTime            string   `json:"date_and_time"`
+	DetailedAmount         string   `json:"detailed_amount"`
+	TotalAmount            string   `json:"total_amount"`
+	TransactionResultText  string   `json:"transaction_result_text"`
+	AcquirerIdentifier     string   `json:"acquirer_identifier"`
+	ErrorDiagnosisCode     string   `json:"error_diagonsis_code"`
+	TrxTermTreatmentResult string   `json:"trx_term_treatment_result"`
 }
 
 type CardInfo struct {
 	XMLName               xml.Name `xml:"CardInfo"`
-	CardLabelName         string
-	ApplicationIdentifier string
-	IssuerLabelName       string
-	CardNumber            string
-	CardSequenceNumber    string
-	ExpirationDate        string
-	CardHolderName        string
-	Account               string
+	CardLabelName         string   `json:"card_label_name"`
+	ApplicationIdentifier string   `json:"application_idenfitifer"`
+	IssuerLabelName       string   `json:"issuer_label_name"`
+	CardNumber            string   `json:"card_number"`
+	CardSequenceNumber    string   `json:"card_sequence_number"`
+	ExpirationDate        string   `json:"expiration_date"`
+	CardHolderName        string   `json:"card_holder_name"`
+	Account               string   `json:"account"`
 }
