@@ -71,6 +71,7 @@ func (gateway CCV) Sale(data json.RawMessage) {
 	cardServiceReq.RequestID = strconv.Itoa(getNextRequestID())
 	cardServiceReq.TotalAmount = &entity.TotalAmount{}
 	cardServiceReq.TotalAmount.Amount = entity.FloatToString(payload.Amount)
+	log.Println("Amount to be sent to pinpad is", cardServiceReq.TotalAmount.Amount)
 	cardServiceReq.TotalAmount.Currency = "EUR"
 	cardServiceReq.POSdata.PrinterStatus = "Available"
 	cardServiceReq.POSdata.EJournalStatus = "Available"

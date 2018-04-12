@@ -13,6 +13,7 @@ import (
 	"pos-proxy/socket"
 )
 
+// Channel holds the connection attributes
 type Channel struct {
 	host string
 	port string
@@ -21,9 +22,11 @@ type Channel struct {
 
 var channel = &Channel{}
 
+// Connect creates a new tcp connection with CCV pinpad
 func Connect(host, port string) (*Channel, error) {
 	channel.host = host
 	channel.port = port
+	log.Println("starting a new connection with pinpad")
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%s", channel.host, channel.port))
 	if err != nil {
 		return channel, err
@@ -90,7 +93,7 @@ func read(outputChan chan<- socket.Event, conn *net.Conn) (*entity.SaleResponse,
 	}
 	outputChan <- e
 	// close the connection
-	go close(outputChan)
+	go closeConn(outputChan)
 	return &resp, nil
 }
 
@@ -102,8 +105,8 @@ func getChannel() (*Channel, error) {
 	return channel, err
 }
 
-func close(outputChan chan<- socket.Event) {
-	log.Println("trying to close connection")
+func closeConn(outputChan chan<- socket.Event) {
+	log.Println("starting process of closing connection")
 	ch, _ := getChannel()
 	err := utils.Send(ch.conn, []byte{'F', 'I', 'N'})
 	if err != nil {
@@ -119,11 +122,13 @@ func close(outputChan chan<- socket.Event) {
 			return
 		}
 	}
-	log.Println("closing, received:", resp)
+	log.Println("received:", resp)
+	log.Println("sending ACK")
 	err = utils.Send(ch.conn, []byte{'A', 'C', 'K'})
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	log.Println("trying to close connection")
 	(*ch.conn).Close()
 }

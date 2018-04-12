@@ -29,6 +29,7 @@ type PaymentPayload struct {
 func handleInputSignals() {
 	log.Println("waiting for incoming payment events")
 	for event := range inputSignal {
+		log.Println("a new socket event was received, processing...")
 		var payload PaymentPayload
 		err := json.Unmarshal(event.Payload, &payload)
 		if err != nil {
@@ -50,6 +51,7 @@ func handleInputSignals() {
 			switch payload.Action {
 
 			case "sale":
+				log.Println("received a sale request from web socket")
 				v.Sale(payload.Data)
 			case "reprint":
 				v.Reprint()
