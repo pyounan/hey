@@ -22,9 +22,11 @@ import (
 	"pos-proxy/income"
 	"pos-proxy/libs/libfdm"
 	"pos-proxy/opera"
+	_ "pos-proxy/payment"
 	"pos-proxy/pos"
 	"pos-proxy/pos/fdm"
 	"pos-proxy/proxy"
+	"pos-proxy/socket"
 	"pos-proxy/sun"
 	"pos-proxy/syncer"
 	"pos-proxy/templateexport"
@@ -169,6 +171,7 @@ func createRouter() http.Handler {
 
 	// handle POS requests
 	r.HandleFunc("/api/pos/course/", pos.ListCourses).Methods("GET")
+	r.HandleFunc("/sockets/pos/", socket.StartSocket)
 	r.HandleFunc("/api/pos/course/{id}/", pos.ListCourses).Methods("GET")
 
 	r.HandleFunc("/api/pos/store/", pos.ListStores).Methods("GET")
