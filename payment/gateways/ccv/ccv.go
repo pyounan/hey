@@ -57,7 +57,11 @@ func (gateway CCV) Sale(data json.RawMessage) {
 	}
 
 	type SaleRequest struct {
-		Amount float64 `json:"amount"`
+		Amount         float64 `json:"amount"`
+		TerminalID     int     `json:"terminal_id"`
+		TerminalNumber string  `json:"terminal_number"`
+		CashierID      int     `json:"cashier_id"`
+		Currency       string  `json:"currency"`
 	}
 	payload := SaleRequest{}
 	// bytes.NewReader([]byte(data))
@@ -72,10 +76,11 @@ func (gateway CCV) Sale(data json.RawMessage) {
 	cardServiceReq.TotalAmount = &entity.TotalAmount{}
 	cardServiceReq.TotalAmount.Amount = entity.FloatToString(payload.Amount)
 	log.Println("Amount to be sent to pinpad is", cardServiceReq.TotalAmount.Amount)
-	cardServiceReq.TotalAmount.Currency = "EUR"
+	cardServiceReq.TotalAmount.Currency = payload.Currency
 	cardServiceReq.POSdata.PrinterStatus = "Available"
 	cardServiceReq.POSdata.EJournalStatus = "Available"
-	cardServiceReq.POSdata.ClerkID = 1
+	cardServiceReq.POSdata.ClerkID = payload.CashierID
+	cardServiceReq.WorkstationID = payload.TerminalNumber
 	res, err := sender.Send(gateway.ouputChannel, cardServiceReq)
 	if err != nil {
 		m := socket.Event{}
