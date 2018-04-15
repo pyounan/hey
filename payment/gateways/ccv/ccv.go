@@ -59,7 +59,7 @@ func (gateway CCV) Sale(data json.RawMessage) {
 	type SaleRequest struct {
 		Amount         float64 `json:"amount"`
 		TerminalID     int     `json:"terminal_id"`
-		TerminalNumber string  `json:"terminal_number"`
+		TerminalNumber int     `json:"terminal_number"`
 		CashierID      int     `json:"cashier_id"`
 		Currency       string  `json:"currency"`
 	}
@@ -80,7 +80,7 @@ func (gateway CCV) Sale(data json.RawMessage) {
 	cardServiceReq.POSdata.PrinterStatus = "Available"
 	cardServiceReq.POSdata.EJournalStatus = "Available"
 	cardServiceReq.POSdata.ClerkID = payload.CashierID
-	cardServiceReq.WorkstationID = payload.TerminalNumber
+	cardServiceReq.WorkstationID = strconv.Itoa(payload.TerminalNumber)
 	res, err := sender.Send(gateway.ouputChannel, cardServiceReq)
 	if err != nil {
 		m := socket.Event{}
