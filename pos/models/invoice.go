@@ -12,7 +12,9 @@ import (
 type PaymentLog struct{}
 
 // InvoiceLite represents the Invoice model in a list
+// swagger:model invoiceLite
 type InvoiceLite struct {
+	// in:body
 	ID                  *int64     `json:"id" bson:"id,omitempty"`
 	InvoiceNumber       string     `json:"invoice_number" bson:"invoice_number"`
 	TableID             *int64     `json:"table_number" bson:"table_number"`

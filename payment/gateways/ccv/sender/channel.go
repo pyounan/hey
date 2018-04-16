@@ -12,6 +12,7 @@ import (
 	"pos-proxy/payment/gateways/ccv/entity"
 	"pos-proxy/payment/gateways/ccv/utils"
 	"pos-proxy/socket"
+	"time"
 )
 
 // Channel holds the connection attributes
@@ -36,6 +37,7 @@ func Connect(settings proxyEntity.CCVSettings) (*Channel, error) {
 	if err != nil {
 		return &channel, err
 	}
+	conn.SetReadDeadline(time.Now().Add(20 * time.Second))
 	channel.conn = &conn
 	return &channel, err
 }
@@ -54,11 +56,15 @@ func Send(outputChan chan<- socket.Event, req *entity.SaleRequest, settings prox
 	}
 	err = utils.Send(c.conn, buff.Bytes())
 	if err != nil {
+		log.Println("is timeout error?", err.(net.Error))
+		log.Println(err)
 		return &entity.SaleResponse{}, err
 	}
 	// wait for response
 	resp, err := read(outputChan, c.conn)
 	if err != nil {
+		log.Println("is timeout error?", err.(net.Error))
+		log.Println(err)
 		return resp, err
 	}
 	return resp, nil

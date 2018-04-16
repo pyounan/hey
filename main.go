@@ -1,3 +1,14 @@
+// Package main pos-proxy api
+//
+// pos-proxy acts as the backend for POS module in the localnetwork
+// it handles all the POS operations also handles the offline mode
+// scenarios
+//
+// Schemes: http
+// Host: localhost
+// Version: 1.0.0
+//
+// swagger:meta
 package main
 
 import (
@@ -38,6 +49,7 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
+//go:generate swagger generate spec
 func main() {
 	// Check command line arguments, if askings for version, print version then exit
 	if len(os.Args) > 1 && os.Args[1] == "version" {

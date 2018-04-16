@@ -106,6 +106,7 @@ func (gateway CCV) Sale(data json.RawMessage) {
 	cardServiceReq.WorkstationID = strconv.Itoa(payload.TerminalNumber)
 	res, err := sender.Send(gateway.ouputChannel, cardServiceReq, *settings)
 	if err != nil {
+		log.Println(err)
 		m := socket.Event{}
 		m.Module = "payment"
 		m.Type = "error"
