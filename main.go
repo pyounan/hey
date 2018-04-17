@@ -196,7 +196,6 @@ func createRouter() http.Handler {
 	r.HandleFunc("/api/pos/store/", pos.ListStores).Methods("GET")
 	r.HandleFunc("/api/pos/store/{id}/", pos.GetStore).Methods("GET")
 	r.HandleFunc("/api/pos/storedetails/{id}/", pos.GetStoreDetails).Methods("GET")
-	r.HandleFunc("/api/pos/store/{id}/", pos.UpdateStore).Methods("PUT")
 
 	r.HandleFunc("/api/pos/tables/", pos.ListTables).Methods("GET")
 	r.HandleFunc("/api/pos/tables/{id}/getlatestchanges/", pos.GetTableLatestChanges).Methods("POST")

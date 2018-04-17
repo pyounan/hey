@@ -180,7 +180,7 @@ func clockout(cashier Cashier, terminal models.Terminal, time string) (string, m
 	return description, fdmResponse, nil
 }
 
-// GetPosCashier swagger:route POST /income/api/cashier/getposcashier/ income getPOSCashier
+// GetPosCashier swagger:route POST /income/api/cashier/getposcashier/ cashiers getPOSCashier
 //
 // Log in a POS cashier
 //
@@ -283,7 +283,7 @@ type cashierPermissions struct {
 	Permissions []string `json:"permissions" bson:"permissions"`
 }
 
-// GetCashierPermissions swagger:route GET /income/api/poscashierpermissions/ income permissions
+// GetCashierPermissions swagger:route GET /income/api/poscashierpermissions/ cashiers permissions
 //
 // List Cashier Permissions
 //
@@ -309,14 +309,14 @@ func GetCashierPermissions(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, permissions)
 }
 
-// Clockout swagger:route POST /income/api/cashier/clockout/ income clockout
+// Clockout swagger:route POST /income/api/cashier/clockout/ cashiers clockout
 //
 // Clockout POS Cashier
 //
 // logs out a cashier and create a clockout record in the attendance sheet
 // returns a 200 success with true as body
 //
-// Paramters:
+// Parameters:
 // + name: request body
 //   in: body
 //   required: true

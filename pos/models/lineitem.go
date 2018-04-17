@@ -1,5 +1,34 @@
 package models
 
+// Item swagger:model item
+// defines attributes of Item entity
+type Item struct {
+	ID                    int                    `json:"id" bson:"id"`
+	Number                string                 `json:"number" bson:"number"`
+	Description           string                 `json:"description" bson:"description"`
+	UnitPrince            float64                `json:"unit_price" bson:"unit_price"`
+	StoreUnitID           int                    `json:"store_unit" bson:"store_unit"`
+	ItemID                int                    `json:"item" bson:"item"`
+	OpenItem              bool                   `json:"open_item" bson:"open_item"`
+	OpenPrice             bool                   `json:"open_price" bson:"open_price"`
+	AttachedAttributes    map[string]interface{} `json:"attached_attributes" bson:"attached_attributes"`
+	StoreMenuItemConfig   int                    `json:"storemenuitemconfig" bson:"storemenuitemconfig"`
+	BaseUnit              string                 `json:"base_unit,omitempty" bson:"base_unit,omitempty"`
+	CategoryID            int                    `json:"category_id" bson:"category_id"`
+	GroupID               int                    `json:"group_id" bson:"group_id"`
+	GroupName             string                 `json:"group_name" bson:"group_name"`
+	ItemCondimentGroupSet []ItemCondimentGroup   `json:"itemcondimentgroup_set" bson:"itemcondimentgroup_set"`
+}
+
+// ItemCondimentGroup swagger:model itemCondimentGroup
+// defines attributes of ItemCondimentGroup entity combinaation
+type ItemCondimentGroup struct {
+	CondimentGroupID int    `json:"condiment_group" bson:"condiment_group"`
+	Min              int    `json:"min" bson:"min"`
+	Max              int    `json:"max" bson:"max"`
+	Name             string `json:"name" bson:"name"`
+}
+
 // CondimentLineItem maps condimentlineitem_set in POSInvoiceLineItem
 type CondimentLineItem struct {
 	ID                  int                    `json:"id,omitempty" bson:"id,omitempty"`

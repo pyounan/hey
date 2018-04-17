@@ -13,7 +13,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// ListDepartment swagger:route GET /income/api/department/ income getDepartmentList
+// ListDepartment swagger:route GET /income/api/department/ departments getDepartmentList
 //
 // List Departments
 //
@@ -44,7 +44,7 @@ func ListDepartments(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, departments)
 }
 
-// GetDepartment swagger:route GET /income/api/department/{id}/ income getDepartment
+// GetDepartment swagger:route GET /income/api/department/{id}/ departments getDepartment
 //
 // Get Department
 //

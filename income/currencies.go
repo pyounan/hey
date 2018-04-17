@@ -12,7 +12,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// GetCurrency swagger:route GET /income/api/currency/{id}/ income getCurrency
+// GetCurrency swagger:route GET /income/api/currency/{id}/ currencies getCurrency
 //
 // Get Currency
 //
@@ -43,7 +43,7 @@ func GetCurrency(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, c)
 }
 
-// ListCurrencies swagger:route GET /income/api/currency/ income getCurrencyList
+// ListCurrencies swagger:route GET /income/api/currency/ currencies getCurrencyList
 //
 // List Currencies
 //

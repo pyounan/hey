@@ -27,6 +27,45 @@
         "operationId": "ensureTenantSelected"
       }
     },
+    "/api/pos/course/": {
+      "get": {
+        "description": "returns a list of menu courses",
+        "tags": [
+          "courses"
+        ],
+        "summary": "List Courses",
+        "operationId": "listCourses",
+        "responses": {
+          "200": {
+            "description": "course",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/course"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/course/{id}/": {
+      "get": {
+        "description": "returns details of a Course",
+        "tags": [
+          "courses"
+        ],
+        "summary": "Get Course",
+        "operationId": "getCourse",
+        "responses": {
+          "200": {
+            "description": "course",
+            "schema": {
+              "$ref": "#/definitions/course"
+            }
+          }
+        }
+      }
+    },
     "/api/pos/posinvoices": {
       "get": {
         "description": "serves a list of simplified invoices with basic\ninformation",
@@ -55,6 +94,85 @@
         }
       }
     },
+    "/api/pos/store/": {
+      "get": {
+        "description": "returns a list of POS stores",
+        "tags": [
+          "store"
+        ],
+        "summary": "List Stores",
+        "operationId": "getStoreList",
+        "responses": {
+          "200": {
+            "description": "store",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/store"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/store/{id}": {
+      "get": {
+        "description": "returns a POS store data based on ID",
+        "tags": [
+          "store"
+        ],
+        "summary": "Get Store",
+        "operationId": "getStore",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "store",
+            "schema": {
+              "$ref": "#/definitions/store"
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/storedetails/{id}": {
+      "get": {
+        "description": "returns a POS stores details based on ID",
+        "tags": [
+          "store"
+        ],
+        "summary": "Get Store Details",
+        "operationId": "getStoreDetails",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storeDetails",
+            "schema": {
+              "$ref": "#/definitions/storeDetails"
+            }
+          }
+        }
+      }
+    },
     "/core/getloggedinusergroups/{id}/": {
       "get": {
         "description": "returns a list of permissions assigned for the logged in user",
@@ -78,19 +196,31 @@
     },
     "/income/api/cashier/clockout/": {
       "post": {
-        "description": "logs out a cashier and create a clockout record in the attendance sheet\nreturns a 200 success with true as body\n\nParamters:\n+ name: request body\nin: body\nrequired: true\ntype: clockoutRequest",
+        "description": "logs out a cashier and create a clockout record in the attendance sheet\nreturns a 200 success with true as body",
         "tags": [
-          "income"
+          "cashiers"
         ],
         "summary": "Clockout POS Cashier",
-        "operationId": "clockout"
+        "operationId": "clockout",
+        "parameters": [
+          {
+            "type": "object",
+            "name": "request body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/clockoutRequest"
+            }
+          }
+        ]
       }
     },
     "/income/api/cashier/getposcashier/": {
       "post": {
         "description": "used to clockin a cashier and compare his\npin against the correct one from the database",
         "tags": [
-          "income"
+          "cashiers"
         ],
         "summary": "Log in a POS cashier",
         "operationId": "getPOSCashier",
@@ -120,7 +250,7 @@
       "get": {
         "description": "returns a list with available currencies",
         "tags": [
-          "income"
+          "currencies"
         ],
         "summary": "List Currencies",
         "operationId": "getCurrencyList",
@@ -141,7 +271,7 @@
       "get": {
         "description": "returns a details of a currency by id\n\nParamters:\n+ name: id\nin: path\nrequired: true\nschema:\ntype: integer",
         "tags": [
-          "income"
+          "currencies"
         ],
         "summary": "Get Currency",
         "operationId": "getCurrency",
@@ -159,7 +289,7 @@
       "get": {
         "description": "returns a list of income departments",
         "tags": [
-          "income"
+          "departments"
         ],
         "summary": "List Departments",
         "operationId": "getDepartmentList",
@@ -180,7 +310,7 @@
       "get": {
         "description": "returns a details of a department by id\n\nParamters:\n+ name: id\nin: path\nrequired: true\nschema:\ntype: integer",
         "tags": [
-          "income"
+          "departments"
         ],
         "summary": "Get Department",
         "operationId": "getDepartment",
@@ -198,7 +328,7 @@
       "get": {
         "description": "return a json http response contains list of\npermissions assigned to a certain cashier",
         "tags": [
-          "income"
+          "cashiers"
         ],
         "summary": "List Cashier Permissions",
         "operationId": "permissions",
@@ -256,6 +386,24 @@
             "description": "auditDateResponse",
             "schema": {
               "$ref": "#/definitions/auditDateResponse"
+            }
+          }
+        }
+      }
+    },
+    "/shadowinn/api/company/": {
+      "get": {
+        "description": "returns the current audit date of the instance",
+        "tags": [
+          "shadowinn"
+        ],
+        "summary": "Get Company",
+        "operationId": "company",
+        "responses": {
+          "200": {
+            "description": "company",
+            "schema": {
+              "$ref": "#/definitions/company"
             }
           }
         }
@@ -517,6 +665,28 @@
       },
       "x-go-package": "pos-proxy/pos/models"
     },
+    "Group": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Item"
+          },
+          "x-go-name": "Items"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
     "GroupedAppliedDiscount": {
       "description": "GroupedAppliedDiscount represents a group of applied discounts grouped\nby vat code",
       "type": "object",
@@ -553,6 +723,140 @@
           "type": "number",
           "format": "double",
           "x-go-name": "VATPercentage"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "Item": {
+      "type": "object",
+      "properties": {
+        "attached_attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          },
+          "x-go-name": "AttachedAttributes"
+        },
+        "base_unit": {
+          "type": "string",
+          "x-go-name": "BaseUnit"
+        },
+        "category_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CategoryID"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "group_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "GroupID"
+        },
+        "group_name": {
+          "type": "string",
+          "x-go-name": "GroupName"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "item": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ItemID"
+        },
+        "itemcondimentgroup_set": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ItemCondimentGroup"
+          },
+          "x-go-name": "ItemCondimentGroupSet"
+        },
+        "number": {
+          "type": "string",
+          "x-go-name": "Number"
+        },
+        "open_item": {
+          "type": "boolean",
+          "x-go-name": "OpenItem"
+        },
+        "open_price": {
+          "type": "boolean",
+          "x-go-name": "OpenPrice"
+        },
+        "store_unit": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "StoreUnitID"
+        },
+        "storemenuitemconfig": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "StoreMenuItemConfig"
+        },
+        "unit_price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "UnitPrince"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "ItemCondimentGroup": {
+      "type": "object",
+      "properties": {
+        "condiment_group": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CondimentGroupID"
+        },
+        "max": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Max"
+        },
+        "min": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Min"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "Menu": {
+      "type": "object",
+      "properties": {
+        "from_time": {
+          "type": "string",
+          "x-go-name": "FromTime"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Group"
+          },
+          "x-go-name": "Groups"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "to_time": {
+          "type": "string",
+          "x-go-name": "ToTime"
         }
       },
       "x-go-package": "pos-proxy/pos/models"
@@ -1051,6 +1355,74 @@
       },
       "x-go-package": "pos-proxy/income"
     },
+    "company": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string",
+          "x-go-name": "Address"
+        },
+        "city": {
+          "type": "string",
+          "x-go-name": "City"
+        },
+        "country": {
+          "type": "string",
+          "x-go-name": "Country"
+        },
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
+        "fax": {
+          "type": "string",
+          "x-go-name": "Fax"
+        },
+        "logo": {
+          "type": "string",
+          "x-go-name": "Logo"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "phone": {
+          "type": "string",
+          "x-go-name": "Phone"
+        },
+        "postal_code": {
+          "type": "string",
+          "x-go-name": "PostalCode"
+        },
+        "vat_number": {
+          "type": "string",
+          "x-go-name": "VATNumber"
+        }
+      },
+      "x-go-name": "Company",
+      "x-go-package": "pos-proxy/income"
+    },
+    "course": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "order": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Order"
+        }
+      },
+      "x-go-name": "Course",
+      "x-go-package": "pos-proxy/pos/models"
+    },
     "currency": {
       "type": "object",
       "properties": {
@@ -1469,6 +1841,125 @@
         }
       },
       "x-go-package": "pos-proxy/proxy"
+    },
+    "store": {
+      "type": "object",
+      "properties": {
+        "allowed_rooms": {
+          "type": "string",
+          "x-go-name": "AllowedRooms"
+        },
+        "code": {
+          "type": "string",
+          "x-go-name": "Code"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "invoice_footer": {
+          "type": "string",
+          "x-go-name": "InvoiceFooter"
+        },
+        "invoice_header": {
+          "type": "string",
+          "x-go-name": "InvoiceHeader"
+        },
+        "kitchen_submit": {
+          "type": "string",
+          "x-go-name": "KitchenSubmit"
+        },
+        "layout_json": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          },
+          "x-go-name": "LayoutJson"
+        },
+        "logo": {
+          "type": "string",
+          "x-go-name": "Logo"
+        },
+        "number_of_tables": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "NumberOfTables"
+        },
+        "show_paymaster": {
+          "type": "boolean",
+          "x-go-name": "ShowPaymaster"
+        }
+      },
+      "x-go-name": "Store",
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "storeDetails": {
+      "type": "object",
+      "properties": {
+        "allowed_rooms": {
+          "type": "string",
+          "x-go-name": "AllowedRooms"
+        },
+        "code": {
+          "type": "string",
+          "x-go-name": "Code"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "invoice_footer": {
+          "type": "string",
+          "x-go-name": "InvoiceFooter"
+        },
+        "invoice_header": {
+          "type": "string",
+          "x-go-name": "InvoiceHeader"
+        },
+        "kitchen_submit": {
+          "type": "string",
+          "x-go-name": "KitchenSubmit"
+        },
+        "layout_json": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          },
+          "x-go-name": "LayoutJson"
+        },
+        "logo": {
+          "type": "string",
+          "x-go-name": "Logo"
+        },
+        "menus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Menu"
+          },
+          "x-go-name": "Menus"
+        },
+        "number_of_tables": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "NumberOfTables"
+        },
+        "show_paymaster": {
+          "type": "boolean",
+          "x-go-name": "ShowPaymaster"
+        }
+      },
+      "x-go-name": "StoreDetails",
+      "x-go-package": "pos-proxy/pos/models"
     },
     "taxDef": {
       "type": "object",
