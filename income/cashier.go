@@ -17,7 +17,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Cashier models data of a Cashier
+// Cashier swagger:model cashier
+// defines attributes of models data of a Cashier
 type Cashier struct {
 	ID          int    `json:"id" bson:"id"`
 	Name        string `json:"name" bson:"name"`
@@ -26,7 +27,8 @@ type Cashier struct {
 	FDMLanguage string `json:"fdm_language,omitempty" bson:"-"` // used only to return in the login response
 }
 
-// Attendance represents cashier attendance log
+// Attendance swagger:model attendance
+// represents cashier attendance log
 type Attendance struct {
 	BID                bson.ObjectId `json:"_id" bson:"_id"`
 	ID                 int           `json:"id" bson:"id"` // cloudinn's id
@@ -37,6 +39,8 @@ type Attendance struct {
 	ClockoutTerminalID *int          `json:"clockout_terminal_id" bson:"clockout_terminal_id"`
 }
 
+// clockinRequest swagger:model clockinRequest
+// represents the body of a clockin request
 type clockinRequest struct {
 	Description  string               `json:"description" bson:"description"`
 	Pin          string               `json:"pin" bson:"pin"`
@@ -46,6 +50,8 @@ type clockinRequest struct {
 	FDMResponses []models.FDMResponse `json:"fdm_responses" bson:"fdm_responses"`
 }
 
+// clockoutRequest swagger:model clockoutRequest
+// represents the body of a clockout request
 type clockoutRequest struct {
 	Description  string               `json:"description" bson:"description"`
 	TerminalID   int                  `json:"terminal_id" bson:"terminal_id"`
@@ -174,8 +180,21 @@ func clockout(cashier Cashier, terminal models.Terminal, time string) (string, m
 	return description, fdmResponse, nil
 }
 
-// GetPosCashier used to clockin a cashier and compare his
+// GetPosCashier swagger:route POST /income/api/cashier/getposcashier/ income getPOSCashier
+//
+// Log in a POS cashier
+//
+// used to clockin a cashier and compare his
 // pin against the correct one from the database
+//
+// Parameters:
+// + name: request body
+//   in: body
+//   type: clockinRequest
+//   required: true
+//
+// Responses:
+//   200: cashier
 func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	cashier := Cashier{}
 	q := bson.M{}
@@ -257,15 +276,29 @@ func GetPosCashier(w http.ResponseWriter, req *http.Request) {
 	helpers.ReturnSuccessMessage(w, resp)
 }
 
-// GetCashierPermissions return a json http response contains list of
+// cashierPermissions swagger:model cashierPermissions
+// defines one item of cashier permissions of a cashierPermissions response body
+type cashierPermissions struct {
+	CashierID   int      `json:"poscashier_id" bson:"poscashier_id"`
+	Permissions []string `json:"permissions" bson:"permissions"`
+}
+
+// GetCashierPermissions swagger:route GET /income/api/poscashierpermissions/ income permissions
+//
+// List Cashier Permissions
+//
+// return a json http response contains list of
 // permissions assigned to a certain cashier
+//
+// Responses:
+// 200: []cashierPermissions
 func GetCashierPermissions(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	queryParams := r.URL.Query()
 	for key, val := range queryParams {
 		query[key] = val
 	}
-	permissions := []map[string]interface{}{}
+	permissions := []cashierPermissions{}
 	session := db.Session.Copy()
 	defer session.Close()
 	err := db.DB.C("permissions").With(session).Find(query).All(&permissions)
@@ -276,7 +309,19 @@ func GetCashierPermissions(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, permissions)
 }
 
-// Clockout logs out a cashier
+// Clockout swagger:route POST /income/api/cashier/clockout/ income clockout
+//
+// Clockout POS Cashier
+//
+// logs out a cashier and create a clockout record in the attendance sheet
+// returns a 200 success with true as body
+//
+// Paramters:
+// + name: request body
+//   in: body
+//   required: true
+//   type: clockoutRequest
+//
 func Clockout(w http.ResponseWriter, r *http.Request) {
 	body := clockoutRequest{}
 	err := json.NewDecoder(r.Body).Decode(&body)

@@ -3,12 +3,13 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net/http"
 	"pos-proxy/config"
 	"pos-proxy/helpers"
 	"strings"
+
+	"gopkg.in/mgo.v2/bson"
 	//"net/http/httputil"
 	//"net/url"
 )
@@ -37,11 +38,28 @@ func StatusMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-// Status returns a success message if the proxy is working properly.
+// Status swagger:route GET /proxy/test proxy proxyStatus
+//
+// Test Proxy (Check Status)
+//
+// returns a success message if the proxy is working properly.
 func Status(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("success")
 }
 
+// swagger:model proxyVersion
+type proxyVersion struct {
+	Version string `json:"version"`
+}
+
+// Version swagger:route GET /proxy/version proxy proxyVersion
+//
+// Get Proxy Version
+//
+// returns the version of the proxy
+//
+// Responses:
+//  200: proxyVersion
 func Version(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(bson.M{"version": config.Version})
 }

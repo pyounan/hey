@@ -1,5 +1,7 @@
 package models
 
+// Terminal
+// swagger:model terminal
 type Terminal struct {
 	ID               int    `json:"id" bson:"id"`
 	LastInvoiceID    int    `json:"last_invoice_id" bson:"last_invoice_id"`

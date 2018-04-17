@@ -12,18 +12,21 @@ import (
 type PaymentLog struct{}
 
 // InvoiceLite represents the Invoice model in a list
+//
 // swagger:model invoiceLite
 type InvoiceLite struct {
 	// in:body
-	ID                  *int64     `json:"id" bson:"id,omitempty"`
-	InvoiceNumber       string     `json:"invoice_number" bson:"invoice_number"`
-	TableID             *int64     `json:"table_number" bson:"table_number"`
-	TableNumber         *int64     `json:"table" bson:"table"`
-	TableDetails        *string    `json:"table_details" bson:"table_details"`
-	AuditDate           string     `json:"audit_date" bson:"audit_date"`
-	Cashier             int        `json:"cashier" bson:"cashier"`
-	CashierDetails      string     `json:"cashier_details" bson:"cashier_details"`
-	CashierNumber       int        `json:"cashier_number" bson:"cashier_number"`
+	ID *int64 `json:"id" bson:"id,omitempty"`
+	// number of invoice
+	InvoiceNumber  string  `json:"invoice_number" bson:"invoice_number"`
+	TableNumber    *int64  `json:"table" bson:"table"`
+	TableID        *int64  `json:"table_number" bson:"table_number"`
+	TableDetails   *string `json:"table_details" bson:"table_details"`
+	AuditDate      string  `json:"audit_date" bson:"audit_date"`
+	Cashier        int     `json:"cashier" bson:"cashier"`
+	CashierDetails string  `json:"cashier_details" bson:"cashier_details"`
+	CashierNumber  int     `json:"cashier_number" bson:"cashier_number"`
+	// determines if the invoice is open or settled
 	IsSettled           bool       `json:"is_settled" bson:"is_settled"`
 	PaidAmount          float64    `json:"paid_amount" bson:"paid_amount"`
 	StoreDescription    string     `json:"store_description" bson:"store_description"`
@@ -37,6 +40,7 @@ type InvoiceLite struct {
 }
 
 // Invoice represents Invoice model details
+// swagger:model invoice
 type Invoice struct {
 	ID               *int64        `json:"id" bson:"id,omitempty"`
 	InvoiceNumber    string        `json:"invoice_number" bson:"invoice_number"`

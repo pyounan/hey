@@ -3,6 +3,8 @@ package income
 import (
 	"net/http"
 	"pos-proxy/db"
+	"pos-proxy/income/models"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -11,6 +13,14 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// ListDepartment swagger:route GET /income/api/department/ income getDepartmentList
+//
+// List Departments
+//
+// returns a list of income departments
+//
+// Responses:
+//   200: []department
 func ListDepartments(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	queryParams := r.URL.Query()
@@ -23,7 +33,7 @@ func ListDepartments(w http.ResponseWriter, r *http.Request) {
 			query[key] = val[0]
 		}
 	}
-	departments := []map[string]interface{}{}
+	departments := []models.Department{}
 	session := db.Session.Copy()
 	defer session.Close()
 	err := db.DB.C("departments").With(session).Find(query).All(&departments)
@@ -34,13 +44,27 @@ func ListDepartments(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, departments)
 }
 
+// GetDepartment swagger:route GET /income/api/department/{id}/ income getDepartment
+//
+// Get Department
+//
+// returns a details of a department by id
+//
+// Paramters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+// Responses:
+//   200: department
 func GetDepartment(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	vars := mux.Vars(r)
 	id, _ := vars["id"]
-	q["id"] = id
+	q["id"], _ = strconv.Atoi(id)
 
-	department := make(map[string]interface{})
+	department := models.Department{}
 	session := db.Session.Copy()
 	defer session.Close()
 	err := db.DB.C("departments").With(session).Find(q).One(&department)

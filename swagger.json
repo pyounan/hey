@@ -1,0 +1,1550 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "pos-proxy acts as the backend for POS module in the localnetwork\nit handles all the POS operations also handles the offline mode\nscenarios",
+    "title": "pos-proxy api",
+    "version": "1.0.0"
+  },
+  "host": "localhost",
+  "basePath": "/api/",
+  "paths": {
+    "/api/ensure_tenant_selected/": {
+      "get": {
+        "description": "in case of proxy always returns true",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Ensure Tenant Selected",
+        "operationId": "ensureTenantSelected"
+      }
+    },
+    "/api/pos/posinvoices": {
+      "get": {
+        "description": "serves a list of simplified invoices with basic\ninformation",
+        "tags": [
+          "invoices"
+        ],
+        "summary": "List Invoices (simplified)",
+        "operationId": "listInvoicesLite",
+        "parameters": [
+          {
+            "name": "simplified",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "invoiceLite",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/invoiceLite"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/core/getloggedinusergroups/{id}/": {
+      "get": {
+        "description": "returns a list of permissions assigned for the logged in user",
+        "tags": [
+          "auth"
+        ],
+        "summary": "List User Permissions",
+        "operationId": "getUserPermissions",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/income/api/cashier/clockout/": {
+      "post": {
+        "description": "logs out a cashier and create a clockout record in the attendance sheet\nreturns a 200 success with true as body\n\nParamters:\n+ name: request body\nin: body\nrequired: true\ntype: clockoutRequest",
+        "tags": [
+          "income"
+        ],
+        "summary": "Clockout POS Cashier",
+        "operationId": "clockout"
+      }
+    },
+    "/income/api/cashier/getposcashier/": {
+      "post": {
+        "description": "used to clockin a cashier and compare his\npin against the correct one from the database",
+        "tags": [
+          "income"
+        ],
+        "summary": "Log in a POS cashier",
+        "operationId": "getPOSCashier",
+        "parameters": [
+          {
+            "type": "object",
+            "name": "request body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/clockinRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "cashier",
+            "schema": {
+              "$ref": "#/definitions/cashier"
+            }
+          }
+        }
+      }
+    },
+    "/income/api/currency/": {
+      "get": {
+        "description": "returns a list with available currencies",
+        "tags": [
+          "income"
+        ],
+        "summary": "List Currencies",
+        "operationId": "getCurrencyList",
+        "responses": {
+          "200": {
+            "description": "currency",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/currency"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/income/api/currency/{id}/": {
+      "get": {
+        "description": "returns a details of a currency by id\n\nParamters:\n+ name: id\nin: path\nrequired: true\nschema:\ntype: integer",
+        "tags": [
+          "income"
+        ],
+        "summary": "Get Currency",
+        "operationId": "getCurrency",
+        "responses": {
+          "200": {
+            "description": "currency",
+            "schema": {
+              "$ref": "#/definitions/currency"
+            }
+          }
+        }
+      }
+    },
+    "/income/api/department/": {
+      "get": {
+        "description": "returns a list of income departments",
+        "tags": [
+          "income"
+        ],
+        "summary": "List Departments",
+        "operationId": "getDepartmentList",
+        "responses": {
+          "200": {
+            "description": "department",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/department"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/income/api/department/{id}/": {
+      "get": {
+        "description": "returns a details of a department by id\n\nParamters:\n+ name: id\nin: path\nrequired: true\nschema:\ntype: integer",
+        "tags": [
+          "income"
+        ],
+        "summary": "Get Department",
+        "operationId": "getDepartment",
+        "responses": {
+          "200": {
+            "description": "department",
+            "schema": {
+              "$ref": "#/definitions/department"
+            }
+          }
+        }
+      }
+    },
+    "/income/api/poscashierpermissions/": {
+      "get": {
+        "description": "return a json http response contains list of\npermissions assigned to a certain cashier",
+        "tags": [
+          "income"
+        ],
+        "summary": "List Cashier Permissions",
+        "operationId": "permissions",
+        "responses": {
+          "200": {
+            "description": "cashierPermissions",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/cashierPermissions"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proxy/test": {
+      "get": {
+        "description": "returns a success message if the proxy is working properly.",
+        "tags": [
+          "proxy"
+        ],
+        "summary": "Test Proxy (Check Status)",
+        "operationId": "proxyStatus"
+      }
+    },
+    "/proxy/version": {
+      "get": {
+        "description": "returns the version of the proxy",
+        "tags": [
+          "proxy"
+        ],
+        "summary": "Get Proxy Version",
+        "operationId": "proxyVersion",
+        "responses": {
+          "200": {
+            "description": "proxyVersion",
+            "schema": {
+              "$ref": "#/definitions/proxyVersion"
+            }
+          }
+        }
+      }
+    },
+    "/shadowinn/api/auditdate/": {
+      "get": {
+        "description": "returns the current audit date of the instance",
+        "tags": [
+          "shadowinn"
+        ],
+        "summary": "Get Audit Date",
+        "operationId": "auditDate",
+        "responses": {
+          "200": {
+            "description": "auditDateResponse",
+            "schema": {
+              "$ref": "#/definitions/auditDateResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AppliedDiscount": {
+      "description": "AppliedDiscount maps a discount of posinvoicelineitem",
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Amount"
+        },
+        "percentage": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Percentage"
+        },
+        "type": {
+          "type": "string",
+          "x-go-name": "Type"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "CondimentLineItem": {
+      "description": "CondimentLineItem maps condimentlineitem_set in POSInvoiceLineItem",
+      "type": "object",
+      "properties": {
+        "attached_attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          },
+          "x-go-name": "AttachedAttributes"
+        },
+        "condiment": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Condiment"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "item": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Item"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "net_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "NetAmount"
+        },
+        "posinvoicelineitem": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "LineItem"
+        },
+        "price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Price"
+        },
+        "storemenuitemconfig": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "StoreMenuItemConfig"
+        },
+        "tax_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "TaxAmount"
+        },
+        "unit_price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "UnitPrice"
+        },
+        "vat_code": {
+          "type": "string",
+          "x-go-name": "VAT"
+        },
+        "vat_percentage": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "VATPercentage"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "EJEvent": {
+      "type": "object",
+      "title": "EJEvent is a model that gets inserted to FDM or EJ.",
+      "properties": {
+        "cashier": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CashierID"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "is_condiment": {
+          "type": "boolean",
+          "x-go-name": "IsCondiment"
+        },
+        "is_discount": {
+          "type": "boolean",
+          "x-go-name": "IsDiscount"
+        },
+        "item": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Item"
+        },
+        "line_item_type": {
+          "type": "string",
+          "x-go-name": "LineItemType"
+        },
+        "net_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "NetAmount"
+        },
+        "price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Price"
+        },
+        "qty": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Quantity"
+        },
+        "tax_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "TaxAmount"
+        },
+        "vat_code": {
+          "type": "string",
+          "x-go-name": "VATCode"
+        },
+        "vat_percentage": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "VATPercentage"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "FDMResponse": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Date"
+        },
+        "error1": {
+          "type": "string",
+          "x-go-name": "Error1"
+        },
+        "error2": {
+          "type": "string",
+          "x-go-name": "Error2"
+        },
+        "error3": {
+          "type": "string",
+          "x-go-name": "Error3"
+        },
+        "event_label": {
+          "type": "string",
+          "x-go-name": "EventLabel"
+        },
+        "has_warning": {
+          "description": "FDM Warning",
+          "type": "boolean",
+          "x-go-name": "HasWarning"
+        },
+        "identifier": {
+          "type": "string",
+          "x-go-name": "Identifier"
+        },
+        "plu_hash": {
+          "description": "Attached attributes from ticket",
+          "type": "string",
+          "x-go-name": "PLUHash"
+        },
+        "production_number": {
+          "type": "string",
+          "x-go-name": "ProductionNumber"
+        },
+        "retry": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Retry"
+        },
+        "sequence": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Sequence"
+        },
+        "signature": {
+          "type": "string",
+          "x-go-name": "Signature"
+        },
+        "software_version": {
+          "type": "string",
+          "x-go-name": "SoftwareVersion"
+        },
+        "ticket_counter": {
+          "type": "string",
+          "x-go-name": "TicketCounter"
+        },
+        "ticket_datetime": {
+          "type": "string",
+          "x-go-name": "TicketActionTime"
+        },
+        "ticket_number": {
+          "type": "string",
+          "x-go-name": "TicketNumber"
+        },
+        "time_period": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "TimePeriod"
+        },
+        "total_ticket_counter": {
+          "type": "string",
+          "x-go-name": "TotalTicketCounter"
+        },
+        "vat_summary": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/VATSummary"
+          },
+          "x-go-name": "VATSummary"
+        },
+        "vsc": {
+          "type": "string",
+          "x-go-name": "VSC"
+        },
+        "warning": {
+          "type": "string",
+          "x-go-name": "Warning"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "GroupedAppliedDiscount": {
+      "description": "GroupedAppliedDiscount represents a group of applied discounts grouped\nby vat code",
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Amount"
+        },
+        "net_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "NetAmount"
+        },
+        "percentage": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Percentage"
+        },
+        "tax_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "TaxAmount"
+        },
+        "type": {
+          "type": "string",
+          "x-go-name": "Type"
+        },
+        "vat_code": {
+          "type": "string",
+          "x-go-name": "VAT"
+        },
+        "vat_percentage": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "VATPercentage"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "ObjectId": {
+      "description": "http://www.mongodb.org/display/DOCS/Object+IDs",
+      "type": "string",
+      "title": "ObjectId is a unique ID identifying a BSON value. It must be exactly 12 bytes\nlong. MongoDB objects by default have such a property set in their \"_id\"\nproperty.",
+      "x-go-package": "gopkg.in/mgo.v2/bson"
+    },
+    "POSLineItem": {
+      "description": "POSLineItem maps POSInvoiceLineItem of the backend",
+      "type": "object",
+      "properties": {
+        "applied_discounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AppliedDiscount"
+          },
+          "x-go-name": "AppliedDiscounts"
+        },
+        "attached_attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          },
+          "x-go-name": "AttachedAttributes"
+        },
+        "base_unit": {
+          "type": "string",
+          "x-go-name": "BaseUnit"
+        },
+        "cashier": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CashierID"
+        },
+        "comment": {
+          "type": "string",
+          "x-go-name": "Comment"
+        },
+        "condimentlineitem_set": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CondimentLineItem"
+          },
+          "x-go-name": "CondimentLineItems"
+        },
+        "course": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Course"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "frontend_id": {
+          "type": "string",
+          "x-go-name": "FrontendID"
+        },
+        "grouped_applieddiscounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GroupedAppliedDiscount"
+          },
+          "x-go-name": "GroupedAppliedDiscounts"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "is_condiment": {
+          "type": "boolean",
+          "x-go-name": "IsCondiment"
+        },
+        "is_discount": {
+          "type": "boolean",
+          "x-go-name": "IsDiscount"
+        },
+        "is_void": {
+          "type": "boolean",
+          "x-go-name": "IsVoid"
+        },
+        "item": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Item"
+        },
+        "itemcondimentgroup_set": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "x-go-name": "CondimentGroup"
+        },
+        "lineitem_type": {
+          "type": "string",
+          "x-go-name": "LineItemType"
+        },
+        "menu": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "MenuID"
+        },
+        "net_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "NetAmount"
+        },
+        "open_item": {
+          "type": "boolean",
+          "x-go-name": "OpenItem"
+        },
+        "open_price": {
+          "type": "boolean",
+          "x-go-name": "OpenPrice"
+        },
+        "original_frontend_id": {
+          "type": "string",
+          "x-go-name": "OriginalFrontendID"
+        },
+        "original_line_item_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "OriginalLineItemID"
+        },
+        "posinvoice": {
+          "description": "used for waste",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "PosinvoiceID"
+        },
+        "price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Price"
+        },
+        "qty": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Quantity"
+        },
+        "reason": {
+          "type": "string",
+          "x-go-name": "Reason"
+        },
+        "returned_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "ReturnedIDs"
+        },
+        "returned_qty": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "ReturnedQuantity"
+        },
+        "store_unit": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "StoreUnit"
+        },
+        "storemenuitemconfig": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "StoreMenuItemConfig"
+        },
+        "submitted_qty": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "SubmittedQuantity"
+        },
+        "tax_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "TaxAmount"
+        },
+        "unit_price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "UnitPrice"
+        },
+        "updated_on": {
+          "type": "string",
+          "x-go-name": "UpdatedOn"
+        },
+        "vat_code": {
+          "type": "string",
+          "x-go-name": "VAT"
+        },
+        "vat_percentage": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "VATPercentage"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "PaymentLog": {
+      "type": "object",
+      "title": "PaymentLog .",
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "Posting": {
+      "description": "Posting models POSPayment",
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Amount"
+        },
+        "audit_date": {
+          "type": "string",
+          "x-go-name": "AuditDate"
+        },
+        "cancelled": {
+          "type": "boolean",
+          "x-go-name": "Cancelled"
+        },
+        "cashier": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Cashier"
+        },
+        "cashier_details": {
+          "type": "string",
+          "x-go-name": "CashierDetails"
+        },
+        "cashier_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CashierID"
+        },
+        "comments": {
+          "type": "string",
+          "x-go-name": "Comments"
+        },
+        "currency": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Currency"
+        },
+        "currency_details": {
+          "type": "string",
+          "x-go-name": "CurrencyDetails"
+        },
+        "currency_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CurrencyID"
+        },
+        "department": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Department"
+        },
+        "department_details": {
+          "type": "string",
+          "x-go-name": "DepartmentDetails"
+        },
+        "foreign_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "ForeignAmount"
+        },
+        "frontend_id": {
+          "type": "string",
+          "x-go-name": "FrontendID"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "paymentlog": {
+          "$ref": "#/definitions/PaymentLog"
+        },
+        "posinvoice_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "PosinvoiceID"
+        },
+        "pospostinginformations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Posting"
+          },
+          "x-go-name": "PosPostingInformations"
+        },
+        "posting_type": {
+          "type": "string",
+          "x-go-name": "PostingType"
+        },
+        "room": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Room"
+        },
+        "room_details": {
+          "type": "string",
+          "x-go-name": "RoomDetails"
+        },
+        "room_number": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "RoomNumber"
+        },
+        "sign": {
+          "description": "pospostinginformatios only",
+          "type": "string",
+          "x-go-name": "Sign"
+        },
+        "type": {
+          "type": "string",
+          "x-go-name": "Type"
+        }
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "VATSummary": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "format": "double"
+      },
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "attendance": {
+      "type": "object",
+      "properties": {
+        "_id": {
+          "$ref": "#/definitions/ObjectId"
+        },
+        "cashier_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CashierID"
+        },
+        "clockin_terminal_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ClockinTerminalID"
+        },
+        "clockin_time": {
+          "type": "string",
+          "x-go-name": "ClockinTime"
+        },
+        "clockout_terminal_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ClockoutTerminalID"
+        },
+        "clockout_time": {
+          "type": "string",
+          "x-go-name": "ClockoutTime"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-name": "Attendance",
+      "x-go-package": "pos-proxy/income"
+    },
+    "auditDateResponse": {
+      "type": "object",
+      "properties": {
+        "audit_date": {
+          "type": "string",
+          "x-go-name": "AuditDate"
+        }
+      },
+      "x-go-package": "pos-proxy/income"
+    },
+    "cashier": {
+      "type": "object",
+      "properties": {
+        "employee_id": {
+          "type": "string",
+          "x-go-name": "EmployeeID"
+        },
+        "fdm_language": {
+          "type": "string",
+          "x-go-name": "FDMLanguage"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "number": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Number"
+        }
+      },
+      "x-go-name": "Cashier",
+      "x-go-package": "pos-proxy/income"
+    },
+    "cashierPermissions": {
+      "type": "object",
+      "properties": {
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Permissions"
+        },
+        "poscashier_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CashierID"
+        }
+      },
+      "x-go-package": "pos-proxy/income"
+    },
+    "clockinRequest": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "x-go-name": "Action"
+        },
+        "clockin_time": {
+          "type": "string",
+          "x-go-name": "ClockinTime"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "fdm_responses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FDMResponse"
+          },
+          "x-go-name": "FDMResponses"
+        },
+        "pin": {
+          "type": "string",
+          "x-go-name": "Pin"
+        },
+        "terminal": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TerminalID"
+        }
+      },
+      "x-go-package": "pos-proxy/income"
+    },
+    "clockoutRequest": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "x-go-name": "Action"
+        },
+        "clockout_time": {
+          "type": "string",
+          "x-go-name": "ClockoutTime"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "fdm_responses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FDMResponse"
+          },
+          "x-go-name": "FDMResponses"
+        },
+        "poscashier_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CashierID"
+        },
+        "terminal_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TerminalID"
+        }
+      },
+      "x-go-package": "pos-proxy/income"
+    },
+    "currency": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "x-go-name": "Code"
+        },
+        "factor": {
+          "type": "string",
+          "x-go-name": "Factor"
+        },
+        "has_department": {
+          "type": "boolean",
+          "x-go-name": "HasDepartment"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "is_default": {
+          "type": "boolean",
+          "x-go-name": "IsDefault"
+        }
+      },
+      "x-go-name": "Currency",
+      "x-go-package": "pos-proxy/income/models"
+    },
+    "department": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Code"
+        },
+        "currency": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CurrencyID"
+        },
+        "currency_details": {
+          "type": "string",
+          "x-go-name": "CurrencyDetails"
+        },
+        "exchange_rate": {
+          "type": "string",
+          "x-go-name": "ExchangeRate"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "payment_gateway": {
+          "type": "string",
+          "x-go-name": "PaymentGateway"
+        },
+        "payment_type": {
+          "type": "string",
+          "x-go-name": "PaymentType"
+        },
+        "pos_payment": {
+          "type": "boolean",
+          "x-go-name": "POSPayment"
+        },
+        "tax_defs": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/taxDef"
+            }
+          },
+          "x-go-name": "TaxDefs"
+        },
+        "type": {
+          "type": "string",
+          "x-go-name": "Type"
+        }
+      },
+      "x-go-name": "Department",
+      "x-go-package": "pos-proxy/income/models"
+    },
+    "invoice": {
+      "description": "Invoice represents Invoice model details",
+      "type": "object",
+      "properties": {
+        "audit_date": {
+          "type": "string",
+          "x-go-name": "AuditDate"
+        },
+        "cashier": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Cashier"
+        },
+        "cashier_details": {
+          "type": "string",
+          "x-go-name": "CashierDetails"
+        },
+        "cashier_number": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CashierNumber"
+        },
+        "change": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Change"
+        },
+        "closed_on": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "ClosedOn"
+        },
+        "create_lock": {
+          "type": "boolean",
+          "x-go-name": "CreateLock"
+        },
+        "created_on": {
+          "type": "string",
+          "x-go-name": "CreatedOn"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EJEvent"
+          },
+          "x-go-name": "Events"
+        },
+        "fdm_responses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FDMResponse"
+          },
+          "x-go-name": "FDMResponses"
+        },
+        "frontend_id": {
+          "type": "string",
+          "x-go-name": "FrontendID"
+        },
+        "grouped_lineitems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EJEvent"
+          },
+          "x-go-name": "GroupedLineItems"
+        },
+        "guest_name": {
+          "type": "string",
+          "x-go-name": "GuestName"
+        },
+        "house_use": {
+          "type": "boolean",
+          "x-go-name": "HouseUse"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "invoice_number": {
+          "type": "string",
+          "x-go-name": "InvoiceNumber"
+        },
+        "is_settled": {
+          "type": "boolean",
+          "x-go-name": "IsSettled"
+        },
+        "last_payment_date": {
+          "type": "string",
+          "x-go-name": "LastPaymentDate"
+        },
+        "opera_reservation": {
+          "type": "string",
+          "x-go-name": "OperaReservation"
+        },
+        "opera_room_number": {
+          "type": "string",
+          "x-go-name": "OperaRoomNumber"
+        },
+        "paid_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "PaidAmount"
+        },
+        "pax": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Pax"
+        },
+        "paymaster": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Paymaster"
+        },
+        "paymaster_details": {
+          "type": "string",
+          "x-go-name": "PaymasterDetails"
+        },
+        "posinvoicelineitem_set": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/POSLineItem"
+          },
+          "x-go-name": "Items"
+        },
+        "pospayment": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Posting"
+          },
+          "x-go-name": "Postings"
+        },
+        "print_count": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "PrintCount"
+        },
+        "profile_details": {
+          "type": "string",
+          "x-go-name": "ProfileDetails"
+        },
+        "profile_name": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ProfileName"
+        },
+        "room": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Room"
+        },
+        "room_details": {
+          "type": "string",
+          "x-go-name": "RoomDetails"
+        },
+        "room_number": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "RoomNumber"
+        },
+        "store": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Store"
+        },
+        "store_description": {
+          "type": "string",
+          "x-go-name": "StoreDescription"
+        },
+        "subtotal": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Subtotal"
+        },
+        "table": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TableNumber"
+        },
+        "table_details": {
+          "type": "string",
+          "x-go-name": "TableDetails"
+        },
+        "table_number": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TableID"
+        },
+        "takeout": {
+          "type": "boolean",
+          "x-go-name": "TakeOut"
+        },
+        "taxes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          },
+          "x-go-name": "Taxes"
+        },
+        "terminal_description": {
+          "type": "string",
+          "x-go-name": "TerminalDescription"
+        },
+        "terminal_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TerminalID"
+        },
+        "total": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Total"
+        },
+        "updated_on": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedOn"
+        },
+        "void_reason": {
+          "type": "string",
+          "x-go-name": "VoidReason"
+        },
+        "walkin_name": {
+          "type": "string",
+          "x-go-name": "WalkinName"
+        }
+      },
+      "x-go-name": "Invoice",
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "invoiceLite": {
+      "description": "InvoiceLite represents the Invoice model in a list",
+      "type": "object",
+      "properties": {
+        "audit_date": {
+          "type": "string",
+          "x-go-name": "AuditDate"
+        },
+        "cashier": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Cashier"
+        },
+        "cashier_details": {
+          "type": "string",
+          "x-go-name": "CashierDetails"
+        },
+        "cashier_number": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CashierNumber"
+        },
+        "closed_on": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "ClosedOn"
+        },
+        "created_on": {
+          "type": "string",
+          "x-go-name": "CreatedOn"
+        },
+        "guest_name": {
+          "type": "string",
+          "x-go-name": "GuestName"
+        },
+        "id": {
+          "description": "ID of invoice",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "invoice_number": {
+          "description": "number of invoice",
+          "type": "string",
+          "x-go-name": "InvoiceNumber"
+        },
+        "is_settled": {
+          "description": "determines if the invoice is open or settled",
+          "type": "boolean",
+          "x-go-name": "IsSettled"
+        },
+        "paid_amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "PaidAmount"
+        },
+        "room_number": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "RoomNumber"
+        },
+        "store_description": {
+          "type": "string",
+          "x-go-name": "StoreDescription"
+        },
+        "table": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TableNumber"
+        },
+        "table_details": {
+          "type": "string",
+          "x-go-name": "TableDetails"
+        },
+        "terminal_description": {
+          "type": "string",
+          "x-go-name": "TerminalDescription"
+        },
+        "terminal_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TerminalID"
+        },
+        "total": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Total"
+        }
+      },
+      "x-go-name": "InvoiceLite",
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "proxyVersion": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "x-go-name": "Version"
+        }
+      },
+      "x-go-package": "pos-proxy/proxy"
+    },
+    "taxDef": {
+      "type": "object",
+      "properties": {
+        "department_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DepartmentID"
+        },
+        "formula": {
+          "type": "string",
+          "x-go-name": "Formula"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "pos": {
+          "type": "string",
+          "x-go-name": "POS"
+        },
+        "vat_code": {
+          "type": "string",
+          "x-go-name": "VatCode"
+        },
+        "vat_percentage": {
+          "type": "string",
+          "x-go-name": "VatPercentage"
+        }
+      },
+      "x-go-name": "TaxDef",
+      "x-go-package": "pos-proxy/income/models"
+    },
+    "terminal": {
+      "description": "Terminal",
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "is_locked": {
+          "type": "boolean",
+          "x-go-name": "IsLocked"
+        },
+        "last_invoice_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "LastInvoiceID"
+        },
+        "number": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Number"
+        },
+        "rcrs_number": {
+          "type": "string",
+          "x-go-name": "RCRS"
+        },
+        "store": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Store"
+        },
+        "store_description": {
+          "type": "string",
+          "x-go-name": "StoreDescription"
+        }
+      },
+      "x-go-name": "Terminal",
+      "x-go-package": "pos-proxy/pos/models"
+    }
+  }
+}

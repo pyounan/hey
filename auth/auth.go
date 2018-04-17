@@ -18,10 +18,27 @@ import (
 
 var Token string
 
+// EnsureTenantSelected swagger:route GET /api/ensure_tenant_selected/ auth ensureTenantSelected
+//
+// Ensure Tenant Selected
+//
+// in case of proxy always returns true
 func EnsureTenantSelected(w http.ResponseWriter, req *http.Request) {
 	helpers.ReturnSuccessMessage(w, true)
 }
 
+// GetUserPermissions swagger:route GET /core/getloggedinusergroups/{id}/ auth getUserPermissions
+//
+// List User Permissions
+//
+// returns a list of permissions assigned for the logged in user
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
 func GetUserPermissions(w http.ResponseWriter, req *http.Request) {
 	var perms map[string]interface{}
 	vars := mux.Vars(req)

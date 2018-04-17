@@ -29,15 +29,20 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// ListInvoicesLite serves a list of simplified invoices with basic
+// ListInvoicesLite swagger:route GET /api/pos/posinvoices invoices listInvoicesLite
+//
+// List Invoices (simplified)
+//
+// serves a list of simplified invoices with basic
 // information
 //
-// swagger:route GET /api/pos/posinvoices?simplified=true invoices listInvoicesLite
-//
-// Returns a list of invoices with less data
+// Parameters:
+// + name: simplified
+//   in: query
+//   required: true
 //
 // Responses:
-// 200: []invoiceLite
+//   200: []invoiceLite
 func ListInvoicesLite(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	for key, val := range r.URL.Query() {
