@@ -16,8 +16,22 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// ListTerminals returns a json response with list of terminals,
+// ListTerminals swagger:route GET /api/pos/terminal/ terminals listTerminals
+//
+// List Terminals
+//
+// returns a json response with list of terminals,
 // could be queries by store
+//
+// Parameters:
+// + name: store
+//   in: query
+//   description: filter terminals by store
+//   schema:
+//     type: string
+//
+// Responses:
+// 200: []terminal
 func ListTerminals(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	queryParams := r.URL.Query()
@@ -54,7 +68,21 @@ func ListTerminals(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, terminals)
 }
 
-// GetTerminal returns a json response with the specified terminal id
+// GetTerminal swagger:route GET /api/pos/terminal/{id}/ terminals getTerminal
+//
+// Get Terminal
+//
+// returns a json response with the specified terminal id
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//     type: integer
+//
+// Responses:
+// 200: terminal
 func GetTerminal(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	vars := mux.Vars(r)
@@ -72,7 +100,26 @@ func GetTerminal(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, terminal)
 }
 
-// UpdateTerminal returns a json response with the specified terminal id
+// UpdateTerminal swagger:route PUT /api/pos/terminal/{id}/ terminals updateTerminal
+//
+// Update Terminal
+//
+// updates terminal data by id
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+//
+// + name: body
+//   in: body
+//   type: terminal
+//   required: true
+//
+// Responses:
+//   200: terminal
 func UpdateTerminal(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	vars := mux.Vars(r)
@@ -103,8 +150,20 @@ func UpdateTerminal(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, newTerminal)
 }
 
-// UnlockTerminal removes the terminal redis key and make the terminal
+// UnlockTerminal swagger:route POST /api/pos/terminal/{id}/unlockterminal/ terminals unlockTerminal
+//
+// Unlock Terminal
+//
+// removes the terminal redis key and make the terminal
 // available for other cashiers again
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+//
 func UnlockTerminal(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr, _ := vars["id"]

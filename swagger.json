@@ -94,6 +94,48 @@
         }
       }
     },
+    "/api/pos/printer/": {
+      "get": {
+        "description": "returns a list of printers",
+        "tags": [
+          "printers"
+        ],
+        "summary": "List Printers",
+        "operationId": "getPrinterList",
+        "responses": {
+          "200": {
+            "description": "printer",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/printer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/printersettings/": {
+      "get": {
+        "description": "returns a list of printer settings",
+        "tags": [
+          "printers"
+        ],
+        "summary": "List Printer Settings",
+        "operationId": "listPrinterSettings",
+        "responses": {
+          "200": {
+            "description": "printerSetting",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/printerSetting"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/pos/store/": {
       "get": {
         "description": "returns a list of POS stores",
@@ -316,6 +358,126 @@
             }
           }
         }
+      }
+    },
+    "/api/pos/terminal/": {
+      "get": {
+        "description": "returns a json response with list of terminals,\ncould be queries by store",
+        "tags": [
+          "terminals"
+        ],
+        "summary": "List Terminals",
+        "operationId": "listTerminals",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "filter terminals by store",
+            "name": "store",
+            "in": "query",
+            "schema": {
+              "description": "filter terminals by store",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "terminal",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/terminal"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/terminal/{id}/": {
+      "get": {
+        "description": "returns a json response with the specified terminal id",
+        "tags": [
+          "terminals"
+        ],
+        "summary": "Get Terminal",
+        "operationId": "getTerminal",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "terminal",
+            "schema": {
+              "$ref": "#/definitions/terminal"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "updates terminal data by id",
+        "tags": [
+          "terminals"
+        ],
+        "summary": "Update Terminal",
+        "operationId": "updateTerminal",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "type": "object",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/terminal"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "terminal",
+            "schema": {
+              "$ref": "#/definitions/terminal"
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/terminal/{id}/unlockterminal/": {
+      "post": {
+        "description": "removes the terminal redis key and make the terminal\navailable for other cashiers again",
+        "tags": [
+          "terminals"
+        ],
+        "summary": "Unlock Terminal",
+        "operationId": "unlockTerminal",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
       }
     },
     "/core/getloggedinusergroups/{id}/": {
@@ -2020,6 +2182,60 @@
       "x-go-name": "Menu",
       "x-go-package": "pos-proxy/pos/models"
     },
+    "printer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "is_default": {
+          "type": "boolean",
+          "x-go-name": "IsDefault"
+        },
+        "paper_width": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "PaperWidth"
+        },
+        "printer_id": {
+          "type": "string",
+          "x-go-name": "PrinterID"
+        },
+        "printer_ip": {
+          "type": "string",
+          "x-go-name": "PrinterIP"
+        },
+        "printer_type": {
+          "type": "string",
+          "x-go-name": "PrinterType"
+        },
+        "terminal": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TerminalID"
+        }
+      },
+      "x-go-name": "Printer",
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "printerSetting": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "ip": {
+          "type": "string",
+          "x-go-name": "IP"
+        }
+      },
+      "x-go-name": "PrinterSetting",
+      "x-go-package": "pos-proxy/pos/models"
+    },
     "proxyVersion": {
       "type": "object",
       "properties": {
@@ -2230,7 +2446,6 @@
       "x-go-package": "pos-proxy/income/models"
     },
     "terminal": {
-      "description": "Terminal",
       "type": "object",
       "properties": {
         "description": {
@@ -2247,20 +2462,24 @@
           "x-go-name": "IsLocked"
         },
         "last_invoice_id": {
+          "description": "last number used to generate invoice_number for new invoices",
           "type": "integer",
           "format": "int64",
           "x-go-name": "LastInvoiceID"
         },
         "number": {
+          "description": "unique number users see to identify a Terminal",
           "type": "integer",
           "format": "int64",
           "x-go-name": "Number"
         },
         "rcrs_number": {
+          "description": "the license number set by the Belgian government",
           "type": "string",
           "x-go-name": "RCRS"
         },
         "store": {
+          "description": "ID of the store the terminal is linked too",
           "type": "integer",
           "format": "int64",
           "x-go-name": "Store"
