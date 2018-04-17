@@ -15,6 +15,14 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// ListTables swagger:route GET /api/pos/tables/ tables getTableList
+//
+// List Tables
+//
+// returns a list of POS tables
+//
+// Responses:
+//   200: []table
 func ListTables(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 
@@ -35,21 +43,35 @@ func ListTables(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, tables)
 }
 
+// GetTable swagger:route GET /api/pos/tables/{id}/ tables getTable
+//
+// Get Table
+//
+// returns a details of a table by id
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+// Responses:
+//   200: table
 func GetTable(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	vars := mux.Vars(r)
-	strID, _ := vars["number"]
+	strID, _ := vars["id"]
 	id, err := strconv.Atoi(strID)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	q["number"] = id
+	q["id"] = id
 
 	table := models.Table{}
 	session := db.Session.Copy()
 	defer session.Close()
-	err = db.DB.C("tables").With(session).Find(q).Sort("id").One(&table)
+	err = db.DB.C("tables").With(session).Find(q).One(&table)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
@@ -57,6 +79,63 @@ func GetTable(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, table)
 }
 
+// GetTableByNumber swagger:route GET /api/pos/tables/{number}/ tables getTableByNumber
+//
+// Get Table By Number
+//
+// returns a details of a table by table number
+//
+// Parameters:
+// + name: number
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+//
+// Responses:
+//   200: table
+func GetTableByNumber(w http.ResponseWriter, r *http.Request) {
+	q := bson.M{}
+	vars := mux.Vars(r)
+	numStr, _ := vars["number"]
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	q["number"] = num
+
+	table := models.Table{}
+	session := db.Session.Copy()
+	defer session.Close()
+	err = db.DB.C("tables").With(session).Find(q).One(&table)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	helpers.ReturnSuccessMessage(w, table)
+}
+
+// UpdateTable swagger:route PUT /api/pos/tables/{id}/ tables updateTable
+//
+// Update Table
+//
+// updates table data by id
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+//
+// + name: body
+//   in: body
+//   type: table
+//   required: true
+//
+// Responses:
+//   200: table
 func UpdateTable(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	vars := mux.Vars(r)
@@ -88,6 +167,31 @@ func UpdateTable(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, table)
 }
 
+// GetTableLatestChangesResponse swagger:model getTableLatestChangesResponse
+// defines the body for the response of GetTableLatestChanges request
+type GetTableLatestChangesResponse struct {
+	Invoices []models.Invoice `json:"posinvoices" bson:"posinvoices"`
+	// flag that shows if the invoices on these table are currently locked or not
+	LockedInvoices bool         `json:"lockedposinvoices" bson:"lockedposinvoices"`
+	Table          models.Table `json:"table" bson:"table"`
+	// ID of the terminal that is currently locking these invoices
+	Terminal int `json:"terminal" bson:"terminal"`
+}
+
+// GetTableLatestChanges swagger:route POST /api/pos/tables/{id}/latestchanges/ tables listInvoicesOnTables
+//
+// List Unsettled Invoices on Table (getLatestChanges)
+//
+// returns a list of unsettled invoices (with full details) on a table at the moment.
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+// Responses:
+//   200: getTableLatestChangesResponse
 func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	vars := mux.Vars(r)
@@ -133,10 +237,11 @@ func GetTableLatestChanges(w http.ResponseWriter, r *http.Request) {
 		invoicesLocked = true
 	}
 
-	resp := bson.M{}
-	resp["posinvoices"] = invoices
-	resp["table"] = table
-	resp["terminal"] = otherTerminal
-	resp["lockedposinvoices"] = invoicesLocked
+	resp := GetTableLatestChangesResponse{
+		Invoices:       invoices,
+		Table:          table,
+		Terminal:       otherTerminal,
+		LockedInvoices: invoicesLocked,
+	}
 	helpers.ReturnSuccessMessage(w, resp)
 }

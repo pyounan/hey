@@ -98,7 +98,7 @@
       "get": {
         "description": "returns a list of POS stores",
         "tags": [
-          "store"
+          "stores"
         ],
         "summary": "List Stores",
         "operationId": "getStoreList",
@@ -115,11 +115,11 @@
         }
       }
     },
-    "/api/pos/store/{id}": {
+    "/api/pos/store/{id}/": {
       "get": {
         "description": "returns a POS store data based on ID",
         "tags": [
-          "store"
+          "stores"
         ],
         "summary": "Get Store",
         "operationId": "getStore",
@@ -144,11 +144,11 @@
         }
       }
     },
-    "/api/pos/storedetails/{id}": {
+    "/api/pos/storedetails/{id}/": {
       "get": {
         "description": "returns a POS stores details based on ID",
         "tags": [
-          "store"
+          "stores"
         ],
         "summary": "Get Store Details",
         "operationId": "getStoreDetails",
@@ -168,6 +168,151 @@
             "description": "storeDetails",
             "schema": {
               "$ref": "#/definitions/storeDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/tables/": {
+      "get": {
+        "description": "returns a list of POS tables",
+        "tags": [
+          "tables"
+        ],
+        "summary": "List Tables",
+        "operationId": "getTableList",
+        "responses": {
+          "200": {
+            "description": "table",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/table"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/tables/{id}/": {
+      "get": {
+        "description": "returns a details of a table by id",
+        "tags": [
+          "tables"
+        ],
+        "summary": "Get Table",
+        "operationId": "getTable",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "table",
+            "schema": {
+              "$ref": "#/definitions/table"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "updates table data by id",
+        "tags": [
+          "tables"
+        ],
+        "summary": "Update Table",
+        "operationId": "updateTable",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "type": "object",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/table"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "table",
+            "schema": {
+              "$ref": "#/definitions/table"
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/tables/{id}/latestchanges/": {
+      "post": {
+        "description": "returns a list of unsettled invoices (with full details) on a table at the moment.",
+        "tags": [
+          "tables"
+        ],
+        "summary": "List Unsettled Invoices on Table (getLatestChanges)",
+        "operationId": "listInvoicesOnTables",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "getTableLatestChangesResponse",
+            "schema": {
+              "$ref": "#/definitions/getTableLatestChangesResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/tables/{number}/": {
+      "get": {
+        "description": "returns a details of a table by table number",
+        "tags": [
+          "tables"
+        ],
+        "summary": "Get Table By Number",
+        "operationId": "getTableByNumber",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "table",
+            "schema": {
+              "$ref": "#/definitions/table"
             }
           }
         }
@@ -308,12 +453,23 @@
     },
     "/income/api/department/{id}/": {
       "get": {
-        "description": "returns a details of a department by id\n\nParamters:\n+ name: id\nin: path\nrequired: true\nschema:\ntype: integer",
+        "description": "returns a details of a department by id",
         "tags": [
           "departments"
         ],
         "summary": "Get Department",
         "operationId": "getDepartment",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "department",
@@ -665,28 +821,6 @@
       },
       "x-go-package": "pos-proxy/pos/models"
     },
-    "Group": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "ID"
-        },
-        "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Item"
-          },
-          "x-go-name": "Items"
-        },
-        "name": {
-          "type": "string",
-          "x-go-name": "Name"
-        }
-      },
-      "x-go-package": "pos-proxy/pos/models"
-    },
     "GroupedAppliedDiscount": {
       "description": "GroupedAppliedDiscount represents a group of applied discounts grouped\nby vat code",
       "type": "object",
@@ -723,140 +857,6 @@
           "type": "number",
           "format": "double",
           "x-go-name": "VATPercentage"
-        }
-      },
-      "x-go-package": "pos-proxy/pos/models"
-    },
-    "Item": {
-      "type": "object",
-      "properties": {
-        "attached_attributes": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "object"
-          },
-          "x-go-name": "AttachedAttributes"
-        },
-        "base_unit": {
-          "type": "string",
-          "x-go-name": "BaseUnit"
-        },
-        "category_id": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "CategoryID"
-        },
-        "description": {
-          "type": "string",
-          "x-go-name": "Description"
-        },
-        "group_id": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "GroupID"
-        },
-        "group_name": {
-          "type": "string",
-          "x-go-name": "GroupName"
-        },
-        "id": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "ID"
-        },
-        "item": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "ItemID"
-        },
-        "itemcondimentgroup_set": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ItemCondimentGroup"
-          },
-          "x-go-name": "ItemCondimentGroupSet"
-        },
-        "number": {
-          "type": "string",
-          "x-go-name": "Number"
-        },
-        "open_item": {
-          "type": "boolean",
-          "x-go-name": "OpenItem"
-        },
-        "open_price": {
-          "type": "boolean",
-          "x-go-name": "OpenPrice"
-        },
-        "store_unit": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "StoreUnitID"
-        },
-        "storemenuitemconfig": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "StoreMenuItemConfig"
-        },
-        "unit_price": {
-          "type": "number",
-          "format": "double",
-          "x-go-name": "UnitPrince"
-        }
-      },
-      "x-go-package": "pos-proxy/pos/models"
-    },
-    "ItemCondimentGroup": {
-      "type": "object",
-      "properties": {
-        "condiment_group": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "CondimentGroupID"
-        },
-        "max": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "Max"
-        },
-        "min": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "Min"
-        },
-        "name": {
-          "type": "string",
-          "x-go-name": "Name"
-        }
-      },
-      "x-go-package": "pos-proxy/pos/models"
-    },
-    "Menu": {
-      "type": "object",
-      "properties": {
-        "from_time": {
-          "type": "string",
-          "x-go-name": "FromTime"
-        },
-        "groups": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Group"
-          },
-          "x-go-name": "Groups"
-        },
-        "id": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "ID"
-        },
-        "name": {
-          "type": "string",
-          "x-go-name": "Name"
-        },
-        "to_time": {
-          "type": "string",
-          "x-go-name": "ToTime"
         }
       },
       "x-go-package": "pos-proxy/pos/models"
@@ -1511,6 +1511,57 @@
       "x-go-name": "Department",
       "x-go-package": "pos-proxy/income/models"
     },
+    "getTableLatestChangesResponse": {
+      "type": "object",
+      "properties": {
+        "lockedposinvoices": {
+          "description": "flag that shows if the invoices on these table are currently locked or not",
+          "type": "boolean",
+          "x-go-name": "LockedInvoices"
+        },
+        "posinvoices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/invoice"
+          },
+          "x-go-name": "Invoices"
+        },
+        "table": {
+          "$ref": "#/definitions/table"
+        },
+        "terminal": {
+          "description": "ID of the terminal that is currently locking these invoices",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Terminal"
+        }
+      },
+      "x-go-name": "GetTableLatestChangesResponse",
+      "x-go-package": "pos-proxy/pos"
+    },
+    "group": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/item"
+          },
+          "x-go-name": "Items"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-name": "Group",
+      "x-go-package": "pos-proxy/pos/models"
+    },
     "invoice": {
       "description": "Invoice represents Invoice model details",
       "type": "object",
@@ -1832,6 +1883,143 @@
       "x-go-name": "InvoiceLite",
       "x-go-package": "pos-proxy/pos/models"
     },
+    "item": {
+      "type": "object",
+      "properties": {
+        "attached_attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          },
+          "x-go-name": "AttachedAttributes"
+        },
+        "base_unit": {
+          "type": "string",
+          "x-go-name": "BaseUnit"
+        },
+        "category_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CategoryID"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "group_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "GroupID"
+        },
+        "group_name": {
+          "type": "string",
+          "x-go-name": "GroupName"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "item": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ItemID"
+        },
+        "itemcondimentgroup_set": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/itemCondimentGroup"
+          },
+          "x-go-name": "ItemCondimentGroupSet"
+        },
+        "number": {
+          "type": "string",
+          "x-go-name": "Number"
+        },
+        "open_item": {
+          "type": "boolean",
+          "x-go-name": "OpenItem"
+        },
+        "open_price": {
+          "type": "boolean",
+          "x-go-name": "OpenPrice"
+        },
+        "store_unit": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "StoreUnitID"
+        },
+        "storemenuitemconfig": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "StoreMenuItemConfig"
+        },
+        "unit_price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "UnitPrince"
+        }
+      },
+      "x-go-name": "Item",
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "itemCondimentGroup": {
+      "type": "object",
+      "properties": {
+        "condiment_group": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CondimentGroupID"
+        },
+        "max": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Max"
+        },
+        "min": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Min"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-name": "ItemCondimentGroup",
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "menu": {
+      "type": "object",
+      "properties": {
+        "from_time": {
+          "type": "string",
+          "x-go-name": "FromTime"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/group"
+          },
+          "x-go-name": "Groups"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "to_time": {
+          "type": "string",
+          "x-go-name": "ToTime"
+        }
+      },
+      "x-go-name": "Menu",
+      "x-go-package": "pos-proxy/pos/models"
+    },
     "proxyVersion": {
       "type": "object",
       "properties": {
@@ -1944,7 +2132,7 @@
         "menus": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Menu"
+            "$ref": "#/definitions/menu"
           },
           "x-go-name": "Menus"
         },
@@ -1959,6 +2147,54 @@
         }
       },
       "x-go-name": "StoreDetails",
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "table": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "has_invoice": {
+          "type": "boolean",
+          "x-go-name": "HasInvoice"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "invoices_count": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "InvoicesCount"
+        },
+        "is_active": {
+          "type": "boolean",
+          "x-go-name": "IsActive"
+        },
+        "number": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Number"
+        },
+        "status": {
+          "type": "string",
+          "x-go-name": "Status"
+        },
+        "store_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "StoreID"
+        },
+        "updated_on": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedOn"
+        }
+      },
+      "x-go-name": "Table",
       "x-go-package": "pos-proxy/pos/models"
     },
     "taxDef": {

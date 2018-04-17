@@ -7,6 +7,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// Table swagger:model table
+// defines attributes of Table entity
 type Table struct {
 	ID            int       `json:"id" bson:"id"`
 	Number        int       `json:"number" bson:"number"`
