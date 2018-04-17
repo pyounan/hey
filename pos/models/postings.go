@@ -1,6 +1,7 @@
 package models
 
 // Posting models POSPayment
+// swagger:model posting
 type Posting struct {
 	ID                     int        `json:"id,omitempty" bson:"id,omitempty"`
 	Amount                 float64    `json:"amount" bson:"amount"`

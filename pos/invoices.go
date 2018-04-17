@@ -29,7 +29,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// ListInvoicesLite swagger:route GET /api/pos/posinvoices invoices listInvoicesLite
+// ListInvoicesLite swagger:route GET /api/pos/posinvoices/ invoices listInvoicesLite
 //
 // List Invoices (simplified)
 //
@@ -77,7 +77,14 @@ func ListInvoicesLite(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, invoices)
 }
 
-// ListInvoices lists open invoices
+// ListInvoices swagger:route GET /api/pos/posinvoices/ invoices listInvoices
+//
+// List Invoices (full)
+//
+// serves a list of full detailed invoices
+//
+// Responses:
+//   200: []invoice
 func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	for key, val := range r.URL.Query() {
@@ -145,8 +152,30 @@ func ListInvoices(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, invoices)
 }
 
-// ListInvoicesPaginated retrieves list of settled or open invoices
-// the settled invoices are being proxied to backend
+// PaginatedResponse swagger:model paginatedResponse
+// models a paginated response for list of invoices
+type PaginatedResponse struct {
+	Count   int                  `json:"count" bson:"count"`
+	Results []models.InvoiceLite `json:"results" bson:"results"`
+}
+
+// ListInvoicesPaginated swagger:route GET /api/pos/posinvoices/ invoices listInvoicesPaginated
+//
+// List Invoices (simplified)
+//
+// retrieves list of settled or open invoices
+// the settled invoices are being proxied to backend.
+// the result is returned in a paginated style
+//
+// Parameters:
+// + name: is_settled
+//   in: query
+//   required: true
+//   schema:
+//     type: boolean
+//
+// Responses:
+//   200: paginatedResponse
 func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	isSettled := r.URL.Query().Get("is_settled")
@@ -168,13 +197,28 @@ func ListInvoicesPaginated(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := bson.M{}
-	resp["count"] = len(invoices)
-	resp["results"] = invoices
+	resp := PaginatedResponse{
+		Count:   len(invoices),
+		Results: invoices,
+	}
 	helpers.ReturnSuccessMessage(w, resp)
 }
 
-// GetInvoice fetches invoice from the database by invoice number
+// GetInvoice swagger:route GET /api/pos/posinvoices/{invoice_number}/ invoices getInvoice
+//
+// Get Invoice
+//
+// fetches invoice from the database by invoice number
+//
+// Parameters:
+// + name: invoice_number
+//   in: path
+//   required: true
+//   schema:
+//      type: string
+//
+// Responses:
+//   200: invoice
 func GetInvoice(w http.ResponseWriter, r *http.Request) {
 	q := bson.M{}
 	vars := mux.Vars(r)
@@ -194,7 +238,20 @@ func GetInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, invoice)
 }
 
-// SubmitInvoice creates a new invoice or update an old one
+// SubmitInvoice swagger:route POST /api/pos/posinvoices/ invoices submitInvoice
+//
+// Submit Invoice
+//
+// creates a new invoice or update an old one
+//
+// Parameters:
+//  + name: body
+//    in: body
+//    type: invoicePOSTRequest
+//    required: true
+//
+// Responses:
+// 200: invoice
 func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -261,7 +318,26 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
-// VoidInvoice closes invoice and sets the void reason
+// VoidInvoice swagger:route POST /api/pos/posinvoices/{invoice_number}/void/ invoices voidInvoice
+//
+// Void Invoice
+//
+// closes invoice and sets the void reason
+//
+// Parameters:
+// + name: invoice_number
+//   in: path
+//   required: true
+//   schema:
+//      type: string
+//
+// + name: body
+//   in: body
+//   type: invoicePOSTRequest
+//   required: true
+//
+// Responses:
+// 200: invoice
 func VoidInvoice(w http.ResponseWriter, r *http.Request) {
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -316,25 +392,23 @@ func VoidInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
-// BulkSubmitInvoices loops over list of invoices, creates or updates
+// BulkSubmitInvoices swagger:route POST /api/pos/posinvoices/bulksubmit/ invoices bulkSubmitInvoices
+//
+// Bulk Submit Invoices
+//
+// loops over list of invoices, creates or updates
 // them, then release the terminal that is locked.
+//
+// Parameters:
+//  + name: body
+//    in: body
+//    type: bulkSubmitRequest
+//    required: true
+//
+// Responses:
+// 200: bulkSubmitResponse
 func BulkSubmitInvoices(w http.ResponseWriter, r *http.Request) {
-	type Body struct {
-		Invoices              []models.Invoice `json:"posinvoices" bson:"posinvoices"`
-		RCRS                  string           `json:"rcrs" bson:"rcrs"`
-		TerminalID            int              `json:"terminal_id" bson:"terminal_id"`
-		TerminalNumber        int              `json:"terminal_number" bson:"terminal_number"`
-		TerminalName          string           `json:"terminal_description" bson:"terminal_description"`
-		EmployeeID            string           `json:"employee_id" bson:"employee_id"`
-		OriginalInvoiceNumber string           `json:"original_invoice_number" bson:"original_invoice_number"`
-		DepartmentID          int              `json:"department" bson:"department"`
-		Posting               models.Posting   `json:"posting" bson:"posting"`
-		CashierName           string           `json:"cashier_name" bson:"cashier_name"`
-		CashierNumber         int              `json:"cashier_number" bson:"cashier_number"`
-		Type                  string           `json:"type" bson:"type"`
-		ActionTime            string           `json:"action_time" bson:"action_time"`
-	}
-	req := Body{}
+	req := models.BulkSubmitRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -387,11 +461,25 @@ func BulkSubmitInvoices(w http.ResponseWriter, r *http.Request) {
 		invoice.Events = []models.EJEvent{}
 		db.DB.C("posinvoices").With(session).Upsert(bson.M{"invoice_number": invoice.InvoiceNumber}, invoice)
 	}
-	helpers.ReturnSuccessMessage(w, bson.M{"status": 200})
+	resp := models.BulkSubmitResponse{
+		Status: 200,
+	}
+	helpers.ReturnSuccessMessage(w, resp)
 }
 
-// UnlockInvoice removes invoice_number key from redis and make
+// UnlockInvoice swagger:route GET /api/pos/posinvoices/{invoice_number}/unlock/ invoices unlockInvoice
+//
+// Unlock Invoice
+//
+// removes invoice_number key from redis and make
 // the invoice available to be picked up again by cashiers
+//
+// Parameters:
+// + name: invoice_number
+//   in: path
+//   required: true
+//   schema:
+//      type: string
 func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	invoiceNumber := vars["invoice_number"]
@@ -407,7 +495,20 @@ func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, true)
 }
 
-// FolioInvoice sends invoice lineitems to FDM and increase printing counter
+// FolioInvoice swagger:route POST /api/pos/posinvoices/folio/ invoices folioInvoice
+//
+// Folio
+//
+// sends invoice lineitems to FDM and increase printing counter
+//
+// Parameters:
+// + name: body
+//   in: body
+//   type: invoicePOSTRequest
+//   required: true
+//
+// Responses:
+// 200: invoice
 func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -482,7 +583,26 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
-// PayInvoice creates pospayments and pospostinginformations on invoice
+// PayInvoice  swagger:route POST /api/pos/posinvoices/{invoice_number}/createpostings/ invoices createPostings
+//
+// Create Postings (pay invoice)
+//
+// creates pospayments and pospostinginformations on invoice
+//
+// Parameters:
+// + name: invoice_number
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+//
+// + name: body
+//   in: body
+//   type: invoicePOSTRequest
+//   required: true
+//
+// Responses:
+// 200: invoicePOSTRequest
 func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -556,6 +676,11 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req)
 }
 
+// CreatePaymentEJ swagger:route POST /api/pos/posinvoices/createpaymentej/ invoices createPaymentEJ
+//
+// Create Payment EJ
+//
+// takes a map of values and proxy it to backend in order to create ej for payment
 func CreatePaymentEJ(w http.ResponseWriter, r *http.Request) {
 	body := make(map[string]interface{})
 	json.NewDecoder(r.Body).Decode(&body)
@@ -567,14 +692,28 @@ func CreatePaymentEJ(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, true)
 }
 
-// CancelPostings cancels payments of a paid invocie based on postings frontend ids
+// CancelPostings swagger:route POST /api/pos/posinvoices/{invoice_number}/cancelpostings/ invoices cancelPostings
+//
+// Cancel Postings
+//
+// cancels payments of a paid invocie based on postings frontend ids
+//
+// Parameters:
+// + name: invoice_number
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+//
+// + name: body
+//   in: body
+//   type: cancelPostingsRequest
+//   required: true
+//
+// Responses:
+// 200: []posting
 func CancelPostings(w http.ResponseWriter, r *http.Request) {
-	type CancelPostingsRequest struct {
-		PostingsIDs []string       `json:"frontend_ids" bson:"frontend_ids"`
-		CashierID   int            `json:"poscashier_id" bson:"poscashier_id"`
-		Posinvoice  models.Invoice `json:"posinvoice" bson:"posinvoice"`
-	}
-	req := CancelPostingsRequest{}
+	req := models.CancelPostingsRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -637,29 +776,23 @@ func CancelPostings(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, invoice.Postings)
 }
 
-// RefundInvoice handles the refund scenario and cancel postings.
+// RefundInvoice swagger:route POST /api/pos/posinvoices/refund/ invoices refundInvoice
+//
+// Refund Invoice
+//
+// handles the refund scenario and cancel postings.
 // Creating a new invoice with the canceled postings.
+//
+// Parameters:
+// + name: body
+//   in: body
+//   type: refundInvoiceRequest
+//   required: true
+//
+// Responses:
+// 200: refundInvoiceResponse
 func RefundInvoice(w http.ResponseWriter, r *http.Request) {
-	type OriginalInvoiceData struct {
-		ID            int    `json:"id" bson:"id"`
-		InvoiceNumber string `json:"invoice_number" bson:"invoice_number"`
-	}
-	type ReqBody struct {
-		RCRS            string              `json:"rcrs" bson:"rcrs"`
-		TerminalID      int                 `json:"terminal_id" bson:"terminal_id"`
-		TerminalNumber  int                 `json:"terminal_number" bson:"terminal_number"`
-		TerminalName    string              `json:"terminal_description" bson:"terminal_description"`
-		EmployeeID      string              `json:"employee_id" bson:"employee_id"`
-		NewInvoice      models.Invoice      `json:"new_posinvoice" bson:"new_posinvoice"`
-		OriginalInvoice OriginalInvoiceData `json:"posinvoice" bson:"posinvoice"`
-		DepartmentID    int                 `json:"department" bson:"department"`
-		Posting         models.Posting      `json:"posting" bson:"posting"`
-		CashierName     string              `json:"cashier_name" bson:"cashier_name"`
-		CashierNumber   int                 `json:"cashier_number" bson:"cashier_number"`
-		Type            string              `json:"type" bson:"type"`
-		ActionTime      string              `json:"action_time" bson:"action_time"`
-	}
-	body := ReqBody{}
+	body := models.RefundInvoiceRequest{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		log.Println("Error:", err.Error())
@@ -734,12 +867,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 
 	db.DB.C("posinvoices").With(session).Upsert(bson.M{"invoice_number": body.NewInvoice.InvoiceNumber}, req.Invoice)
 
-	type RespBody struct {
-		NewInvoice      models.Invoice   `json:"new_invoice" bson:"new_invoice"`
-		OriginalInvoice models.Invoice   `json:"original_invoice" bson:"original_invoice"`
-		Postings        []models.Posting `json:"postings" bson:"postings"`
-	}
-	resp := &RespBody{}
+	resp := &models.RefundInvoiceResponse{}
 	resp.NewInvoice = req.Invoice
 	resp.OriginalInvoice = models.Invoice{}
 	if body.NewInvoice.HouseUse == false {
@@ -764,7 +892,20 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Houseuse pay the invoice as house use
+// Houseuse  swagger:route POST /api/pos/posinvoices/houseuse/ invoices houseuse
+//
+// Houseuse
+//
+// pay the invoice and settle it as house use
+//
+// Parameters:
+// + name: body
+//   in: body
+//   type: invoicePOSTRequest
+//   required: true
+//
+// Responses:
+// 200: invoice
 func Houseuse(w http.ResponseWriter, r *http.Request) {
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -799,7 +940,6 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	log.Println("Invoice Number", invoice.InvoiceNumber)
 	req.Invoice = invoice
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice.HouseUse = true
@@ -832,14 +972,22 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
-// ChangeTable moves the selected invoices from table to another table
+// ChangeTable swagger:route POST /api/pos/posinvoices/changetable/ invoices changeTable
+//
+// Change Table
+//
+// moves the selected invoices from table to another table
+//
+// Parameters:
+// + name: body
+//   in: body
+//   type: changeTableRequest
+//   required: true
+//
+// Responses:
+// 200: []invoice
 func ChangeTable(w http.ResponseWriter, r *http.Request) {
-	type ReqBody struct {
-		OldTable int              `json:"oldtable" bson:"oldtable"`
-		NewTable int              `json:"newtable" bson:"newtable"`
-		Invoices []models.Invoice `json:"posinvoices" bson:"posinvoices"`
-	}
-	body := ReqBody{}
+	body := models.ChangeTableRequest{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -899,21 +1047,22 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, newInvoices)
 }
 
-// SplitInvoices splits invoice to new invoices
+// SplitInvoices swagger:route POST /api/pos/posinvoices/split/ invoices split
+//
+// Split
+//
+// splits invoice to new invoices
+//
+// Parameters:
+// + name: body
+//   in: body
+//   type: splitInvoiceRequest
+//   required: true
+//
+// Responses:
+// 200: []invoice
 func SplitInvoices(w http.ResponseWriter, r *http.Request) {
-	type ReqBody struct {
-		ActionTime          string           `json:"action_time" bson:"action_time"`
-		CashierName         string           `json:"cashier_name" bson:"cashier_name"`
-		CashierNumber       int              `json:"cashier_number" bson:"cashier_number"`
-		EmployeeID          string           `json:"employee_id" bson:"employee_id"`
-		Invoices            []models.Invoice `json:"posinvoices" bson:"posinvoices"`
-		RCRS                string           `json:"rcrs" bson:"rcrs"`
-		TerminalDescription string           `json:"terminal_description" bson:"terminal_description"`
-		TerminalID          int              `json:"terminal_id" bson:"terminal_id"`
-		TerminalNumber      int              `json:"terminal_number" bson:"terminal_number"`
-		Events              []string         `json:"events" bson:"events"`
-	}
-	body := ReqBody{}
+	body := models.SplitInvoiceRequest{}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
@@ -940,7 +1089,20 @@ func SplitInvoices(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, body.Invoices)
 }
 
-// WasteAndVoid wastes a lineitem
+// WasteAndVoid wastes a  swagger:route POST /api/pos/posinvoices/wasteandvoid/ invoices wasteAndVoid
+//
+// Waste & Void
+//
+// Wastes a lineitem
+//
+// Parameters:
+// + name: body
+//   in: body
+//   type: invoicePOSTRequest
+//   required: true
+//
+// Responses:
+// 200: invoice
 func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 	req := models.InvoicePOSTRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -993,7 +1155,28 @@ func WasteAndVoid(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
-// ToggleLocking toggle locking of invoices
+// ToggleLocking swagger:route GET /api/pos/posinvoices/togglelocking/
+//
+// Toggle Locking
+//
+// toggle locking of invoices
+//
+// Parameters:
+// + name: id
+//   in: query
+//   required: true
+//
+// + name: terminal_id
+//   in: query
+//   required: true
+//   schema:
+//      type: integer
+//
+// + name: target
+//   in: query
+//   schema:
+//     type: string
+//   required: true
 func ToggleLocking(w http.ResponseWriter, r *http.Request) {
 	numbers := strings.Split(r.URL.Query().Get("id"), ",")
 	terminalIDStr := r.URL.Query().Get("terminal_id")
@@ -1023,7 +1206,21 @@ func ToggleLocking(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, true)
 }
 
-// GetInvoiceLatestChanges gets the invoice and checks if it's locked or not
+// GetInvoiceLatestChanges swagger:route POST /api/pos/posinvoices/{invoice_number}/getlatestchanges/ invoices getInvoiceLatestChanges
+//
+// Get Invoice Latest Changes
+//
+// gets the invoice and checks if it's locked or not
+//
+// Parameters:
+// + name: invoice_number
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+//
+// Responses:
+// 200: invoice
 func GetInvoiceLatestChanges(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	terminalID, _ := strconv.Atoi(params["terminal_id"][0])

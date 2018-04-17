@@ -7,7 +7,8 @@ import (
 	"strings"
 )
 
-// EJEvent is a model that gets inserted to FDM or EJ.
+// EJEvent swagger:model ejevent
+// is a model that gets inserted to FDM or EJ.
 type EJEvent struct {
 	Description   string  `json:"description" bson:"description"`
 	Price         float64 `json:"price" bson:"price"`

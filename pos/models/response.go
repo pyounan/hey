@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+// FDMResponse swagger:model fdmResponse
+// defines the body of a response coming from FDM
 type FDMResponse struct {
 	Identifier         string    `json:"identifier"`
 	Sequence           int       `json:"sequence"`
