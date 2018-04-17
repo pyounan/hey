@@ -8,12 +8,33 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"gopkg.in/mgo.v2/bson"
 	"log"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
-// ListOperaRooms returns a list of reservations on Opera
+// ListOperaRooms swagger:route GET /api/opera/rooms/ opera listRooms
+//
+// List Opera Rooms
+//
+// returns a list of reservations on Opera
+//
+// Parameters:
+// + name: inquiry
+//   in: query
+//   required: true
+//
+// + name: terminal
+//   in: query
+//   required: true
+//
+// + name: store
+//   in: query
+//   required: true
+//
+// Responses:
+// 200: []postListItem
 func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 	postInquiry := PostInquiry{}
 

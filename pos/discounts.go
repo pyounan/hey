@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"pos-proxy/db"
 	"pos-proxy/helpers"
+	"pos-proxy/pos/models"
 	"pos-proxy/proxy"
 	"pos-proxy/syncer"
 	"strconv"
@@ -13,7 +14,30 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// ListFixedDiscounts returns a list of fixed discounts for a store
+// ListFixedDiscounts swagger:route GET /api/pos/fixeddiscount/ discounts listFixedDiscoints
+//
+// List Fixed Discounts
+//
+// returns a list of fixed discounts for a store
+//
+// Parameters:
+// + name: id
+//   description: filter discounts by id
+//   schema:
+//     type: integer
+//
+// + name: store
+//   description: filter discounts by store
+//   schema:
+//     type: integer
+//
+// + name: poscashier_id
+//   description: filter discounts by cashier id
+//   schema:
+//     type: integer
+//
+// Responses:
+// 200: []fixedDiscount
 func ListFixedDiscounts(w http.ResponseWriter, r *http.Request) {
 	query := bson.M{}
 	urlQuery := r.URL.Query()
@@ -30,7 +54,7 @@ func ListFixedDiscounts(w http.ResponseWriter, r *http.Request) {
 		query["cashiers"] = id
 	}
 
-	fixedDiscounts := []map[string]interface{}{}
+	fixedDiscounts := []models.FixedDiscount{}
 	session := db.Session.Copy()
 	defer session.Close()
 	err := db.DB.C("fixeddiscounts").With(session).Find(query).Sort("id").All(&fixedDiscounts)
@@ -41,11 +65,25 @@ func ListFixedDiscounts(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, fixedDiscounts)
 }
 
-// GetFixedDiscount returns an object of a FixedDiscount based on ID
+// GetFixedDiscount swagger:route GET /api/pos/fixeddiscount/{id}/ discounts getFixedDiscount
+//
+// Get Fixed Discount
+//
+// returns an object of a FixedDiscount based on ID
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//     type: integer
+//
+// Responses:
+// 200: fixedDiscount
 func GetFixedDiscount(w http.ResponseWriter, r *http.Request) {
 	idStr, _ := mux.Vars(r)["id"]
 	id, _ := strconv.Atoi(idStr)
-	d := make(map[string]interface{})
+	d := models.FixedDiscount{}
 	session := db.Session.Copy()
 	defer session.Close()
 	err := db.DB.C("fixeddiscounts").With(session).Find(bson.M{"id": id}).One(&d)
@@ -56,18 +94,61 @@ func GetFixedDiscount(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, d)
 }
 
-// CreateFixedDiscount creates a new object of a FixedDiscount
+// CreateFixedDiscount swagger:route POST /api/pos/fixeddiscount/ discounts createFixedDiscount
+//
+// Create Fixed Discount
+//
+// creates a new fixed discount
+//
+// Parameters:
+// + name: body
+//   in: body
+//   type: fixedDiscount
+//   required: true
+//
+// Responses:
+//   200: fixedDiscount
 func CreateFixedDiscount(w http.ResponseWriter, r *http.Request) {
 	proxy.ProxyToBackend(w, r)
 }
 
-// UpdateFixedDiscount updated a FixedDiscount object based on ID
+// UpdateFixedDiscount swagger:route PUT /api/pos/fixeddiscount/{id}/ discounts updateFixedDiscount
+//
+// Update Fixed Discount
+//
+// updates a fixed discount based on ID
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+//
+// + name: body
+//   in: body
+//   type: fixedDiscount
+//   required: true
+//
+// Responses:
+//   200: fixedDiscount
 func UpdateFixedDiscount(w http.ResponseWriter, r *http.Request) {
 	proxy.ProxyToBackend(w, r)
 }
 
-// DeleteFixedDiscount deletes a fixed discount by id from mongodb
+// DeleteFixedDiscount swagger:route DELETE /api/pos/fixeddiscount/{id}/ discounts deleteFixedDiscounts
+//
+// Delete Fixed Discount
+//
+// deletes a fixed discount by id from mongodb
 // then proxy the request to the backend
+//
+// Parameters:
+// + name: id
+//   in: path
+//   required: true
+//   schema:
+//     type: integer
 func DeleteFixedDiscount(w http.ResponseWriter, r *http.Request) {
 	idStr, _ := mux.Vars(r)["id"]
 	id, _ := strconv.Atoi(idStr)

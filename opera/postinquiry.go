@@ -17,6 +17,7 @@ type PostInquiry struct {
 	WorkstationId          string   `xml:"WorkstationId,attr"`
 }
 
+// PostListItem swagger:model postListItem
 type PostListItem struct {
 	XMLName       xml.Name `xml:"PostListItem" json:"-"`
 	RoomNumber    string   `xml:"RoomNumber,attr" json:"room_number"`

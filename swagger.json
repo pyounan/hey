@@ -66,6 +66,169 @@
         }
       }
     },
+    "/api/pos/fixeddiscount/": {
+      "get": {
+        "description": "returns a list of fixed discounts for a store",
+        "tags": [
+          "discounts"
+        ],
+        "summary": "List Fixed Discounts",
+        "operationId": "listFixedDiscoints",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "filter discounts by id",
+            "name": "id",
+            "schema": {
+              "description": "filter discounts by id",
+              "type": "integer"
+            }
+          },
+          {
+            "type": "integer",
+            "description": "filter discounts by store",
+            "name": "store",
+            "schema": {
+              "description": "filter discounts by store",
+              "type": "integer"
+            }
+          },
+          {
+            "type": "integer",
+            "description": "filter discounts by cashier id",
+            "name": "poscashier_id",
+            "schema": {
+              "description": "filter discounts by cashier id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "fixedDiscount",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/fixedDiscount"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "creates a new fixed discount",
+        "tags": [
+          "discounts"
+        ],
+        "summary": "Create Fixed Discount",
+        "operationId": "createFixedDiscount",
+        "parameters": [
+          {
+            "type": "object",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/fixedDiscount"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "fixedDiscount",
+            "schema": {
+              "$ref": "#/definitions/fixedDiscount"
+            }
+          }
+        }
+      }
+    },
+    "/api/pos/fixeddiscount/{id}/": {
+      "get": {
+        "description": "returns an object of a FixedDiscount based on ID",
+        "tags": [
+          "discounts"
+        ],
+        "summary": "Get Fixed Discount",
+        "operationId": "getFixedDiscount",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "fixedDiscount",
+            "schema": {
+              "$ref": "#/definitions/fixedDiscount"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "updates a fixed discount based on ID",
+        "tags": [
+          "discounts"
+        ],
+        "summary": "Update Fixed Discount",
+        "operationId": "updateFixedDiscount",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "type": "object",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/fixedDiscount"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "fixedDiscount",
+            "schema": {
+              "$ref": "#/definitions/fixedDiscount"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "deletes a fixed discount by id from mongodb\nthen proxy the request to the backend",
+        "tags": [
+          "discounts"
+        ],
+        "summary": "Delete Fixed Discount",
+        "operationId": "deleteFixedDiscounts",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
     "/api/pos/posinvoices/": {
       "get": {
         "description": "retrieves list of settled or open invoices\nthe settled invoices are being proxied to backend.\nthe result is returned in a paginated style",
@@ -192,7 +355,7 @@
         "tags": [
           "invoices"
         ],
-        "summary": "CreatePaymentEJ",
+        "summary": "Create Payment EJ",
         "operationId": "createPaymentEJ"
       }
     },
@@ -2187,6 +2350,56 @@
         }
       },
       "x-go-name": "FDMResponse",
+      "x-go-package": "pos-proxy/pos/models"
+    },
+    "fixedDiscount": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Amount"
+        },
+        "cashiers": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "x-go-name": "CashierIDs"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "x-go-name": "ItemIDs"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "percentage": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Percentage"
+        },
+        "stores": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "x-go-name": "StoreIDs"
+        }
+      },
+      "x-go-name": "FixedDiscount",
       "x-go-package": "pos-proxy/pos/models"
     },
     "getTableLatestChangesResponse": {
