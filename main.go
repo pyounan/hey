@@ -56,7 +56,7 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
-//go:generate swagger generate spec
+//go:generate swagger generate spec -m
 func main() {
 	// Check command line arguments, if askings for version, print version then exit
 	if len(os.Args) > 1 && os.Args[1] == "version" {
@@ -244,9 +244,11 @@ func createRouter() http.Handler {
 	r.HandleFunc("/syncer/logs", requestsLogView).Methods("GET")
 	r.HandleFunc("/syncer/logs/request/{id}", syncerRequest).Methods("GET")
 	r.HandleFunc("/syncer/logs/response/{id}", syncerResponse).Methods("GET")
+
 	r.HandleFunc("/api/opera/rooms/", opera.ListOperaRooms).Methods("GET")
 	r.HandleFunc("/api/opera/roomdepartment/", opera.GetRoomDepartment).Methods("GET")
 	r.HandleFunc("/api/pos/opera/{id}/", opera.DeleteConfig).Methods("DELETE")
+
 	r.HandleFunc("/jv/", sun.ImportJournalVouchers).Methods("GET", "POST")
 
 	//r.HandleFunc("/api/pos/fdm/", pos.IsFDMEnabled).Methods("GET")

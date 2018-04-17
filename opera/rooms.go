@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 // ListOperaRooms swagger:route GET /api/opera/rooms/ opera listRooms
@@ -103,16 +101,30 @@ func ListOperaRooms(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnSuccessMessage(w, "[]")
 		return
 	}
-	log.Println("Post list items", postList.PostListItems)
 	helpers.ReturnSuccessMessage(w, postList.PostListItems)
 }
 
+// roomDepartmentResponse swagger:model roomDepartmentResponse
+type roomDepartmentResponse struct {
+	DepartmentID int `json:"department_id" bson:"department_id"`
+}
+
+// GetRoomDeparment swagger:route GET /api/opera/roomdepartment/ opera getRoomDepartment
+//
+// Get Room Department
+//
 // Return configured room department ID
+//
+// Responses:
+// 200: roomDepartmentResponse
 func GetRoomDepartment(w http.ResponseWriter, r *http.Request) {
 	deptID, err := GetRoomDepartmentID()
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	helpers.ReturnSuccessMessage(w, bson.M{"department_id": deptID})
+	resp := roomDepartmentResponse{
+		DepartmentID: deptID,
+	}
+	helpers.ReturnSuccessMessage(w, resp)
 }

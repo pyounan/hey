@@ -68,6 +68,18 @@ func GetRoomDepartmentID() (int, error) {
 	return roomDepartment.Value.DepartmentID, err
 }
 
+// DeleteConfig swagger:route DELETE /api/pos/opera/{id}/ opera deleteConfig
+//
+// Delete Opera Config
+//
+// deletes opera configuration by ID
+//
+// Parameters:
+// + name: id
+//   required: true
+//   in: path
+//   schema:
+//     type: integer
 func DeleteConfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	configID, _ := strconv.Atoi(vars["id"])

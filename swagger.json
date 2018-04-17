@@ -27,6 +27,62 @@
         "operationId": "ensureTenantSelected"
       }
     },
+    "/api/opera/roomdepartment/": {
+      "get": {
+        "description": "Return configured room department ID",
+        "tags": [
+          "opera"
+        ],
+        "summary": "Get Room Department",
+        "operationId": "getRoomDepartment",
+        "responses": {
+          "200": {
+            "description": "roomDepartmentResponse",
+            "schema": {
+              "$ref": "#/definitions/roomDepartmentResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/opera/rooms/": {
+      "get": {
+        "description": "returns a list of reservations on Opera",
+        "tags": [
+          "opera"
+        ],
+        "summary": "List Opera Rooms",
+        "operationId": "listRooms",
+        "parameters": [
+          {
+            "name": "inquiry",
+            "in": "query",
+            "required": true
+          },
+          {
+            "name": "terminal",
+            "in": "query",
+            "required": true
+          },
+          {
+            "name": "store",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "postListItem",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/postListItem"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/pos/course/": {
       "get": {
         "description": "returns a list of menu courses",
@@ -216,6 +272,27 @@
         ],
         "summary": "Delete Fixed Discount",
         "operationId": "deleteFixedDiscounts",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/pos/opera/{id}/": {
+      "delete": {
+        "description": "deletes opera configuration by ID",
+        "tags": [
+          "opera"
+        ],
+        "summary": "Delete Opera Config",
+        "operationId": "deleteConfig",
         "parameters": [
           {
             "type": "integer",
@@ -1479,6 +1556,16 @@
       },
       "x-go-package": "pos-proxy/pos/models"
     },
+    "Name": {
+      "description": "A Name represents an XML name (Local) annotated\nwith a name space identifier (Space).\nIn tokens returned by Decoder.Token, the Space identifier\nis given as a canonical URL, not the short prefix used\nin the document being parsed.",
+      "type": "object",
+      "properties": {
+        "Space": {
+          "type": "string"
+        }
+      },
+      "x-go-package": "encoding/xml"
+    },
     "ObjectId": {
       "description": "http://www.mongodb.org/display/DOCS/Object+IDs",
       "type": "string",
@@ -1698,6 +1785,60 @@
       "type": "object",
       "title": "PaymentLog .",
       "x-go-package": "pos-proxy/pos/models"
+    },
+    "PostInquiry": {
+      "type": "object",
+      "properties": {
+        "Date": {
+          "type": "string"
+        },
+        "InquiryInformation": {
+          "type": "string"
+        },
+        "MaximumReturnedMatches": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "PaymentMethod": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "RequestType": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "RevenueCenter": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "SequenceNumber": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "Time": {
+          "type": "string"
+        },
+        "WorkstationId": {
+          "type": "string"
+        },
+        "XMLName": {
+          "$ref": "#/definitions/Name"
+        }
+      },
+      "x-go-package": "pos-proxy/opera"
+    },
+    "PostList": {
+      "type": "object",
+      "properties": {
+        "post_list_items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/postListItem"
+          },
+          "x-go-name": "PostListItems"
+        }
+      },
+      "x-go-package": "pos-proxy/opera"
     },
     "VATSummary": {
       "type": "object",
@@ -2997,6 +3138,29 @@
       "x-go-name": "PaginatedResponse",
       "x-go-package": "pos-proxy/pos"
     },
+    "postListItem": {
+      "type": "object",
+      "properties": {
+        "first_name": {
+          "type": "string",
+          "x-go-name": "FirstName"
+        },
+        "id": {
+          "type": "string",
+          "x-go-name": "ReservationId"
+        },
+        "last_name": {
+          "type": "string",
+          "x-go-name": "LastName"
+        },
+        "room_number": {
+          "type": "string",
+          "x-go-name": "RoomNumber"
+        }
+      },
+      "x-go-name": "PostListItem",
+      "x-go-package": "pos-proxy/opera"
+    },
     "posting": {
       "description": "Posting models POSPayment",
       "type": "object",
@@ -3258,6 +3422,17 @@
       },
       "x-go-name": "RefundInvoiceResponse",
       "x-go-package": "pos-proxy/pos/models"
+    },
+    "roomDepartmentResponse": {
+      "type": "object",
+      "properties": {
+        "department_id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DepartmentID"
+        }
+      },
+      "x-go-package": "pos-proxy/opera"
     },
     "sequence": {
       "type": "object",
