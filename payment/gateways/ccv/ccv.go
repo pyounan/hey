@@ -41,7 +41,7 @@ func New(ch chan socket.Event) CCV {
 func (gateway CCV) Sale(data json.RawMessage) {
 	// go handleInternalSignals(notif)
 	log.Println("Starting CCV Sale request")
-	sender.Connect("192.168.1.150", "4100")
+	sender.Connect("192.168.100.114", "4100")
 	err := receiver.Listen(":4102", gateway.ouputChannel)
 	if err != nil {
 		log.Println(err)
@@ -93,7 +93,7 @@ func (gateway CCV) Sale(data json.RawMessage) {
 
 func (gateway CCV) Reprint() {
 	log.Println("Starting CCV Reprint request")
-	sender.Connect("192.168.1.150", "4100")
+	sender.Connect("192.168.100.114", "4100")
 	err := receiver.Listen(":4102", gateway.ouputChannel)
 	if err != nil {
 		log.Println(err)
@@ -132,7 +132,7 @@ func (gateway CCV) Reprint() {
 
 func (gateway CCV) Refund(data json.RawMessage) {
 	log.Println("Starting CCV Refund request")
-	sender.Connect("192.168.1.150", "4100")
+	sender.Connect("192.168.100.114", "4100")
 	err := receiver.Listen(":4102", gateway.ouputChannel)
 	if err != nil {
 		log.Println(err)
@@ -169,7 +169,7 @@ func (gateway CCV) Refund(data json.RawMessage) {
 }
 func (gateway CCV) Abort() {
 	log.Println("Starting CCV Abort request")
-	sender.Connect("192.168.1.150", "4100")
+	sender.Connect("192.168.100.114", "4100")
 	err := receiver.Listen(":4102", gateway.ouputChannel)
 	if err != nil {
 		log.Println(err)
