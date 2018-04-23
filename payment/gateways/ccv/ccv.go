@@ -3,6 +3,7 @@ package ccv
 import (
 	"encoding/json"
 	"log"
+	"pos-proxy/db"
 	"pos-proxy/payment/gateways/ccv/entity"
 	"pos-proxy/payment/gateways/ccv/receiver"
 	"pos-proxy/payment/gateways/ccv/sender"
@@ -41,8 +42,39 @@ func New(ch chan socket.Event) CCV {
 func (gateway CCV) Sale(data json.RawMessage) {
 	// go handleInternalSignals(notif)
 	log.Println("Starting CCV Sale request")
-	sender.Connect("192.168.100.114", "4100")
-	err := receiver.Listen(":4102", gateway.ouputChannel)
+
+	type SaleRequest struct {
+		Amount         float64 `json:"amount"`
+		TerminalID     int     `json:"terminal_id"`
+		TerminalNumber int     `json:"terminal_number"`
+		CashierID      int     `json:"cashier_id"`
+		Currency       string  `json:"currency"`
+	}
+	payload := SaleRequest{}
+	// bytes.NewReader([]byte(data))
+	err := json.Unmarshal(data, &payload)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Retrieve CCV Settings for this terminal
+	log.Printf("CCV Terminal %#v \n", payload)
+	settings, err := db.GetCCVSettingsForTerminal(payload.TerminalID)
+	if err != nil {
+		m := socket.Event{}
+		m.Module = "payment"
+		m.Type = "error"
+		payload := make(map[string]string, 1)
+		payload["error"] = "This terminal doesn't have any CCV pinpad configured"
+		encodedPayload, _ := json.Marshal(payload)
+		m.Payload = encodedPayload
+		gateway.ouputChannel <- m
+		return
+	}
+
+	sender.Connect(*settings)
+	err = receiver.Listen(settings, gateway.ouputChannel)
 	if err != nil {
 		log.Println(err)
 		m := socket.Event{}
@@ -56,21 +88,6 @@ func (gateway CCV) Sale(data json.RawMessage) {
 		return
 	}
 
-	type SaleRequest struct {
-		Amount         float64 `json:"amount"`
-		TerminalID     int     `json:"terminal_id"`
-		TerminalNumber int     `json:"terminal_number"`
-		CashierID      int     `json:"cashier_id"`
-		Currency       string  `json:"currency"`
-	}
-	payload := SaleRequest{}
-	// bytes.NewReader([]byte(data))
-	err = json.Unmarshal(data, &payload)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
 	cardServiceReq := entity.NewSaleRequest()
 	cardServiceReq.RequestID = strconv.Itoa(getNextRequestID())
 	cardServiceReq.TotalAmount = &entity.TotalAmount{}
@@ -81,7 +98,7 @@ func (gateway CCV) Sale(data json.RawMessage) {
 	cardServiceReq.POSdata.EJournalStatus = "Available"
 	cardServiceReq.POSdata.ClerkID = payload.CashierID
 	cardServiceReq.WorkstationID = strconv.Itoa(payload.TerminalNumber)
-	res, err := sender.Send(gateway.ouputChannel, cardServiceReq)
+	res, err := sender.Send(gateway.ouputChannel, cardServiceReq, *settings)
 	if err != nil {
 		m := socket.Event{}
 		m.Module = "payment"
@@ -98,7 +115,7 @@ func (gateway CCV) Sale(data json.RawMessage) {
 
 func (gateway CCV) Reprint() {
 	log.Println("Starting CCV Reprint request")
-	sender.Connect("192.168.100.114", "4100")
+	/*sender.Connect("192.168.100.114", "4100")
 	err := receiver.Listen(":4102", gateway.ouputChannel)
 	if err != nil {
 		log.Println(err)
@@ -131,13 +148,13 @@ func (gateway CCV) Reprint() {
 		gateway.ouputChannel <- m
 		return
 	}
-	log.Println(res)
+	log.Println(res)*/
 
 }
 
 func (gateway CCV) Refund(data json.RawMessage) {
 	log.Println("Starting CCV Refund request")
-	sender.Connect("192.168.100.114", "4100")
+	/*sender.Connect("192.168.100.114", "4100")
 	err := receiver.Listen(":4102", gateway.ouputChannel)
 	if err != nil {
 		log.Println(err)
@@ -170,11 +187,11 @@ func (gateway CCV) Refund(data json.RawMessage) {
 		gateway.ouputChannel <- m
 		return
 	}
-	log.Println(res)
+	log.Println(res)*/
 }
 func (gateway CCV) Abort() {
 	log.Println("Starting CCV Abort request")
-	sender.Connect("192.168.100.114", "4100")
+	/*sender.Connect("192.168.100.114", "4100")
 	err := receiver.Listen(":4102", gateway.ouputChannel)
 	if err != nil {
 		log.Println(err)
@@ -207,7 +224,7 @@ func (gateway CCV) Abort() {
 		gateway.ouputChannel <- m
 		return
 	}
-	log.Println(res)
+	log.Println(res)*/
 }
 
 func (gateway CCV) Output(data interface{}) {}

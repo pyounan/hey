@@ -5,28 +5,28 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"log"
 	"net"
+	proxyEntity "pos-proxy/entity"
 	"pos-proxy/payment/gateways/ccv/entity"
 	"pos-proxy/payment/gateways/ccv/utils"
 	"pos-proxy/socket"
 )
 
 type Channel struct {
-	port string
+	port int
 	ln   *net.Listener
 }
 
-var channel = &Channel{}
+var channels = make(map[int]*Channel)
 var output chan<- []string
 var close chan bool
 var incoming chan bool
 
-func Listen(port string, notif chan<- socket.Event) error {
-	channel.port = port
-	var err error
-	channel, err = getChannel()
+func Listen(settings *proxyEntity.CCVSettings, notif chan<- socket.Event) error {
+	channel, err := getChannel(*settings)
 	if err != nil {
 		return err
 	}
@@ -35,21 +35,29 @@ func Listen(port string, notif chan<- socket.Event) error {
 	return nil
 }
 
-func getChannel() (*Channel, error) {
-	var err error
-	if channel.ln == nil {
-		channel, err = newChannel()
+func getChannel(settings proxyEntity.CCVSettings) (*Channel, error) {
+	if _, ok := channels[settings.ProxyPort]; !ok {
+		return newChannel(settings.ProxyPort)
 	}
-	return channel, err
+	channel := channels[settings.ProxyPort]
+	if channel.ln == nil {
+		return newChannel(settings.ProxyPort)
+	}
+	return channel, nil
 }
 
-func newChannel() (*Channel, error) {
-	ln, err := net.Listen("tcp", channel.port)
+func newChannel(port int) (*Channel, error) {
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, err
 	}
-	(*channel).ln = &ln
-	return channel, err
+	if _, ok := channels[port]; !ok {
+		channels[port] = &Channel{
+			port: port,
+		}
+	}
+	channels[port].ln = &ln
+	return channels[port], nil
 }
 
 func handleIncomingMessages(c *net.Listener, notif chan<- socket.Event) {
@@ -153,14 +161,14 @@ func processMessage(conn *net.Conn, notif chan<- socket.Event) (*entity.DeviceRe
 }
 
 func handleClosing() {
-	for _ = range close {
+	for range close {
 		log.Println("close")
 	}
 }
 
 // Send writes to the connection and wait for response
-func Send(resp *entity.DeviceResponse) error {
-	c, err := getChannel()
+func Send(resp *entity.DeviceResponse, settings proxyEntity.CCVSettings) error {
+	c, err := getChannel(settings)
 	if err != nil {
 		return err
 	}

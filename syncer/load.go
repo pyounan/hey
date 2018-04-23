@@ -262,10 +262,7 @@ func Load(apis map[string]string) {
 				}
 				// remove extra records from the db (records that has been deleted from the backend,
 				// should be deleted here too).
-				err = db.DB.C(collection).With(session).Remove(bson.M{"id": bson.M{"$nin": retrievedIDs}})
-				if err != nil {
-					log.Println(err.Error())
-				}
+				db.DB.C(collection).With(session).Remove(bson.M{"id": bson.M{"$nin": retrievedIDs}})
 			}
 			wg.Done()
 		}(netClient, collection, api)

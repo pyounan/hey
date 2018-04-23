@@ -46,8 +46,6 @@ func handleInputSignals() {
 		}
 		if v, ok := gateways[payload.Gateway]; ok {
 			log.Println("handling incoming message for ", payload.Gateway)
-			// ccvChan := make(chan ccv.Command)
-			// go handleCCVSignals(ccvChan)
 			switch payload.Action {
 
 			case "sale":

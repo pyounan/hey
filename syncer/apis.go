@@ -28,5 +28,8 @@ func init() {
 
 	ConfApis["tables"] = "api/pos/tables/"
 
+	ConfApis["ccv_settings"] = "payment/ccv/settings/"
+	ConfApis["ccv_terminal_integration_settings"] = "api/pos/settings/ccv/terminals/"
+
 	SingleLoadApis["posinvoices"] = "api/pos/posinvoices/?is_settled=false"
 }
