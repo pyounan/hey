@@ -15,6 +15,7 @@ type PaymentLog struct{}
 type InvoiceLite struct {
 	ID                  *int64     `json:"id" bson:"id,omitempty"`
 	InvoiceNumber       string     `json:"invoice_number" bson:"invoice_number"`
+	TableID             *int64     `json:"table_number" bson:"table_number"`
 	TableNumber         *int64     `json:"table" bson:"table"`
 	TableDetails        *string    `json:"table_details" bson:"table_details"`
 	AuditDate           string     `json:"audit_date" bson:"audit_date"`
