@@ -839,20 +839,30 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	session := db.Session.Copy()
 	defer session.Close()
 
+	newTable := models.Table{}
+	log.Println("new table id", body.NewTable)
+	err = db.DB.C("tables").With(session).Find(bson.M{"id": body.NewTable}).One(&newTable)
+	if err != nil {
+		log.Println(err)
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+
 	for _, i := range body.Invoices {
-		err = db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": i.InvoiceNumber}, i)
+		selector := bson.M{"invoice_number": i.InvoiceNumber}
+		*i.TableID = int64(body.NewTable)
+		*i.TableDetails = newTable.Description
+		*i.TableNumber = int64(newTable.Number)
+		err = db.DB.C("posinvoices").With(session).Update(selector, i)
 		if err != nil {
+			log.Println(err)
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
 	}
 
-	newTable := models.Table{}
-	err = db.DB.C("tables").With(session).Find(bson.M{"id": body.NewTable}).One(&newTable)
-	if err != nil {
-		helpers.ReturnErrorMessage(w, err.Error())
-		return
-	}
+	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
+
 	// Update Status of new Table
 	newTable.UpdateStatus()
 
@@ -860,17 +870,17 @@ func ChangeTable(w http.ResponseWriter, r *http.Request) {
 	oldTable := models.Table{}
 	err = db.DB.C("tables").With(session).Find(bson.M{"id": body.OldTable}).One(&oldTable)
 	if err != nil {
+		log.Println(err)
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
 	oldTable.UpdateStatus()
 
-	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, body)
-
 	// get invoices on the new table
 	newInvoices := []models.Invoice{}
 	err = db.DB.C("posinvoices").With(session).Find(bson.M{"table_number": body.NewTable, "is_settled": false}).All(&newInvoices)
 	if err != nil {
+		log.Println(err)
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
