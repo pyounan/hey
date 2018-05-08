@@ -1,0 +1,11 @@
+## Set the fillowing
+
+# PIPELINE_NAME should be a valid hostname (only alphanumeric and
+# hyphen [Az09-] allowed), and unique across all pipelines
+PIPELINE_NAME: pos-proxy-test
+# Used to Illustriate the repo and image on the UI
+PROJECT_NAME: pos-proxy
+# URL to git repo
+REPO_URL: ssh://gitolite@code.cloudinn.net/cln/pos-proxy.git
+# The branch to listen to and auto deploy
+BRANCH: master

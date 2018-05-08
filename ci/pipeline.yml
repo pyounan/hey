@@ -1,0 +1,90 @@
+resources:
+  - name: &repo_resource ((PROJECT_NAME))_repo
+    type: git
+    source:
+      uri: ((REPO_URL))
+      branch: ((BRANCH))
+      private_key: ((GIT_KEY))
+      ignore_paths:
+        - ci/commit_hash.txt
+
+  - name: devops_repo
+    type: git
+    source:
+      uri: ssh://gitolite@code.cloudinn.net/cln/devops.git
+      private_key: ((GIT_KEY))
+
+  - name: proxy_build_number
+    type: semver
+    source:
+      driver: gcs
+      initial_version: "3975.0.0"
+      bucket: ci-build-number
+      key: ((PROJECT_NAME))
+      json_key: ((GCR_KEY))
+
+
+commons:
+  init_worker_task: &init_worker_task
+    params: &init_worker_params
+      DO_API_KEY: ((DO_API_KEY))
+      DO_VM_SEED_KEYS_FP: ((DO_VM_SEED_KEYS_FP))
+      DO_VM_KEY: ((DO_VM_KEY))
+      CO_WORKER_KEY: ((CONCOURSE_WORKER_KEY))
+      CO_TSA_PUB_KEY: ((CONCOURSE_TSA_PUB_KEY))
+      CO_TSA_HOST: ((CONCOURSE_TSA_HOST))
+      CO_WEB_HOST: ((CONCOURSE_WEB_HOST))
+      FLY_USERNAME: ((FLY_USERNAME))
+      FLY_PASSWORD: ((FLY_PASSWORD))
+    file: devops_repo/ci/tasks/digitalocean_create.yml
+
+  destroy_worker_task: &destroy_worker_task
+    params: &destroy_worker_params
+      DO_API_KEY: ((DO_API_KEY))
+      CO_WEB_HOST: ((CONCOURSE_WEB_HOST))
+      FLY_USERNAME: ((FLY_USERNAME))
+      FLY_PASSWORD: ((FLY_PASSWORD))
+    file: devops_repo/ci/tasks/digitalocean_destroy.yml
+
+
+jobs:
+  - name: build-push
+    plan:
+      - get: devops_repo
+
+      - do:
+        - task: init_worker
+          <<: *init_worker_task
+          params:
+            <<: *init_worker_params
+            WORKER_NAME: &worker_name build-((PIPELINE_NAME))
+
+        - get: repo
+          resource: *repo_resource
+          tags: [*worker_name]
+          trigger: true
+
+        - get: proxy_build_number
+          tags: [*worker_name]
+          params:
+            bump: major
+
+        - put: proxy_build_number
+          tags: [*worker_name]
+          params:
+            bump: major
+
+        - task: build-go
+          tags: [*worker_name]
+          file: repo/ci/tasks/build_go.yml
+
+        - task: push
+          tags: [*worker_name]
+          file: repo/ci/tasks/publish.yml
+
+        ensure:
+          task: destroy_worker
+          <<: *destroy_worker_task
+          params:
+            <<: *destroy_worker_params
+            WORKER_NAME: *worker_name
