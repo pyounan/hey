@@ -64,11 +64,6 @@ jobs:
           tags: [*worker_name]
           trigger: true
 
-        - get: proxy_build_number
-          tags: [*worker_name]
-          params:
-            bump: major
-
         - put: proxy_build_number
           tags: [*worker_name]
           params:
@@ -80,6 +75,8 @@ jobs:
 
         - task: push
           tags: [*worker_name]
+          params:
+            GCR_KEY: ((GCR_KEY))
           file: repo/ci/tasks/publish.yml
 
         ensure:

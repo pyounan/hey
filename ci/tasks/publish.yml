@@ -8,6 +8,10 @@ image_resource:
 inputs:
   - name: build
   - name: proxy_build_number
+  - name: repo
+
+params:
+  GCR_KEY:
 
 run:
   path: repo/ci/scripts/publish.sh
