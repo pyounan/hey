@@ -24,3 +24,15 @@ func GetCCVSettingsForTerminal(terminalID int) (*entity.CCVSettings, error) {
 	}
 	return &ccv, nil
 }
+
+// GetCCVDefaultAccountSettings gets the default account from CCV Settings
+func GetCCVDefaultAccountSettings() (*entity.CCVSettings, error) {
+	session := Session.Copy()
+	ccv := entity.CCVSettings{}
+	err := DB.C("ccv_settings").With(session).Find(bson.M{"is_default": true}).One(&ccv)
+	if err != nil {
+		return nil, err
+	}
+	return &ccv, nil
+
+}

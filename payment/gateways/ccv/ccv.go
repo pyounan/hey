@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"pos-proxy/db"
+	generalEntity "pos-proxy/entity"
 	"pos-proxy/payment/gateways/ccv/entity"
 	"pos-proxy/payment/gateways/ccv/receiver"
 	"pos-proxy/payment/gateways/ccv/sender"
@@ -44,11 +45,12 @@ func (gateway CCV) Sale(data json.RawMessage) {
 	log.Println("Starting CCV Sale request")
 
 	type SaleRequest struct {
-		Amount         float64 `json:"amount"`
-		TerminalID     int     `json:"terminal_id"`
-		TerminalNumber int     `json:"terminal_number"`
-		CashierID      int     `json:"cashier_id"`
-		Currency       string  `json:"currency"`
+		Amount            float64 `json:"amount"`
+		TerminalID        int     `json:"terminal_id"`
+		TerminalNumber    int     `json:"terminal_number"`
+		UseDefaultAccount bool    `json:"use_default_account"`
+		CashierID         int     `json:"cashier_id"`
+		Currency          string  `json:"currency"`
 	}
 	payload := SaleRequest{}
 	// bytes.NewReader([]byte(data))
@@ -59,8 +61,12 @@ func (gateway CCV) Sale(data json.RawMessage) {
 	}
 
 	// Retrieve CCV Settings for this terminal
-	log.Printf("CCV Terminal %#v \n", payload)
-	settings, err := db.GetCCVSettingsForTerminal(payload.TerminalID)
+	var settings *generalEntity.CCVSettings
+	if payload.UseDefaultAccount {
+		settings, err = db.GetCCVDefaultAccountSettings()
+	} else {
+		settings, err = db.GetCCVSettingsForTerminal(payload.TerminalID)
+	}
 	if err != nil {
 		m := socket.Event{}
 		m.Module = "payment"
