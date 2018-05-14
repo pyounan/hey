@@ -26,6 +26,7 @@ resources:
 
 commons:
   init_worker_task: &init_worker_task
+    timeout: 3m
     params: &init_worker_params
       DO_API_KEY: ((DO_API_KEY))
       DO_VM_SEED_KEYS_FP: ((DO_VM_SEED_KEYS_FP))
@@ -49,6 +50,7 @@ commons:
 
 jobs:
   - name: build-push
+    serial: true
     plan:
       - get: devops_repo
 
