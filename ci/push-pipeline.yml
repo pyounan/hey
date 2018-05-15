@@ -1,0 +1,24 @@
+resources:
+  - name: &repo_resource pos-proxy_repo
+    type: git
+    source:
+      uri: ssh://gitolite@code.cloudinn.net/cln/pos-proxy.git
+      private_key: ((GIT_KEY))
+      ignore_paths:
+        - ci/commit_hash.txt
+
+
+jobs:
+  - name: publish
+    serial: false
+    plan:
+        - get: repo
+          resource: *repo_resource
+          trigger: false
+
+        - task: publish
+          params:
+            GCR_KEY: ((GCR_KEY))
+            TARGET_ENV: ((target-env-bucket))
+            BUILD_ID: ((build_number))
+          file: repo/ci/tasks/release.yml
