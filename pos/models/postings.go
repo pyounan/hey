@@ -23,6 +23,7 @@ type Posting struct {
 	RoomDetails            *string    `json:"room_details" bson:"room_details"`
 	PosPostingInformations []Posting  `json:"pospostinginformations" bson:"pospostinginformations"`
 	PaymentLog             PaymentLog `json:"paymentlog" bson:"paymentlog"`
+	CCType                 *string    `json:"cc_type" bson:"cc_type"`
 	// pospostinginformatios only
 	Sign      string `json:"sign,omitempty" bson:"sign,omitempty"`
 	Type      string `json:"type,omitempty" bson:"type,omitempty"`

@@ -47,7 +47,7 @@ type TransactionInfo struct {
 type CardInfo struct {
 	XMLName               xml.Name `xml:"CardInfo" json:"-"`
 	CardLabelName         string   `json:"card_label_name"`
-	ApplicationIdentifier string   `json:"application_idenfitifer"`
+	ApplicationIdentifier string   `json:"application_identifier"`
 	IssuerLabelName       string   `json:"issuer_label_name"`
 	CardNumber            string   `json:"card_number"`
 	CardSequenceNumber    string   `json:"card_sequence_number"`
