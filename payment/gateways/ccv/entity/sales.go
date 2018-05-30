@@ -13,6 +13,15 @@ func NewSaleRequest() *SaleRequest {
 	return &r
 }
 
+func NewRefundRequest() *SaleRequest {
+	r := SaleRequest{}
+	r.RequestType = "PaymentRefund"
+	r.XMLNS = "http://www.nrf-arts.org/IXRetail/namespace"
+	r.POSdata.POSTimeStamp = "2018-03-14T10:44:58.3913175-07:00" // time.Now().String()
+	r.POSdata.LanguageCode = "en"
+	return &r
+}
+
 type SaleRequest struct {
 	CardServiceRequest
 	TotalAmount *TotalAmount
