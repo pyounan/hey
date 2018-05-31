@@ -133,7 +133,6 @@ func fetchCertificate() {
 		TLSKey string `json:"tls.key"`
 	}
 	for {
-		log.Println("Fetch CERTS")
 		rBody := RequestBody{EnvName: *config.Config.VirtualHost, ClientID: int(config.Config.InstanceID)}
 		uri := fmt.Sprintf("%s%s", config.Config.BackendURI, "/api/pos/proxy/cert/")
 		requestBody, err := json.Marshal(rBody)
@@ -152,7 +151,6 @@ func fetchCertificate() {
 		defer resp.Body.Close()
 		var respBody ResponseBody
 		b, _ := httputil.DumpResponse(resp, true)
-		log.Printf("\n\n%s\n\n", b)
 		err = json.NewDecoder(resp.Body).Decode(&respBody)
 		if err != nil {
 			log.Println("Failed to read response body", err.Error())
