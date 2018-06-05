@@ -3,6 +3,7 @@ package sender
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -92,9 +93,14 @@ func read(outputChan chan<- socket.Event, conn *net.Conn) (*entity.SaleResponse,
 	} else {
 		eventType = resp.Attrs.OverallResult
 	}
+	payload, err := json.Marshal(resp)
+	if err != nil {
+		log.Println(err)
+	}
 	e := socket.Event{
-		Module: "payment",
-		Type:   eventType,
+		Module:  "payment",
+		Type:    eventType,
+		Payload: payload,
 	}
 	outputChan <- e
 	// close the connection
