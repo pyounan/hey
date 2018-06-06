@@ -145,6 +145,9 @@ func main() {
 	handler := createRouter()
 
 	graceful.Timeout = 30 * time.Second
+
+	go startTLS(handler)
+
 	graceful.LogListenAndServe(
 		&http.Server{
 			Addr:    ":" + *port,
