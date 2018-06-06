@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httputil"
 	"os"
 	"os/signal"
 	"pos-proxy/config"
@@ -150,7 +149,6 @@ func fetchCertificate() {
 		}
 		defer resp.Body.Close()
 		var respBody ResponseBody
-		b, _ := httputil.DumpResponse(resp, true)
 		err = json.NewDecoder(resp.Body).Decode(&respBody)
 		if err != nil {
 			log.Println("Failed to read response body", err.Error())
