@@ -315,6 +315,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+	//TODO :: Print on kitchen Printer
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
@@ -579,7 +580,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	defer session.Close()
 
 	db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
-
+	//TODO :: Print on Folio Printer
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
@@ -672,7 +673,7 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 		table.UpdateStatus()
 	}
-
+	//TODO :: Print on Folio Printer
 	helpers.ReturnSuccessMessage(w, req)
 }
 
@@ -968,7 +969,10 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 		}
 		table.UpdateStatus()
 	}
-
+	//TODO :: Print on Folio Printer
+	if checkProxyPrintingEnabled() {
+		go sendToPrint("Folio", req)
+	}
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 

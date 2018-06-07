@@ -18,3 +18,15 @@ type PrinterSetting struct {
 	ID int     `json:"id" bson:"id"`
 	IP *string `json:"ip" bson:"ip"`
 }
+
+//StoreMenuItemConfig
+type StoreMenuItemConfig struct {
+	ID                 int `json:"id" bson:"id"`
+	AttachedAttributes struct {
+		KitchenPrinter    int `json:"kitchen_printer" bson:"kitchen_printer"`
+		RevenueDepartment int `json:"revenue_department" bson:"revenue_department"`
+	} `json:"attached_attributes" bson:"attached_attributes"`
+	Store int `json:"store" bson:"store"`
+	Menu  int `json:"menu" bson:"menu"`
+	Item  int `json:"item" bson:"item"`
+}
