@@ -3,8 +3,9 @@ package models
 // Printer swagger:model printer
 // defines attributes of Printer entity
 type Printer struct {
-	ID          int     `json:"id" bson:"id"`
-	PrinterID   string  `json:"printer_id" bson:"printer_id"`
+	ID        int    `json:"id" bson:"id"`
+	PrinterID string `json:"printer_id" bson:"printer_id"`
+	//type : cashier or kitchen
 	PrinterType string  `json:"printer_type" bson:"printer_type"`
 	PrinterIP   *string `json:"printer_ip" bson:"printer_ip"`
 	PaperWidth  int     `json:"paper_width" bson:"paper_width"`
