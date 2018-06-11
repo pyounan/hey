@@ -26,7 +26,8 @@ type Posting struct {
 	PaymentLog             PaymentLog `json:"paymentlog" bson:"paymentlog"`
 	CCType                 *string    `json:"cc_type" bson:"cc_type"`
 	// pospostinginformatios only
-	Sign      string `json:"sign,omitempty" bson:"sign,omitempty"`
-	Type      string `json:"type,omitempty" bson:"type,omitempty"`
-	Cancelled bool   `json:"cancelled,omitempty" bson:"cancelled,omitempty"`
+	Sign             string   `json:"sign,omitempty" bson:"sign,omitempty"`
+	Type             string   `json:"type,omitempty" bson:"type,omitempty"`
+	Cancelled        bool     `json:"cancelled,omitempty" bson:"cancelled,omitempty"`
+	GatewayResponses []string `json:"gateway_responses" bson:-`
 }

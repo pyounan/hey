@@ -58,9 +58,10 @@ func TestPrintKitchen(t *testing.T) {
 	ip := "/dev/usb/lp0"
 	printer.PrinterIP = &ip
 	kitchenPrint := KitchenPrint{
-		Invoice: invoice,
-		Cashier: cashier,
-		Printer: printer,
+		Invoice:  invoice,
+		Cashier:  cashier,
+		Printer:  printer,
+		Timezone: "Africa/Cairo",
 	}
 
 	PrintKitchen(&kitchenPrint)

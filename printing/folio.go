@@ -60,7 +60,8 @@ func PrintFolio(folio *FolioPrint) {
 	// 	p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
 	// }
 
-	p = connection.NewConnection("network", *folio.Printer.PrinterIP)
+	// p = connection.NewConnection("network", *folio.Printer.PrinterIP)
+	p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
 
 	p.SetAlign("center")
 	p.SetFontSize(byte(printingParams[folio.Printer.PaperWidth]["company_name_width"]),
@@ -108,7 +109,6 @@ func PrintFolio(folio *FolioPrint) {
 	p.WriteString(folio.Store.Description + "\n")
 	p.WriteString("Invoice number : " + folio.Invoice.InvoiceNumber + "\n")
 	p.SetFontSize(2, 2)
-	//linespace something
 	p.WriteString("Covers : " + fmt.Sprintf("%d", folio.Invoice.Pax) + "\n")
 	if folio.Invoice.TableID != nil {
 		p.WriteString("Table " + *folio.Invoice.TableDetails + "\n")
@@ -157,10 +157,10 @@ func PrintFolio(folio *FolioPrint) {
 	vatsToDisplay["D"] = false
 
 	for _, item := range folio.Invoice.Items {
-		price := fmt.Sprintf("%f", item.Price)
+		price := fmt.Sprintf("%.2f", item.Price)
 		desc := item.Description
 		text := desc + Pad(printingParams[folio.Printer.PaperWidth]["item_padding"]-len(desc)) + " " +
-			fmt.Sprintf("%f", item.Quantity) + Pad(printingParams[folio.Printer.PaperWidth]["qty_padding"]-len(fmt.Sprintf("%f", item.Quantity))) + " " +
+			fmt.Sprintf("%.2f", item.Quantity) + Pad(printingParams[folio.Printer.PaperWidth]["qty_padding"]-len(fmt.Sprintf("%f", item.Quantity))) + " " +
 			price + Pad(printingParams[folio.Printer.PaperWidth]["price_padding"]-len(string(price))) + " "
 
 		if config.Config.IsFDMEnabled {
@@ -223,7 +223,11 @@ func PrintFolio(folio *FolioPrint) {
 					Pad(printingParams[folio.Printer.PaperWidth]["subtotal_padding"]-
 						len(posting.DepartmentDetails)-len(deptAmount)) + " " + deptAmount + "\n")
 			}
-			//getway something
+			if len(posting.GatewayResponses) > 0 {
+				for _, response := range posting.GatewayResponses {
+					p.WriteString(response + "\n")
+				}
+			}
 		}
 		p.Formfeed()
 		received := "0.0"
@@ -304,15 +308,17 @@ func PrintFolio(folio *FolioPrint) {
 
 	// 	}
 	// }
-	openedAt, _ := time.Parse("2006-01-02T15:04:05.000Z", folio.Invoice.CreatedOn)
-	p.WriteString("Opened at: " + openedAt.String() + "\n")
+
+	loc, _ := time.LoadLocation(folio.Timezone)
+	p.WriteString("Opened at: " + folio.Invoice.CreatedOn + "\n")
 	if folio.Invoice.ClosedOn != nil {
-		closedAt := folio.Invoice.ClosedOn.String()
-		p.WriteString("Closed on: " + closedAt + "\n")
+		closedAt := folio.Invoice.ClosedOn.In(loc)
+		closedAtStr := closedAt.Format(time.RFC1123)
+		p.WriteString("Closed on: " + closedAtStr + "\n")
 
 	}
 	p.WriteString("Created by : " + folio.Invoice.CashierDetails + "\n")
-	p.WriteString("Printed by : " + string(folio.Cashier.Number) + "\n")
+	p.WriteString("Printed by : " + fmt.Sprintf("%d", folio.Cashier.Number) + "\n")
 
 	// if config.Config.IsFDMEnabled {
 	// 	for res := range folio.Invoice.FDMResponses {
