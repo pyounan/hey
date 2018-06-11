@@ -6,6 +6,7 @@ import (
 	"pos-proxy/db"
 	"pos-proxy/income"
 	"pos-proxy/pos/models"
+	"pos-proxy/printing"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -27,63 +28,53 @@ const folioPrinter = "Folio"
 //If printer id == null then chage it with smartprinter ip
 //printFolio
 func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
-	printerType = folioPrinter
+	// printerType = folioPrinter
+	var printer models.Printer
+	var err error
 	fmt.Printf("Printer Type %v\n", printerType)
-	// fmt.Printf("Events %v\n", data)
 	if printerType == kitchenPrinter {
-		// fmt.Printf("Printer Type %v\n", printerType)
-		// fmt.Printf("Events : %v\n", data.Invoice.GroupedLineItems)
 		for _, e := range data.Invoice.GroupedLineItems {
-			// fmt.Printf("Events : %v\n", e)
 			var printerIP string
-			// fmt.Printf("Item ID %v\n", *e.Item)
-			// meun, err := getMenuByItemID(*e.Item)
-			meun, err := getMenuByItemID(8)
-			// fmt.Printf("Menu %v\n", meun.AttachedAttributes)
-			if err != nil {
-				// fmt.Printf("Menu Error %v\n", err)
-				smartPrinter, settingsError := getPrinterSettings()
-				// fmt.Printf("Smart Printer 1 %v\n", &smartPrinter.IP)
-				if settingsError != nil {
-					fmt.Printf("Printing Stopped, Couldn't find smart printer IP %v, Error %v\n", e.Item, settingsError)
+			var menu models.StoreMenuItemConfig
+			menu, err = getMenuByItemID(*e.Item)
+			// menu, err = getMenuByItemID(8)
+			if err == nil {
+				printer, err = getPrinterByID(menu.AttachedAttributes.KitchenPrinter)
+				if err == nil {
+					if printer.PrinterIP != nil {
+						printerIP = *printer.PrinterIP
+					}
+				}
+			}
+			smartPrinter, smartErr := getPrinterSettings()
+			if smartErr != nil {
+				if printerIP == "" {
+					fmt.Printf("Printing Stopped, Couldn't find smart printer IP %v, Error %v\n", e.Item, smartErr)
 					fmt.Printf("Printing Stopped, Couldn't find printer for item %v, Error %v\n", e.Item, err)
 					return
-				} else {
-					printerIP = *smartPrinter.IP
-					fmt.Printf("Set Printer ip %v\n", printerIP)
 				}
 			} else {
-				printer, err := getPrinterByID(meun.AttachedAttributes.KitchenPrinter)
-				// fmt.Printf("get printer by id %v, found %v\n", meun.AttachedAttributes.KitchenPrinter, printer.PrinterID)
-				if err != nil {
-					smartPrinter, settingsError := getPrinterSettings()
-					if settingsError != nil {
-						fmt.Printf("Printing Stopped, Couldn't find smart printer IP %v, Error %v\n", e.Item, settingsError)
-						fmt.Printf("Printing Stopped, Couldn't find printer for item %v, Error Printer Ip == 0\n", e.Item)
-						return
-					}
+				if printerIP == "" {
 					printerIP = *smartPrinter.IP
 					fmt.Printf("Set Printer ip %v\n", printerIP)
-
-				} else {
-					if printer.PrinterIP == nil {
-						smartPrinter, settingsError := getPrinterSettings()
-						if settingsError != nil {
-							fmt.Printf("Printing Stopped, Couldn't find smart printer IP %v, Error %v\n", e.Item, settingsError)
-							fmt.Printf("Printing Stopped, Couldn't find printer for item %v, Error Printer Ip == 0\n", e.Item)
-							return
-						}
-						printerIP = *smartPrinter.IP
-						fmt.Printf("Set Printer ip %v\n", printerIP)
-
-					} else {
-						printerIP = *printer.PrinterIP
-						fmt.Printf("Set Printer ip %v\n", printerIP)
-					}
 				}
 			}
 			if printerIP != "" {
 				fmt.Printf("Start printing on %v\n", printerIP)
+				k := printing.KitchenPrint{}
+				k.Printer = printer
+				printerIP = printerIP + ":9100"
+				k.Printer.PrinterIP = &printerIP
+				k.Invoice = data.Invoice
+				// k.Timezone = config.Config.Timezone
+				k.Timezone = "Egypt"
+				k.Cashier, err = getCashierByNumber(data.CashierNumber)
+				if err != nil {
+					fmt.Printf("Can't get casher for number %v,ERR %v\n", data.CashierNumber, err)
+					return
+				}
+				fmt.Printf("Sent PrintKitchen %v\n", printerIP)
+				// printing.PrintKitchen(&k)
 			}
 		}
 	}
@@ -92,43 +83,64 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 		var printerIP string
 		// printer, err := getPrinterForTerminalIP(data.TerminalID, "cashier")
 		printer, err := getPrinterForTerminalIP(1, "cashier")
-
-		if err != nil {
-			smartPrinter, settingsError := getPrinterSettings()
-			if settingsError != nil {
-				fmt.Printf("Printing Stopped, Couldn't find smart printer IP, Error %v\n", settingsError)
-				fmt.Printf("Printing Stopped, Could n't get Printer for terminal %v with error = %v\n",
-					data.TerminalID, err)
-				return
+		if err == nil {
+			if printer.PrinterIP != nil {
+				printerIP = *printer.PrinterIP
 			}
-			printerIP = *smartPrinter.IP
-			fmt.Printf("Set Printer ip %v\n", printerIP)
 		}
-		if printer.PrinterIP == nil {
-			smartPrinter, smartError := getPrinterSettings()
-			if smartError != nil {
-				fmt.Println("Printing Stopped, Could n't get Smart Printer")
-				fmt.Printf("Printing Stopped, Could n't get Printer for terminal %v with error printer IP = nil\n",
-					data.TerminalID)
+		smartPrinter, smartErr := getPrinterSettings()
+		if smartErr != nil {
+			if printerIP == "" {
+				fmt.Println("Printing Stopped, Couldn't find smart printer IP")
+				fmt.Printf("Printing Stopped, Couldn't find printer for terminal %v, Error %v\n", data.TerminalID, err)
 				return
 			}
-			if smartPrinter.IP == nil {
-				fmt.Println("Printing Stopped, Could n't get Smart Printer IP == nil")
-				fmt.Printf("Printing Stopped, Could n't get Printer for terminal %v with error printer IP = nil\n",
-					data.TerminalID)
-				return
-			}
-			printerIP = *printer.PrinterIP
-			fmt.Printf("Set Printer ip %v\n", printer.PrinterIP)
 		} else {
-			printerIP = *printer.PrinterIP
-			fmt.Printf("Set Printer ip %v\n", printer.PrinterIP)
+			if printerIP == "" {
+				printerIP = *smartPrinter.IP
+				fmt.Printf("Set Printer ip %v\n", printerIP)
+			}
 		}
-		// for _, item := range data.Invoice.Items {
-		// 	getPrinterForTerminalIP(data.TerminalID, "cashier")
-		// }
+		if printerIP != "" {
+			fmt.Printf("Start printing on %v\n", printerIP)
+			f := printing.FolioPrint{}
+			f.Printer = printer
+			printerIP = printerIP + ":9100"
+			f.Printer.PrinterIP = &printerIP
+			f.Invoice = data.Invoice
+			// k.Timezone = config.Config.Timezone
+			f.Timezone = "Egypt"
+			f.Cashier, err = getCashierByNumber(data.CashierNumber)
+			if err != nil {
+				fmt.Printf("Can't get casher for number %v,ERR %v\n", data.CashierNumber, err)
+				return
+			}
+			f.Terminal, err = getTerminalByID(data.TerminalID)
+			if err != nil {
+				fmt.Printf("Can't get terminal for id %v,ERR %v\n", data.TerminalID, err)
+				return
+			}
+			f.Store, err = getStoreByID(data.Invoice.Store)
+			if err != nil {
+				fmt.Printf("Can't get store for number %v,ERR %v\n", data.CashierNumber, err)
+				return
+			}
+			f.Company, err = getCompany()
+			if err != nil {
+				fmt.Printf("Can't get store for number %v,ERR %v\n", data.CashierNumber, err)
+				return
+			}
+			totalDiscount := 0.0
+			for _, item := range data.Invoice.Items {
+				for _, d := range item.AppliedDiscounts {
+					totalDiscount += d.Amount
+				}
+			}
+			f.TotalDiscounts = totalDiscount
+			fmt.Printf("Send PrintFolio %v\n", printerIP)
+			printing.PrintFolio(&f)
+		}
 
-		fmt.Printf("Start printing on %v\n", printerIP)
 	}
 }
 func checkProxyPrintingEnabled() bool {
@@ -232,7 +244,7 @@ func getCashierByNumber(number int) (income.Cashier, error) {
 	}
 	return cashier, nil
 }
-func getCompany(number int) (income.Company, error) {
+func getCompany() (income.Company, error) {
 	company := income.Company{}
 	session := db.Session.Copy()
 	defer session.Close()

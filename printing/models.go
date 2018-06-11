@@ -13,7 +13,7 @@ type FolioPrint struct {
 	Cashier        income.Cashier
 	Company        income.Company
 	Printer        models.Printer
-	TotalDiscounts float32
+	TotalDiscounts float64
 	Timezone       string
 }
 
