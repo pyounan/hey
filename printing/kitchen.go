@@ -3,6 +3,7 @@ package printing
 import (
     "fmt"
     "strings"
+    "time"
 
     "github.com/cloudinn/escpos"
     "github.com/cloudinn/escpos/connection"
@@ -15,16 +16,16 @@ func PrintKitchen(kitchen *KitchenPrint) {
 
     printingParams[80] = make(map[string]int)
     printingParams[80]["width"] = 800
-    printingParams[80]["char_per_line"] = 28
-    printingParams[80]["item_width"] = 20
-    printingParams[80]["store_unit"] = 3
+    printingParams[80]["char_per_line"] = 30
+    printingParams[80]["item_width"] = 22
+    printingParams[80]["store_unit"] = 1
     printingParams[80]["qty"] = 7
 
     printingParams[76] = make(map[string]int)
     printingParams[76]["width"] = 760
     printingParams[76]["char_per_line"] = 33
     printingParams[76]["item_width"] = 26
-    printingParams[76]["stroe_unit"] = 5
+    printingParams[76]["store_unit"] = 5
     printingParams[76]["qty"] = 8
 
     var p *escpos.Printer
@@ -41,9 +42,9 @@ func PrintKitchen(kitchen *KitchenPrint) {
         p.SetFontSize(1, 2)
     } else {
         p.SetFont("B")
-        p.SetFontSize(2, 1)
+        p.SetFontSize(2, 2)
     }
-    p.WriteString(kitchen.Printer.PrinterID + "\n")
+    p.WriteString("Printer ID: " + kitchen.Printer.PrinterID + "\n")
     p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
     p.SetAlign("center")
     p.WriteString("Invoice Number" + ": " + kitchen.Invoice.InvoiceNumber + "\n")
@@ -65,10 +66,15 @@ func PrintKitchen(kitchen *KitchenPrint) {
         p.WriteString("Guest name" + ": " + guestName + "\n")
     }
     p.WriteString(fmt.Sprintf("%d", kitchen.Cashier.Number) + "/" + kitchen.Cashier.Name + "\n")
-    // timezone thing
+    loc, _ := time.LoadLocation(kitchen.Timezone)
+    submittedOn := time.Now().In(loc)
+    date := submittedOn.Format(time.RFC1123)
+    p.SetFont("A")
+    p.SetFontSize(1, 1)
+    p.WriteString(date + "\n")
 
-    p.SetAlign("left")
     p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
+    p.SetAlign("left")
     p.SetReverse(1)
     p.SetEmphasize(1)
 
@@ -122,7 +128,3 @@ func PrintKitchen(kitchen *KitchenPrint) {
     p.Cut()
 
 }
-
-//             let timezonepipe = new TimeZonePipe();
-//             let submitted_on = timezonepipe.transform(new Date());
-//             builder.addText(submitted_on + '\n');

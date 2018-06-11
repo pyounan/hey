@@ -14,11 +14,13 @@ type FolioPrint struct {
 	Company        income.Company
 	Printer        models.Printer
 	TotalDiscounts float32
+	Timezone       string
 }
 
 //KitchenPrint defines the objects and requried data for kitchen printing
 type KitchenPrint struct {
-	Invoice models.Invoice
-	Printer models.Printer
-	Cashier income.Cashier
+	Invoice  models.Invoice
+	Printer  models.Printer
+	Cashier  income.Cashier
+	Timezone string
 }
