@@ -103,6 +103,8 @@ type POSLineItem struct {
 	MenuID                  *int64                   `json:"menu" bson:"menu"`
 	CashierID               *int64                   `json:"cashier" bson:"cashier"`
 	// used for waste
-	PosinvoiceID *int64 `json:"posinvoice" bson:"posinvoice"`
-	Reason       string `json:"reason,omitempty" bson:"reason,omitempty"`
+	PosinvoiceID      *int64 `json:"posinvoice" bson:"posinvoice"`
+	Reason            string `json:"reason,omitempty" bson:"reason,omitempty"`
+	CondimentsComment string `json:"condiments_comment" bson:-`
+	LastChildInCourse bool   `json:"last_child_in_course" bson:-`
 }

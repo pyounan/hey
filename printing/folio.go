@@ -157,10 +157,10 @@ func PrintFolio(folio *FolioPrint) {
 	vatsToDisplay["D"] = false
 
 	for _, item := range folio.Invoice.Items {
-		price := fmt.Sprintf("%.2f", item.Price)
+		price := fmt.Sprintf("%f", item.Price)
 		desc := item.Description
 		text := desc + Pad(printingParams[folio.Printer.PaperWidth]["item_padding"]-len(desc)) + " " +
-			fmt.Sprintf("%.2f", item.Quantity) + Pad(printingParams[folio.Printer.PaperWidth]["qty_padding"]-len(fmt.Sprintf("%.2f", item.Quantity))) + " " +
+			fmt.Sprintf("%f", item.Quantity) + Pad(printingParams[folio.Printer.PaperWidth]["qty_padding"]-len(fmt.Sprintf("%f", item.Quantity))) + " " +
 			price + Pad(printingParams[folio.Printer.PaperWidth]["price_padding"]-len(string(price))) + " "
 
 		if config.Config.IsFDMEnabled {
