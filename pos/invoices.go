@@ -316,6 +316,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	//TODO :: Print on kitchen Printer
+	fmt.Printf("\n\n\n\nPrinting Enabled %v\n\n\n\n", checkProxyPrintingEnabled())
 	if checkProxyPrintingEnabled() {
 		go sendToPrint(kitchenPrinter, req)
 	}
