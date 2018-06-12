@@ -50,7 +50,7 @@ type Invoice struct {
 
 	Events []EJEvent `json:"events" bson:"events"`
 
-	AuditDate           string                 `json:"audit_date" bson:"audit_date"`
+	AuditDate           *string                `json:"audit_date" bson:"audit_date"`
 	Cashier             int                    `json:"cashier" bson:"cashier"`
 	CashierDetails      string                 `json:"cashier_details" bson:"cashier_details"`
 	CashierNumber       int                    `json:"cashier_number" bson:"cashier_number"`

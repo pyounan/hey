@@ -60,8 +60,8 @@ func PrintFolio(folio *FolioPrint) {
 	// 	p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
 	// }
 
-	// p = connection.NewConnection("network", *folio.Printer.PrinterIP)
-	p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
+	// p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
+	p = connection.NewConnection("network", *folio.Printer.PrinterIP)
 
 	p.SetAlign("center")
 	p.SetFontSize(byte(printingParams[folio.Printer.PaperWidth]["company_name_width"]),
@@ -111,7 +111,7 @@ func PrintFolio(folio *FolioPrint) {
 	p.SetFontSize(2, 2)
 	p.WriteString("Covers : " + fmt.Sprintf("%d", folio.Invoice.Pax) + "\n")
 	if folio.Invoice.TableID != nil {
-		p.WriteString("Table " + *folio.Invoice.TableDetails + "\n")
+		p.WriteString("Table: " + *folio.Invoice.TableDetails + "\n")
 	} else {
 		p.WriteString("Takeout\n")
 	}
@@ -216,8 +216,8 @@ func PrintFolio(folio *FolioPrint) {
 				} else if folio.Invoice.RoomDetails != nil || *folio.Invoice.RoomDetails != "" {
 					guestName = *folio.Invoice.RoomDetails
 				}
-				p.WriteString(fmt.Sprintf("%.2f", posting.RoomNumber) + " " + guestName +
-					Pad(39-len(guestName)-len(fmt.Sprintf("%.2f", posting.RoomNumber))-len(deptAmount)) + " " + "\n")
+				p.WriteString(fmt.Sprintf("%d", posting.RoomNumber) + " " + guestName +
+					Pad(39-len(guestName)-len(fmt.Sprintf("%d", posting.RoomNumber))-len(deptAmount)) + " " + "\n")
 			} else {
 				p.WriteString(posting.DepartmentDetails +
 					Pad(printingParams[folio.Printer.PaperWidth]["subtotal_padding"]-

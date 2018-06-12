@@ -69,7 +69,6 @@ func PushToBackend() {
 	netClient := helpers.NewNetClient()
 	for _, r := range requests {
 		uri := fmt.Sprintf("%s%s", config.Config.BackendURI, r.URI)
-
 		payload := new(bytes.Buffer)
 		json.NewEncoder(payload).Encode(r.Payload)
 		req, err := http.NewRequest(r.Method, uri, payload)

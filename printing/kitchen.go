@@ -16,10 +16,10 @@ func PrintKitchen(kitchen *KitchenPrint) {
 
     printingParams[80] = make(map[string]int)
     printingParams[80]["width"] = 800
-    printingParams[80]["char_per_line"] = 30
-    printingParams[80]["item_width"] = 22
-    printingParams[80]["store_unit"] = 1
-    printingParams[80]["qty"] = 7
+    printingParams[80]["char_per_line"] = 28
+    printingParams[80]["item_width"] = 18
+    printingParams[80]["store_unit"] = 5
+    printingParams[80]["qty"] = 8
 
     printingParams[76] = make(map[string]int)
     printingParams[76]["width"] = 760
@@ -34,8 +34,8 @@ func PrintKitchen(kitchen *KitchenPrint) {
     //  p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
     // }
 
-    // p = connection.NewConnection("network", *kitchen.Printer.PrinterIP)
-    p = connection.NewConnection("usb", *kitchen.Printer.PrinterIP)
+    p = connection.NewConnection("network", *kitchen.Printer.PrinterIP)
+    // p = connection.NewConnection("usb", *kitchen.Printer.PrinterIP)
     p.SetAlign("left")
     if kitchen.Printer.PaperWidth == 76 {
         p.SetFont("A")
@@ -50,7 +50,7 @@ func PrintKitchen(kitchen *KitchenPrint) {
     p.WriteString("Invoice Number" + ": " + kitchen.Invoice.InvoiceNumber + "\n")
     p.WriteString("Covers" + ": " + fmt.Sprintf("%d", kitchen.Invoice.Pax) + "\n")
     if kitchen.Invoice.TableID != nil {
-        p.WriteString("Table" + " " + *kitchen.Invoice.TableDetails + "\n")
+        p.WriteString("Table" + ": " + *kitchen.Invoice.TableDetails + "\n")
     } else {
         p.WriteString("Takeout" + "\n")
     }

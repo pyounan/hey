@@ -40,8 +40,10 @@ func TestPrintFolio(t *testing.T) {
 		// 	}],
 		// Room:        90,
 		// RoomDetails: "WER",
-		HouseUse: false,
-		Change:   8.5,
+		HouseUse:       false,
+		Change:         8.5,
+		CashierDetails: "Sameh",
+
 		// ClosedOn: time.Now(),
 	}
 	var id int64 = 1
@@ -114,7 +116,8 @@ func TestPrintFolio(t *testing.T) {
 		IsDefault:  true,
 		TerminalID: 88,
 	}
-	ip := "192.168.1.220:9100"
+	ip := "192.168.1.114:9100"
+	// ip := "/dev/usb/lp0"
 	printer.PrinterIP = &ip
 	folioPrint := FolioPrint{
 		Invoice:        invoice,
@@ -124,6 +127,7 @@ func TestPrintFolio(t *testing.T) {
 		Company:        company,
 		Printer:        printer,
 		TotalDiscounts: 10.9,
+		Timezone:       "Africa/Cairo",
 	}
 
 	PrintFolio(&folioPrint)

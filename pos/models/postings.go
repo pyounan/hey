@@ -29,5 +29,5 @@ type Posting struct {
 	Sign             string   `json:"sign,omitempty" bson:"sign,omitempty"`
 	Type             string   `json:"type,omitempty" bson:"type,omitempty"`
 	Cancelled        bool     `json:"cancelled,omitempty" bson:"cancelled,omitempty"`
-	GatewayResponses []string `json:"gateway_responses" bson:-`
+	GatewayResponses []string `json:"gateway_responses" bson:"-"`
 }
