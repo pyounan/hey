@@ -296,10 +296,13 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	//Add audit_date if it was nil
 	fmt.Printf("\n\nAudit Date %v\n", req.Invoice.AuditDate)
 	if req.Invoice.AuditDate == "" {
-		auditDate := ""
-		db.DB.C("audit_date").With(session).Find(nil).One(&auditDate)
-		fmt.Printf("\n\nAudit Date Datbase %v\n", auditDate)
-		req.Invoice.AuditDate = auditDate
+		type auditDate struct {
+			Date string `json:"audit_date" bson:"audit_date"`
+		}
+		a := auditDate{}
+		db.DB.C("audit_date").With(session).Find(nil).One(&a)
+		fmt.Printf("\n\nAudit Date Datbase %v\n", a.Date)
+		req.Invoice.AuditDate = a.Date
 	}
 	invoice, err := req.Submit()
 	if err != nil {
