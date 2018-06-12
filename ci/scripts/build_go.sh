@@ -2,6 +2,9 @@
 
 set -eux
 
+apt-get update
+apt-get install libxml2-dev -y
+
 CI_PIPELINE_ID="$(cut -d. -f1 ./build_number/version)"
 home="$(pwd -P)"
 
