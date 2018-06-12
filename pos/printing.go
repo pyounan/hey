@@ -65,7 +65,11 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 				fmt.Printf("Start printing on %v\n", printerIP)
 				k := printing.KitchenPrint{}
 				k.Printer = printer
-				printerIP = printerIP + ":9100"
+				if k.Printer.IsUSB {
+					printerIP = printerIP
+				} else {
+					printerIP = printerIP + ":9100"
+				}
 				k.Printer.PrinterIP = &printerIP
 				k.Invoice = data.Invoice
 				k.Timezone = config.Config.TimeZone
@@ -113,7 +117,11 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 			fmt.Printf("Start printing on %v\n", printerIP)
 			f := printing.FolioPrint{}
 			f.Printer = printer
-			printerIP = printerIP + ":9100"
+			if f.Printer.IsUSB {
+				printerIP = printerIP
+			} else {
+				printerIP = printerIP + ":9100"
+			}
 			f.Printer.PrinterIP = &printerIP
 			f.Invoice = data.Invoice
 			f.Timezone = config.Config.TimeZone
