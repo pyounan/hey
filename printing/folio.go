@@ -56,12 +56,12 @@ func PrintFolio(folio *FolioPrint) {
 
 	var p *escpos.Printer
 
-	// if folio.Printer.IsUSB {
-	// 	p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
-	// }
+	if folio.Printer.IsUSB {
+		p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
+	} else {
 
-	// p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
-	p = connection.NewConnection("network", *folio.Printer.PrinterIP)
+		p = connection.NewConnection("network", *folio.Printer.PrinterIP)
+	}
 
 	p.SetAlign("center")
 	p.SetFontSize(byte(printingParams[folio.Printer.PaperWidth]["company_name_width"]),

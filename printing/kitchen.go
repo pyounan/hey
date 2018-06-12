@@ -30,12 +30,13 @@ func PrintKitchen(kitchen *KitchenPrint) {
 
     var p *escpos.Printer
 
-    // if folio.Printer.IsUSB {
-    //  p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
-    // }
+    if kitchen.Printer.IsUSB {
+        p = connection.NewConnection("usb", *kitchen.Printer.PrinterIP)
+    } else {
 
-    p = connection.NewConnection("network", *kitchen.Printer.PrinterIP)
-    // p = connection.NewConnection("usb", *kitchen.Printer.PrinterIP)
+        p = connection.NewConnection("network", *kitchen.Printer.PrinterIP)
+    }
+
     p.SetAlign("left")
     if kitchen.Printer.PaperWidth == 76 {
         p.SetFont("A")
