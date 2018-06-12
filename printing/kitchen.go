@@ -10,7 +10,7 @@ import (
 )
 
 //PrintKitchen to print kitchen recepit
-func PrintKitchen(kitchen *KitchenPrint) {
+func PrintKitchen(kitchen *KitchenPrint) error {
 
     printingParams := make(map[int]map[string]int)
 
@@ -29,12 +29,17 @@ func PrintKitchen(kitchen *KitchenPrint) {
     printingParams[76]["qty"] = 8
 
     var p *escpos.Printer
-
+    var err error
     if kitchen.Printer.IsUSB {
-        p = connection.NewConnection("usb", *kitchen.Printer.PrinterIP)
+        p, err = connection.NewConnection("usb", *kitchen.Printer.PrinterIP)
+        if err != nil {
+            return err
+        }
     } else {
-
-        p = connection.NewConnection("network", *kitchen.Printer.PrinterIP)
+        p, err = connection.NewConnection("network", *kitchen.Printer.PrinterIP)
+        if err != nil {
+            return err
+        }
     }
 
     p.SetAlign("left")
@@ -127,5 +132,6 @@ func PrintKitchen(kitchen *KitchenPrint) {
     p.WriteString(text + "\n")
     p.Formfeed()
     p.Cut()
+    return nil
 
 }
