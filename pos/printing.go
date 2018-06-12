@@ -81,6 +81,7 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 					}
 				}()
 				fmt.Printf("Sent PrintKitchen %v\n", printerIP)
+				fmt.Printf("Kitchen Struct %v\n", k)
 				printing.PrintKitchen(&k)
 			} else {
 				log.Println("Printing stop no printer IP")
