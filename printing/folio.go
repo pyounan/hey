@@ -20,7 +20,7 @@ func Pad(size int) string {
 }
 
 //PrintFolio to print folio recepit
-func PrintFolio(folio *FolioPrint) {
+func PrintFolio(folio *FolioPrint) error {
 
 	printingParams := make(map[int]map[string]int)
 
@@ -55,12 +55,18 @@ func PrintFolio(folio *FolioPrint) {
 	printingParams[76]["tax_padding"] = 5
 
 	var p *escpos.Printer
-
+	var err error
 	if folio.Printer.IsUSB {
-		p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
+		p, err = connection.NewConnection("usb", *folio.Printer.PrinterIP)
+		if err != nil {
+			return err
+		}
 	} else {
 
-		p = connection.NewConnection("network", *folio.Printer.PrinterIP)
+		p, err = connection.NewConnection("network", *folio.Printer.PrinterIP)
+		if err != nil {
+			return err
+		}
 	}
 
 	p.SetAlign("center")
@@ -360,5 +366,5 @@ func PrintFolio(folio *FolioPrint) {
 	}
 	p.Formfeed()
 	p.Cut()
-
+	return nil
 }
