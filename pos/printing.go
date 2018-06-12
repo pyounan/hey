@@ -38,8 +38,8 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 			var printerIP string
 			var menu models.StoreMenuItemConfig
 			fmt.Println(e.Item)
-			// menu, err = getMenuByItemID(*e.Item)
-			menu, err = getMenuByItemID(8)
+			menu, err = getMenuByItemID(*e.Item)
+			// menu, err = getMenuByItemID(8)
 			if err == nil {
 				printer, err = getPrinterByID(menu.AttachedAttributes.KitchenPrinter)
 				if err == nil {
@@ -89,8 +89,8 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 	}
 	if printerType == folioPrinter {
 		var printerIP string
-		// printer, err := getPrinterForTerminalIP(data.TerminalID, "cashier")
-		printer, err := getPrinterForTerminalIP(1, "cashier")
+		printer, err := getPrinterForTerminalIP(data.TerminalID, "cashier")
+		// printer, err := getPrinterForTerminalIP(1, "cashier")
 		if err == nil {
 			if printer.PrinterIP != nil {
 				printerIP = *printer.PrinterIP
