@@ -35,7 +35,7 @@ type CondimentLineItem struct {
 	Condiment           int                    `json:"condiment" bson:"condiment"`
 	LineItem            int                    `json:"posinvoicelineitem" bson:"posinvoicelineitem"`
 	Description         string                 `json:"name" bson:"name"`
-	Item                *int64                 `json:"item" bson:"item"`
+	Item                string                 `json:"item" bson:"item"`
 	UnitPrice           float64                `json:"unit_price,omitempty" bson:"unit_price,omitempty"`
 	Price               float64                `json:"price" bson:"price"`
 	NetAmount           float64                `json:"net_amount" bson:"net_amount"`
