@@ -290,7 +290,18 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		fdmResponses = append(fdmResponses, responses...)
 		req.Invoice.FDMResponses = fdmResponses
 	}
+	session := db.Session.Copy()
+	defer session.Close()
 
+	//Add audit_date if it was nil
+	if req.Invoice.AuditDate == "" {
+		type auditDate struct {
+			Date string `json:"audit_date" bson:"audit_date"`
+		}
+		a := auditDate{}
+		db.DB.C("audit_date").With(session).Find(nil).One(&a)
+		req.Invoice.AuditDate = a.Date
+	}
 	invoice, err := req.Submit()
 	if err != nil {
 		log.Println("ERROR:", err.Error())
@@ -300,8 +311,6 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 	req.Invoice = invoice
 	req.Invoice.Events = []models.EJEvent{}
-	session := db.Session.Copy()
-	defer session.Close()
 
 	err = db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
