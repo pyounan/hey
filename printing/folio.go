@@ -56,12 +56,12 @@ func PrintFolio(folio *FolioPrint) {
 
 	var p *escpos.Printer
 
-	// if folio.Printer.IsUSB {
-	// 	p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
-	// }
+	if folio.Printer.IsUSB {
+		p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
+	} else {
 
-	p = connection.NewConnection("network", *folio.Printer.PrinterIP)
-	//p = connection.NewConnection("usb", *folio.Printer.PrinterIP)
+		p = connection.NewConnection("network", *folio.Printer.PrinterIP)
+	}
 
 	p.SetAlign("center")
 	p.SetFontSize(byte(printingParams[folio.Printer.PaperWidth]["company_name_width"]),
@@ -111,7 +111,7 @@ func PrintFolio(folio *FolioPrint) {
 	p.SetFontSize(2, 2)
 	p.WriteString("Covers : " + fmt.Sprintf("%d", folio.Invoice.Pax) + "\n")
 	if folio.Invoice.TableID != nil {
-		p.WriteString("Table " + *folio.Invoice.TableDetails + "\n")
+		p.WriteString("Table: " + *folio.Invoice.TableDetails + "\n")
 	} else {
 		p.WriteString("Takeout\n")
 	}
