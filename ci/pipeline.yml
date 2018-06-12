@@ -23,6 +23,18 @@ resources:
       key: ((PROJECT_NAME))
       json_key: ((GCR_KEY))
 
+  - name: hangouts
+    type: hangouts-resource
+    source:
+      webhook_url: ((HANGOUTS_WEBHOOK))
+
+resource_types:
+- name: hangouts-resource
+  type: docker-image
+  source:
+    repository: cloudinn/concourse-hangouts-resource
+    tag: latest
+
 
 commons:
   init_worker_task: &init_worker_task
@@ -47,11 +59,31 @@ commons:
       FLY_PASSWORD: ((FLY_PASSWORD))
     file: devops_repo/ci/tasks/digitalocean_destroy.yml
 
+  notify_start: &notify_start
+    try:
+      put: hangouts
+      params:
+        message: Job Started !
+
+  notify_finish: &notify_finish
+    on_failure:
+      try:
+        put: hangouts
+        params:
+          message: Job Failed !
+
+    on_success:
+      try:
+        put: hangouts
+        params:
+          message: Job Succeeded !
 
 jobs:
   - name: build-push
     serial: true
     plan:
+      - <<: *notify_start
+
       - get: devops_repo
 
       - do:
@@ -80,6 +112,8 @@ jobs:
           params:
             GCR_KEY: ((GCR_KEY))
           file: repo/ci/tasks/publish.yml
+
+        <<: *notify_finish
 
         ensure:
           task: destroy_worker
