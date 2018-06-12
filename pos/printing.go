@@ -32,7 +32,7 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 	// printerType = folioPrinter
 	var printer models.Printer
 	var err error
-	fmt.Printf("Printer Type %v\n", printerType)
+	// fmt.Printf("Printer Type %v\n", printerType)
 	if printerType == kitchenPrinter {
 		for _, e := range data.Invoice.GroupedLineItems {
 			var printerIP string
@@ -81,7 +81,6 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 					}
 				}()
 				fmt.Printf("Sent PrintKitchen %v\n", printerIP)
-				fmt.Printf("Kitchen Struct %v\n", k)
 				printing.PrintKitchen(&k)
 			} else {
 				log.Println("Printing stop no printer IP")
@@ -89,7 +88,6 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 		}
 	}
 	if printerType == folioPrinter {
-		fmt.Printf("Printer Type %v\n", printerType)
 		var printerIP string
 		// printer, err := getPrinterForTerminalIP(data.TerminalID, "cashier")
 		printer, err := getPrinterForTerminalIP(1, "cashier")
