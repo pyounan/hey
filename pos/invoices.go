@@ -294,14 +294,16 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	defer session.Close()
 
 	//Add audit_date if it was nil
-	if req.Invoice.AuditDate == "" {
+	fmt.Printf("Audit Date %v\n", req.Invoice.AuditDate)
+	if req.Invoice.AuditDate == nil {
 		type auditDate struct {
 			Date string `json:"audit_date" bson:"audit_date"`
 		}
 		a := auditDate{}
 		db.DB.C("audit_date").With(session).Find(nil).One(&a)
-		req.Invoice.AuditDate = a.Date
+		req.Invoice.AuditDate = &a.Date
 	}
+
 	invoice, err := req.Submit()
 	if err != nil {
 		log.Println("ERROR:", err.Error())
@@ -325,7 +327,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	//TODO :: Print on kitchen Printer
-	fmt.Printf("\n\n\n\nPrinting Enabled %v\n\n\n\n", checkProxyPrintingEnabled())
+	fmt.Printf("Printing Enabled %v\n", checkProxyPrintingEnabled())
 	if checkProxyPrintingEnabled() {
 		go sendToPrint(kitchenPrinter, req)
 	}
