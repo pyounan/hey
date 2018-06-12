@@ -41,7 +41,7 @@ type ConfigHolder struct {
 	VirtualHost           *string     `json:"virtual_host"`
 	CallAccountingEnabled bool        `json:"call_accounting_enabled"`
 	ProxyPrintingEnabled  bool        `json:"proxy_printing_enabled"`
-	// TimeZone              string      `json:"timezone"`
+	TimeZone              string      `json:"instance_tz"`
 }
 
 // FDMConfig struct of each proxy configuration

@@ -68,8 +68,8 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 				printerIP = printerIP + ":9100"
 				k.Printer.PrinterIP = &printerIP
 				k.Invoice = data.Invoice
-				// k.Timezone = config.Config.Timezone
-				k.Timezone = "Africa/Cairo"
+				k.Timezone = config.Config.TimeZone
+				// k.Timezone = "Africa/Cairo"
 				k.Cashier, err = getCashierByNumber(data.CashierNumber)
 				if err != nil {
 					fmt.Printf("Can't get casher for number %v,ERR %v\n", data.CashierNumber, err)
@@ -116,8 +116,8 @@ func sendToPrint(printerType string, data models.InvoicePOSTRequest) {
 			printerIP = printerIP + ":9100"
 			f.Printer.PrinterIP = &printerIP
 			f.Invoice = data.Invoice
-			// k.Timezone = config.Config.Timezone
-			f.Timezone = "Africa/Cairo"
+			f.Timezone = config.Config.TimeZone
+			// f.Timezone = "Africa/Cairo"
 			f.Cashier, err = getCashierByNumber(data.CashierNumber)
 			if err != nil {
 				fmt.Printf("Can't get casher for number %v,ERR %v\n", data.CashierNumber, err)
