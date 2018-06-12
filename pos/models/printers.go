@@ -11,6 +11,7 @@ type Printer struct {
 	PaperWidth  int     `json:"paper_width" bson:"paper_width"`
 	IsDefault   bool    `json:"is_default" bson:"is_default"`
 	TerminalID  int     `json:"terminal" bson:"terminal"`
+	IsUSB       bool    `json:"is_usb" bson:"is_usb"`
 }
 
 // PrinterSettings swagger:model printerSetting
