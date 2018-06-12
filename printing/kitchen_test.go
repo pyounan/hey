@@ -55,8 +55,8 @@ func TestPrintKitchen(t *testing.T) {
 		TerminalID:  88,
 		IsUSB:       true,
 	}
-	// ip := "192.168.1.114:9100"
-	ip := "/dev/usb/lp0"
+	ip := "192.168.1.114:9100"
+	// ip := "/dev/usb/lp0"
 	printer.PrinterIP = &ip
 	kitchenPrint := KitchenPrint{
 		Invoice:  invoice,
@@ -64,6 +64,10 @@ func TestPrintKitchen(t *testing.T) {
 		Printer:  printer,
 		Timezone: "Africa/Cairo",
 	}
+	err := PrintKitchen(&kitchenPrint)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
 
-	PrintKitchen(&kitchenPrint)
 }

@@ -1,6 +1,7 @@
 package printing
 
 import (
+	"pos-proxy/config"
 	"pos-proxy/income"
 	"pos-proxy/pos/models"
 	"testing"
@@ -8,7 +9,7 @@ import (
 )
 
 func TestPrintFolio(t *testing.T) {
-
+	config.Config.IsFDMEnabled = true
 	invoice := models.Invoice{
 		InvoiceNumber: "200-1153",
 		Pax:           1,
@@ -70,14 +71,14 @@ func TestPrintFolio(t *testing.T) {
 		VSC:                "vsc",
 		Date:               time.Now(),
 		TimePeriod:         time.Now(),
-		EventLabel:         "event_label",
+		EventLabel:         "event_label123456789654789321485498784626587845",
 		TicketCounter:      "ticket_counter",
 		TotalTicketCounter: "total_ticket_counter",
-		Signature:          "signature",
+		Signature:          "signature123456789123456789123456789",
 		TicketNumber:       "ticket_number",
 		TicketActionTime:   "ticket_datetime",
 		SoftwareVersion:    "software_version",
-		PLUHash:            "plu_hash",
+		PLUHash:            "plu_hash123456789987654321123456789",
 	}
 	invoice.FDMResponses = append(invoice.FDMResponses, fdmResponse)
 	store := models.Store{
@@ -115,10 +116,10 @@ func TestPrintFolio(t *testing.T) {
 		PaperWidth: 80,
 		IsDefault:  true,
 		TerminalID: 88,
-		IsUSB:      true,
+		IsUSB:      false,
 	}
-	// ip := "192.168.1.114:9100"
-	ip := "/dev/usb/lp0"
+	ip := "192.168.1.220:9100"
+	// ip := "/dev/usb/lp0"
 	printer.PrinterIP = &ip
 	folioPrint := FolioPrint{
 		Invoice:        invoice,
@@ -131,5 +132,9 @@ func TestPrintFolio(t *testing.T) {
 		Timezone:       "Africa/Cairo",
 	}
 
-	PrintFolio(&folioPrint)
+	err := PrintFolio(&folioPrint)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
 }

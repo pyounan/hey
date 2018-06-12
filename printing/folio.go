@@ -2,6 +2,7 @@ package printing
 
 import (
 	"fmt"
+	"log"
 	"pos-proxy/config"
 	"strings"
 	"time"
@@ -37,7 +38,7 @@ func PrintFolio(folio *FolioPrint) error {
 	printingParams[80]["fdm_taxable_padding"] = 10
 	printingParams[80]["fdm_vat_padding"] = 10
 	printingParams[80]["fdm_net_padding"] = 10
-	printingParams[80]["tax_padding"] = 5
+	printingParams[80]["tax_padding"] = 3
 
 	printingParams[76] = make(map[string]int)
 	printingParams[76]["width"] = 760
@@ -52,7 +53,7 @@ func PrintFolio(folio *FolioPrint) error {
 	printingParams[76]["fdm_taxable_padding"] = 13
 	printingParams[76]["fdm_vat_padding"] = 12
 	printingParams[76]["fdm_net_padding"] = 8
-	printingParams[76]["tax_padding"] = 5
+	printingParams[76]["tax_padding"] = 3
 
 	var p *escpos.Printer
 	var err error
@@ -156,11 +157,12 @@ func PrintFolio(folio *FolioPrint) error {
 	p.SetReverse(0)
 	p.SetEmphasize(0)
 
-	vatsToDisplay := make(map[string]bool)
-	vatsToDisplay["A"] = false
-	vatsToDisplay["B"] = false
-	vatsToDisplay["C"] = false
-	vatsToDisplay["D"] = false
+	vatsToDisplay := map[string]bool{
+		"A": false,
+		"B": false,
+		"C": false,
+		"D": false,
+	}
 
 	for _, item := range folio.Invoice.Items {
 		price := fmt.Sprintf("%.2f", item.Price)
@@ -258,62 +260,63 @@ func PrintFolio(folio *FolioPrint) error {
 	}
 	p.Formfeed()
 
-	// if config.Config.IsFDMEnabled {
-	// 	taxableTrans := "Taxable"
-	// 	rateTrans := "Rate"
-	// 	vatTrans := "Vat"
-	// 	netTrans := "Net"
-	// 	for res := range folio.Invoice.FDMResponses {
-	// 		p.SetReverse(1)
-	// 		p.SetEmphasize(1)
-	// 		p.SetFont("B")
-	// 		p.WriteString(rateTrans +
-	// 			Pad(printingParams[folio.Printer.PaperWidth]["fdm_rate_padding"]-
-	// 				len(rateTrans)) + " " +
-	// 			Pad(printingParams[folio.Printer.PaperWidth]["fdm_taxable_padding"]-
-	// 				len(taxableTrans)) + " " +
-	// 			Pad(printingParams[folio.Printer.PaperWidth]["fdm_vat_padding"]-
-	// 				len(vatTrans)) + " " +
-	// 			Pad(printingParams[folio.Printer.PaperWidth]["fdm_net_padding"]-
-	// 				len(netTrans)) + " " + "\n")
-	// 		p.SetReverse(0)
-	// 		p.SetEmphasize(0)
+	if config.Config.IsFDMEnabled {
+		taxableTrans := "Taxable"
+		rateTrans := "Rate"
+		vatTrans := "Vat"
+		netTrans := "Net"
+		for _, res := range folio.Invoice.FDMResponses {
+			p.SetReverse(1)
+			p.SetEmphasize(1)
+			p.SetFont("B")
+			p.WriteString(rateTrans +
+				Pad(printingParams[folio.Printer.PaperWidth]["fdm_rate_padding"]-
+					len(rateTrans)) + " " +
+				Pad(printingParams[folio.Printer.PaperWidth]["fdm_taxable_padding"]-
+					len(taxableTrans)) + " " +
+				Pad(printingParams[folio.Printer.PaperWidth]["fdm_vat_padding"]-
+					len(vatTrans)) + " " +
+				Pad(printingParams[folio.Printer.PaperWidth]["fdm_net_padding"]-
+					len(netTrans)) + " " + "\n")
+			p.SetReverse(0)
+			p.SetEmphasize(0)
 
-	// 		//Vat amount section
-	// 		for k, v := range vatsToDisplay {
-	// 			if v {
-	// 				taxableAmount := fmt.Sprintf("%.2f", res.VATSummary[k].txabelAmount)
-	// 				vatAmount := fmt.Sprintf("%.2f", res.VATSummary[k].vatAmount)
-	// 				netAmount := fmt.Sprintf("%.2f", res.VATSummary[k].netAmount)
-	// 				p.WriteString(k +
-	// 					Pad(printingParams[folio.Printer.PaperWidth]["fdm_rate_padding"]-1) +
-	// 					" " + Pad(printingParams[folio.Printer.PaperWidth]["fdm_taxable_padding"]-
-	// 					len(string(taxableAmount))) + " " + taxableAmount +
-	// 					Pad(printingParams[folio.Printer.PaperWidth]["fdm_vat_padding"]-
-	// 						len(string(vatAmount))) + " " + vatAmount +
-	// 					Pad(printingParams[folio.Printer.PaperWidth]["fdm_net_padding"]-
-	// 						len(string(netAmount))) + " " + netAmount + "\n")
-	// 			}
-	// 		}
+			//Vat amount section
+			for k, v := range vatsToDisplay {
+				if v {
+					log.Println("%#v", res.VATSummary[k])
+					taxableAmount := fmt.Sprintf("%.2f", res.VATSummary[k]["taxable_amount"])
+					vatAmount := fmt.Sprintf("%.2f", res.VATSummary[k]["vat_amount"])
+					netAmount := fmt.Sprintf("%.2f", res.VATSummary[k]["net_amount"])
+					p.WriteString(k +
+						Pad(printingParams[folio.Printer.PaperWidth]["fdm_rate_padding"]-1) +
+						" " + Pad(printingParams[folio.Printer.PaperWidth]["fdm_taxable_padding"]-
+						len(string(taxableAmount))) + " " + taxableAmount +
+						Pad(printingParams[folio.Printer.PaperWidth]["fdm_vat_padding"]-
+							len(string(vatAmount))) + " " + vatAmount +
+						Pad(printingParams[folio.Printer.PaperWidth]["fdm_net_padding"]-
+							len(string(netAmount))) + " " + netAmount + "\n")
+				}
+			}
 
-	// 		totalTaxableAmount := fmt.Sprintf("%.2f", res.VATSummary.Total.taxableAmount)
-	// 		totalVatAmount := fmt.Sprintf("%.2f", res.VATSummary.Total.vatAmount)
-	// 		totalNetAmount := fmt.Sprintf("%.2f", res.VATSummary.Total.netAmount)
-	// 		p.SetEmphasize(1)
-	// 		totalTrans := "Total"
-	// 		p.WriteString(totalTrans +
-	// 			Pad(printingParams[folio.Printer.PaperWidth]["fdm_rate_padding"]-len(totalTrans)) +
-	// 			" " + Pad(printingParams[folio.Printer.PaperWidth]["fdm_taxable_padding"]-
-	// 			len(string(totalTaxableAmount))) + " " + totalTaxableAmount +
-	// 			Pad(printingParams[folio.Printer.PaperWidth]["fdm_vat_padding"]-
-	// 				len(string(totalVatAmount))) + " " + totalVatAmount +
-	// 			Pad(printingParams[folio.Printer.PaperWidth]["fdm_net_padding"]-
-	// 				len(string(totalNetAmount))) + " " + totalNetAmount + "\n")
-	// 		p.Formfeed()
-	// 		p.SetEmphasize(0)
+			totalTaxableAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["taxable_amount"])
+			totalVatAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["vat_amount"])
+			totalNetAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["net_amount"])
+			p.SetEmphasize(1)
+			totalTrans := "Total"
+			p.WriteString(totalTrans +
+				Pad(printingParams[folio.Printer.PaperWidth]["fdm_rate_padding"]-len(totalTrans)) +
+				" " + Pad(printingParams[folio.Printer.PaperWidth]["fdm_taxable_padding"]-
+				len(string(totalTaxableAmount))) + " " + totalTaxableAmount +
+				Pad(printingParams[folio.Printer.PaperWidth]["fdm_vat_padding"]-
+					len(string(totalVatAmount))) + " " + totalVatAmount +
+				Pad(printingParams[folio.Printer.PaperWidth]["fdm_net_padding"]-
+					len(string(totalNetAmount))) + " " + totalNetAmount + "\n")
+			p.Formfeed()
+			p.SetEmphasize(0)
 
-	// 	}
-	// }
+		}
+	}
 
 	loc, _ := time.LoadLocation(folio.Timezone)
 	p.WriteString("Opened at: " + folio.Invoice.CreatedOn + "\n")
@@ -326,36 +329,37 @@ func PrintFolio(folio *FolioPrint) error {
 	p.WriteString("Created by : " + folio.Invoice.CashierDetails + "\n")
 	p.WriteString("Printed by : " + fmt.Sprintf("%d", folio.Cashier.Number) + "\n")
 
-	// if config.Config.IsFDMEnabled {
-	// 	for res := range folio.Invoice.FDMResponses {
-	// 		p.WriteString("Ticket Number: " + res.TicketNumber + "\n")
-	// 		p.WriteString("Ticket Date: " + res.Date.String() + "\n")
-	// 		p.WriteString("Event: " + res.EventLabel + "\n")
-	// 		p.WriteString("Terminal Identifier: " +
-	// 			folio.Terminal.RCRS + "/" + folio.Terminal.Description + "\n")
-	// 		p.WriteString("Production Number: " + folio.Terminal.RCRS + "\n")
-	// 		p.WriteString("Software Version: " + res.SoftwareVersion + "\n")
-	// 		p.WriteString("Ticket: " + strings.Join(strings.Fields(res.TicketCounter), " ") +
-	// 			"/" + strings.Join(strings.Fields(res.TotalTicketCounter), " ") + " " +
-	// 			res.EventLabel[0:30] + "\n")
+	if config.Config.IsFDMEnabled {
+		for _, res := range folio.Invoice.FDMResponses {
+			p.WriteString("Ticket Number: " + res.TicketNumber + "\n")
+			p.WriteString("Ticket Date: " + res.Date.String() + "\n")
+			p.WriteString("Event: " + res.EventLabel + "\n")
+			p.WriteString("Terminal Identifier: " +
+				folio.Terminal.RCRS + "/" + folio.Terminal.Description + "\n")
+			p.WriteString("Production Number: " + folio.Terminal.RCRS + "\n")
+			p.WriteString("Software Version: " + res.SoftwareVersion + "\n")
 
-	// 		if len(res.PLUHash) > 32 {
-	// 			p.WriteString("Hash" + "s: " + res.PLUHash[0:31] + "\n")
-	// 			p.WriteString(Pad(7) + " " + res.PLUHash[31:] + "\n")
-	// 		} else {
-	// 			p.WriteString("Hash" + ":" + res.PLUHash + "\n")
-	// 		}
-	// 		if folio.Invoice.IsSettled {
-	// 			p.WriteString("Ticket Sig" + ": " + res.Signature[0:25] + "\n")
-	// 			p.WriteString(Pad(13) + " " + res.Signature[25:] + "\n")
-	// 		}
-	// 		p.WriteString("\n" + "Control Data" + ": " + res.Date.String()[0:10] +
-	// 			" " + time.Parse("04:05:06", res.TimePeriod) + "\n")
-	// 		p.WriteString("Control Module ID" + ": " + res.ProductionNumber + "\n")
-	// 		p.WriteString("VSC ID" + ": " + res.VSC + "\n")
+			p.WriteString("Ticket: " + strings.Join(strings.Fields(res.TicketCounter), " ") +
+				"/" + strings.Join(strings.Fields(res.TotalTicketCounter), " ") + " " +
+				res.EventLabel[0:30] + "\n")
 
-	// 	}
-	// }
+			if len(res.PLUHash) > 32 {
+				p.WriteString("Hash" + "s: " + res.PLUHash[0:31] + "\n")
+				p.WriteString(Pad(7) + " " + res.PLUHash[31:] + "\n")
+			} else {
+				p.WriteString("Hash" + ":" + res.PLUHash + "\n")
+			}
+			if folio.Invoice.IsSettled {
+				p.WriteString("Ticket Sig" + ": " + res.Signature[0:25] + "\n")
+				p.WriteString(Pad(13) + " " + res.Signature[25:] + "\n")
+			}
+			p.WriteString("\n" + "Control Data" + ": " + res.Date.String()[0:10] +
+				" " + res.TimePeriod.Format(time.RFC1123) + "\n")
+			p.WriteString("Control Module ID" + ": " + res.ProductionNumber + "\n")
+			p.WriteString("VSC ID" + ": " + res.VSC + "\n")
+
+		}
+	}
 	p.Formfeed()
 	p.SetFont("A")
 	p.WriteString("Signature" + ":\t " + "............." + "\n")
