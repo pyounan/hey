@@ -23,6 +23,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jinzhu/copier"
+
 	"github.com/gorilla/mux"
 	"github.com/novalagung/golpal"
 
@@ -253,12 +255,14 @@ func GetInvoice(w http.ResponseWriter, r *http.Request) {
 // Responses:
 // 200: invoice
 func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("SubmitInvoice")
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
+	fmt.Printf("Body %v\n", r.Body)
 	defer r.Body.Close()
 	// validate that all the items has and item id, otherwise return error
 	// It's a safe guard for the bug of created item without any info
@@ -311,9 +315,20 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
+
+	fmt.Printf("Printing Enabled %v\n", checkProxyPrintingEnabled())
+	//TODO :: Print on kitchen Printer
+	if checkProxyPrintingEnabled() {
+		printReq := PrintRequest{}
+		printReq.PrinterType = kitchenPrinter
+		printReq.Invoice = req.Invoice
+		printReq.Items = req.Invoice.Items
+		printReq.OrderedItems = req.Invoice.OrderedItems
+		go sendToPrint(printReq)
+	}
 	req.Invoice = invoice
 	req.Invoice.Events = []models.EJEvent{}
-
+	req.Invoice.OrderedItems = []models.EJEvent{}
 	err = db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
 		log.Println(err)
@@ -326,11 +341,7 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	//TODO :: Print on kitchen Printer
-	fmt.Printf("Printing Enabled %v\n", checkProxyPrintingEnabled())
-	if checkProxyPrintingEnabled() {
-		go sendToPrint(kitchenPrinter, req)
-	}
+
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
@@ -526,6 +537,7 @@ func UnlockInvoice(w http.ResponseWriter, r *http.Request) {
 // Responses:
 // 200: invoice
 func FolioInvoice(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("\n\tFolioInvoice")
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -586,8 +598,24 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	if config.Config.IsFDMEnabled {
 		req.Invoice.FDMResponses = req.Invoice.FDMResponses[fdmSubmitResCount:]
 	}
-
+	fmt.Printf("Printing Enabled %v\n", checkProxyPrintingEnabled())
+	//Print on Folio  && Kitchen Printer
+	if checkProxyPrintingEnabled() {
+		printFolioReq := PrintRequest{}
+		printFolioReq.PrinterType = folioPrinter
+		printFolioReq.Invoice = req.Invoice
+		printFolioReq.Items = req.Invoice.Items
+		printFolioReq.OrderedItems = req.Invoice.OrderedItems
+		go sendToPrint(printFolioReq)
+		printKitReq := PrintRequest{}
+		printKitReq.PrinterType = kitchenPrinter
+		printKitReq.Invoice = req.Invoice
+		printKitReq.Items = req.Invoice.Items
+		printKitReq.OrderedItems = req.Invoice.OrderedItems
+		go sendToPrint(printKitReq)
+	}
 	req.Invoice.Events = []models.EJEvent{}
+	req.Invoice.OrderedItems = []models.EJEvent{}
 
 	req.Invoice.PrintCount++
 
@@ -595,10 +623,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 	defer session.Close()
 
 	db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
-	//TODO :: Print on Folio Printer
-	if checkProxyPrintingEnabled() {
-		go sendToPrint(folioPrinter, req)
-	}
+
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }
 
@@ -623,6 +648,7 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 // Responses:
 // 200: invoicePOSTRequest
 func PayInvoice(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("\n\tPayInvoice\n\n")
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -691,9 +717,16 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		}
 		table.UpdateStatus()
 	}
+
+	fmt.Printf("Printing Enabled %v\n", checkProxyPrintingEnabled())
 	//TODO :: Print on Folio Printer
 	if checkProxyPrintingEnabled() {
-		go sendToPrint(folioPrinter, req)
+		printReq := PrintRequest{}
+		printReq.PrinterType = folioPrinter
+		printReq.Invoice = req.Invoice
+		printReq.OrderedItems = req.Invoice.OrderedItems
+		printReq.Items = req.Invoice.Items
+		go sendToPrint(printReq)
 	}
 	helpers.ReturnSuccessMessage(w, req)
 }
@@ -929,6 +962,7 @@ func RefundInvoice(w http.ResponseWriter, r *http.Request) {
 // Responses:
 // 200: invoice
 func Houseuse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("\n\tHouseUse\t\n")
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -990,9 +1024,17 @@ func Houseuse(w http.ResponseWriter, r *http.Request) {
 		}
 		table.UpdateStatus()
 	}
+
+	fmt.Printf("Printing Enabled %v\n", checkProxyPrintingEnabled())
 	//TODO :: Print on Folio Printer
 	if checkProxyPrintingEnabled() {
-		go sendToPrint(folioPrinter, req)
+		printReq := PrintRequest{}
+		printReq.PrinterType = folioPrinter
+		printReq.Invoice = req.Invoice
+		printReq.Items = req.Invoice.Items
+		printReq.OrderedItems = req.Invoice.OrderedItems
+		copier.Copy(printReq.OrderedItems, req.Invoice.OrderedItems)
+		go sendToPrint(printReq)
 	}
 	helpers.ReturnSuccessMessage(w, req.Invoice)
 }

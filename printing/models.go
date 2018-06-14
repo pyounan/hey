@@ -7,6 +7,7 @@ import (
 
 //FolioPrint defines the objects and requried data for folio printing
 type FolioPrint struct {
+	Items          []models.EJEvent
 	Invoice        models.Invoice
 	Terminal       models.Terminal
 	Store          models.Store
@@ -19,8 +20,33 @@ type FolioPrint struct {
 
 //KitchenPrint defines the objects and requried data for kitchen printing
 type KitchenPrint struct {
-	Invoice  models.Invoice
-	Printer  models.Printer
-	Cashier  income.Cashier
-	Timezone string
+	GropLineItems []models.EJEvent
+	Invoice       models.Invoice
+	Printer       Printer
+	Cashier       income.Cashier
+	Timezone      string
+}
+type Printer struct {
+	ID        int
+	PrinterID string
+	//type : cashier or kitchen
+	PrinterType string
+	PrinterIP   string
+	PaperWidth  int
+	IsDefault   bool
+	TerminalID  int
+	IsUSB       bool
+}
+
+func MaptoPrinter(p models.Printer) Printer {
+	printer := Printer{}
+	printer.ID = p.ID
+	printer.IsDefault = p.IsDefault
+	printer.PaperWidth = p.PaperWidth
+	printer.PrinterIP = *p.PrinterIP
+	printer.PrinterType = p.PrinterType
+	printer.PrinterID = p.PrinterID
+	printer.IsUSB = p.IsUSB
+	printer.TerminalID = p.TerminalID
+	return printer
 }

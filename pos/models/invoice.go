@@ -48,7 +48,8 @@ type Invoice struct {
 	GroupedLineItems []EJEvent     `json:"grouped_lineitems" bson:"grouped_lineitems"`
 	TableNumber      *int64        `json:"table" bson:"table"`
 
-	Events []EJEvent `json:"events" bson:"events"`
+	Events       []EJEvent `json:"events" bson:"events"`
+	OrderedItems []EJEvent `json:"ordered_posinvoicelineitem_set" bson:"ordered_posinvoicelineitem_set"`
 
 	AuditDate           *string                `json:"audit_date" bson:"audit_date"`
 	Cashier             int                    `json:"cashier" bson:"cashier"`

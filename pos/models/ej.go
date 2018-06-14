@@ -10,18 +10,23 @@ import (
 // EJEvent swagger:model ejevent
 // is a model that gets inserted to FDM or EJ.
 type EJEvent struct {
-	Description   string  `json:"description" bson:"description"`
-	Price         float64 `json:"price" bson:"price"`
-	Quantity      float64 `json:"qty" bson:"qty"`
-	NetAmount     float64 `json:"net_amount" bson:"net_amount"`
-	TaxAmount     float64 `json:"tax_amount" bson:"tax_amount"`
-	VATCode       string  `json:"vat_code" bson:"vat_code"`
-	VATPercentage float64 `json:"vat_percentage" bson:"vat_percentage"`
-	IsCondiment   bool    `json:"is_condiment" bson:"is_condiment"`
-	IsDiscount    bool    `json:"is_discount" bson:"is_discount"`
-	LineItemType  string  `json:"line_item_type" bson:"line_item_type"`
-	Item          *int64  `json:"item,omitempty" bson:"item,omitempty"`
-	CashierID     *int64  `json:"cashier" bson:"cashier"`
+	Description        string              `json:"description" bson:"description"`
+	Price              float64             `json:"price" bson:"price"`
+	Quantity           float64             `json:"qty" bson:"qty"`
+	SubmittedQuantity  float64             `json:"submitted_qty" bson:"submitted_qty"`
+	NetAmount          float64             `json:"net_amount" bson:"net_amount"`
+	TaxAmount          float64             `json:"tax_amount" bson:"tax_amount"`
+	VATCode            string              `json:"vat_code" bson:"vat_code"`
+	VATPercentage      float64             `json:"vat_percentage" bson:"vat_percentage"`
+	IsCondiment        bool                `json:"is_condiment" bson:"is_condiment"`
+	IsDiscount         bool                `json:"is_discount" bson:"is_discount"`
+	LineItemType       string              `json:"line_item_type" bson:"line_item_type"`
+	Item               *int64              `json:"item,omitempty" bson:"item,omitempty"`
+	CashierID          *int64              `json:"cashier" bson:"cashier"`
+	BaseUnit           string              `json:"base_unit,omitempty" bson:"base_unit,omitempty"`
+	CondimentLineItems []CondimentLineItem `json:"condimentlineitem_set" bson:"condimentlineitem_set"`
+	LastChildInCourse  bool                `json:"lastchildincourse" bson:"-"`
+	CondimentsComment  string              `json:"comment" bson:"-"`
 }
 
 // String generates a text for a ej event in a format for the FDM.
