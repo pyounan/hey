@@ -12,7 +12,7 @@ type PaymentGateway interface {
 	Refund(data json.RawMessage)
 	Abort()
 	Reprint()
-	Output(data interface{})
+	Cancel(data json.RawMessage)
 }
 
 func init() {

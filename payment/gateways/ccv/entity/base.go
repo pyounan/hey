@@ -36,6 +36,7 @@ type DeviceResponse struct {
 type POSdata struct {
 	XMLName        xml.Name `xml:"POSdata"`
 	LanguageCode   string   `xml:",attr"`
+	ApprovalCode   string   `xml:",attr,omitempty"`
 	POSTimeStamp   string
 	ClerkID        int
 	ShiftNumber    int

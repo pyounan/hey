@@ -20,6 +20,7 @@ func init() {
 	go handleOutputSignals()
 }
 
+// PaymentPayload define the data container for a payment-related operation.
 type PaymentPayload struct {
 	Gateway string          `json:"gateway"`
 	Action  string          `json:"action"`
@@ -53,12 +54,12 @@ func handleInputSignals() {
 				v.Sale(payload.Data)
 			case "reprint":
 				v.Reprint()
-			case "output":
-				v.Output(payload.Data)
 			case "abort":
 				v.Abort()
 			case "refund":
 				v.Refund(payload.Data)
+			case "cancel":
+				v.Cancel(payload.Data)
 			}
 		} else {
 			e := socket.Event{

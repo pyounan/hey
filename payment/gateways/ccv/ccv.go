@@ -271,4 +271,77 @@ func (gateway CCV) Abort() {
 	log.Println(res)*/
 }
 
-func (gateway CCV) Output(data interface{}) {}
+// Cancel initiates cancel operation for a certain Auth Code
+func (gateway CCV) Cancel(data json.RawMessage) {
+	log.Println("Starting CCV Cancel request")
+
+	type CancelPayload struct {
+		AuthCode          string  `json:"auth_code"`
+		Amount            float64 `json:"amount"`
+		TerminalID        int     `json:"terminal_id"`
+		TerminalNumber    int     `json:"terminal_number"`
+		UseDefaultAccount bool    `json:"use_default_account"`
+		CashierID         int     `json:"cashier_id"`
+		Currency          string  `json:"currency"`
+	}
+	payload := CancelPayload{}
+	err := json.Unmarshal(data, &payload)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Retrieve CCV Settings for this terminal
+	var settings *generalEntity.CCVSettings
+	if payload.UseDefaultAccount {
+		settings, err = db.GetCCVDefaultAccountSettings()
+	} else {
+		settings, err = db.GetCCVSettingsForTerminal(payload.TerminalID)
+	}
+	if err != nil {
+		m := socket.Event{}
+		m.Module = "payment"
+		m.Type = "error"
+		payload := make(map[string]string, 1)
+		payload["error"] = "This terminal doesn't have any CCV pinpad configured"
+		encodedPayload, _ := json.Marshal(payload)
+		m.Payload = encodedPayload
+		gateway.ouputChannel <- m
+		return
+	}
+
+	sender.Connect(*settings)
+	err = receiver.Listen(settings, gateway.ouputChannel)
+	if err != nil {
+		log.Println(err)
+		m := socket.Event{}
+		m.Module = "payment"
+		m.Type = "error"
+		payload := make(map[string]string, 1)
+		payload["error"] = err.Error()
+		encodedPayload, _ := json.Marshal(payload)
+		m.Payload = encodedPayload
+		gateway.ouputChannel <- m
+		return
+	}
+
+	cardServiceReq := entity.NewCancelRequest(payload.AuthCode, payload.Amount, payload.Currency)
+	cardServiceReq.RequestID = strconv.Itoa(getNextRequestID())
+	cardServiceReq.POSdata.PrinterStatus = "Available"
+	cardServiceReq.POSdata.EJournalStatus = "Available"
+	cardServiceReq.POSdata.ClerkID = payload.CashierID
+	cardServiceReq.WorkstationID = strconv.Itoa(payload.TerminalNumber)
+	res, err := sender.Send(gateway.ouputChannel, cardServiceReq, *settings)
+	if err != nil {
+		m := socket.Event{}
+		m.Module = "payment"
+		m.Type = "error"
+		payload := make(map[string]string, 1)
+		payload["error"] = err.Error()
+		encodedPayload, _ := json.Marshal(payload)
+		m.Payload = encodedPayload
+		gateway.ouputChannel <- m
+		return
+	}
+	log.Println(res)
+}
