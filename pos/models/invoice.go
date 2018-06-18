@@ -42,14 +42,14 @@ type InvoiceLite struct {
 // Invoice represents Invoice model details
 // swagger:model invoice
 type Invoice struct {
-	ID               *int64        `json:"id" bson:"id,omitempty"`
-	InvoiceNumber    string        `json:"invoice_number" bson:"invoice_number"`
-	Items            []POSLineItem `json:"posinvoicelineitem_set" bson:"posinvoicelineitem_set"`
-	GroupedLineItems []EJEvent     `json:"grouped_lineitems" bson:"grouped_lineitems"`
-	TableNumber      *int64        `json:"table" bson:"table"`
-
-	Events       []EJEvent `json:"events" bson:"events"`
-	OrderedItems []EJEvent `json:"ordered_posinvoicelineitem_set" bson:"ordered_posinvoicelineitem_set"`
+	ID               *int64            `json:"id" bson:"id,omitempty"`
+	InvoiceNumber    string            `json:"invoice_number" bson:"invoice_number"`
+	Items            []POSLineItem     `json:"posinvoicelineitem_set" bson:"posinvoicelineitem_set"`
+	GroupedLineItems []EJEvent         `json:"grouped_lineitems" bson:"grouped_lineitems"`
+	TableNumber      *int64            `json:"table" bson:"table"`
+	ItemsPerPrinter  map[int][]EJEvent `json:"items_per_printer" bson:"-"`
+	Events           []EJEvent         `json:"events" bson:"events"`
+	OrderedItems     []EJEvent         `json:"ordered_posinvoicelineitem_set" bson:"ordered_posinvoicelineitem_set"`
 
 	AuditDate           *string                `json:"audit_date" bson:"audit_date"`
 	Cashier             int                    `json:"cashier" bson:"cashier"`

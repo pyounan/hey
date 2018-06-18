@@ -21,8 +21,8 @@ func Pad(size int) string {
 
 //PrintFolio to print folio recepit
 func PrintFolio(folio *FolioPrint) error {
-	fmt.Println("printing/folio.go")
-	fmt.Printf("printing/folio.go items len 1: %v\n", len(folio.Items))
+	// fmt.Println("printing/folio.go")
+	// fmt.Printf("printing/folio.go items len 1: %v\n", len(folio.Items))
 
 	printingParams := make(map[int]map[string]int)
 
@@ -61,6 +61,13 @@ func PrintFolio(folio *FolioPrint) error {
 	if folio.Printer.IsUSB {
 		p, err = connection.NewConnection("usb", *folio.Printer.PrinterIP)
 		if err != nil {
+			for i := 0; i <= 2; i++ {
+				time.Sleep(1 * time.Second)
+				p, err = connection.NewConnection("usb", *folio.Printer.PrinterIP)
+				if err == nil {
+					break
+				}
+			}
 			return err
 		}
 	} else {
@@ -69,7 +76,7 @@ func PrintFolio(folio *FolioPrint) error {
 			return err
 		}
 	}
-	fmt.Printf("Break 1 %v\n", p)
+	// fmt.Printf("Break 1 %v\n", p)
 	p.SetAlign("center")
 	p.SetFontSize(byte(printingParams[folio.Printer.PaperWidth]["company_name_width"]),
 		byte(printingParams[folio.Printer.PaperWidth]["company_name_height"]))
@@ -163,8 +170,9 @@ func PrintFolio(folio *FolioPrint) error {
 		"C": false,
 		"D": false,
 	}
-	fmt.Printf("printing/folio.go items len : %v\n", len(folio.Items))
+	// fmt.Printf("printing/folio.go items len : %v\n", len(folio.Items))
 	for _, item := range folio.Items {
+		// fmt.Printf("Price %v\n", item.Price)
 		price := fmt.Sprintf("%.2f", item.Price)
 		desc := item.Description
 		text := desc + Pad(printingParams[folio.Printer.PaperWidth]["item_padding"]-len(desc)) + " " +
@@ -209,15 +217,19 @@ func PrintFolio(folio *FolioPrint) error {
 	p.WriteString(totalTrans + Pad(printingParams[folio.Printer.PaperWidth]["total_padding"]-
 		len(totalVal)-len(totalTrans)) + " " + totalVal + "\n")
 	p.SetFontSize(1, 1)
-	fmt.Println("Break before issettled")
-	if folio.Invoice.IsSettled == true && folio.Invoice.Postings != nil && len(folio.Invoice.Postings) > 0 {
+	// fmt.Println("Break before issettled")
+	// fmt.Printf("folio.Invoice.IsSettled  %v\n", folio.Invoice.IsSettled)
+	// fmt.Printf("null ?folio.Invoice.Postings  %v\n", folio.Invoice.Postings != nil)
+	// fmt.Printf("len folio.Invoice.Postings  %v\n", len(folio.Invoice.Postings))
+
+	if folio.Invoice.Postings != nil && len(folio.Invoice.Postings) > 0 {
 		// fmt.Printf("Deparment %v\n", len(folio.Invoice.Postings))
 		paymentTrans := "Payment"
 		p.WriteString(paymentTrans + Pad(printingParams[folio.Printer.PaperWidth]["subtotal_padding"]-
 			len(paymentTrans)-len(total)) + " " + total + "\n")
 		for _, posting := range folio.Invoice.Postings {
-			// fmt.Printf("Posting %v\n", posting)
-			deptAmount := fmt.Sprintf("%.2f", posting.Amount)
+			// fmt.Printf("Posting %v\n", posting.DepartmentDetails)
+			deptAmount := fmt.Sprintf("%.2f", posting.ForeignAmount)
 			if posting.RoomNumber != nil && *posting.RoomNumber != 0 {
 				if folio.Invoice.WalkinName != "" {
 					guestName = folio.Invoice.WalkinName
@@ -372,6 +384,6 @@ func PrintFolio(folio *FolioPrint) error {
 	}
 	p.Formfeed()
 	p.Cut()
-	fmt.Println("END Folio")
+	// fmt.Println("END Folio")
 	return nil
 }

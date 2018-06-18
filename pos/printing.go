@@ -31,12 +31,11 @@ type MenuPrinter struct {
 
 //sendToPrint
 //IF printer is Kitchen
-//get invoice.Events
-//Group items by storeMenuItemConfig ID
-//Loop on each Group
+//get invoice.ItemsPerPrinter
+//Loop on each Printer
 //Get Printer object
 //If printer id == null then chage it with smartprinter ip
-//Send Item to printKitchenOrder
+//Send Items to printKitchenOrder
 //IF printer is Folio
 //For Invoice.Items
 //Get terminal Cashier Printer
@@ -48,85 +47,58 @@ func sendToPrint(req PrintRequest) {
 	var printer models.Printer
 	var err error
 
-	fmt.Printf("Printer Type %v\n", req.PrinterType)
 	if req.PrinterType == kitchenPrinter {
-		items := make(map[MenuPrinter][]models.EJEvent)
-		// fmt.Printf("Events json:events %v\n", len(data.Invoice.Events))
-		// fmt.Printf("Events json:grouped_lineitems %v\n", len(data.Invoice.GroupedLineItems))
-		// fmt.Printf("Events json:posinvoicelineitem_set %v\n", len(data.Invoice.Items))
-		// i := 0
-		for _, e := range req.Invoice.GroupedLineItems {
-			var menu models.StoreMenuItemConfig
-			fmt.Println(e.Item)
-			// fmt.Printf("Condition %v\n\n", (e.Quantity-e.SubmittedQuantity) > 0)
-			// if (e.Quantity - e.SubmittedQuantity) > 0 {
-			// 	continue
-			// }
-			menu, err = getMenuByItemID(*e.Item, req.Invoice.Store)
-			// menu, err = getMenuByItemID(8, req.Invoice.Store)
-			if err == nil {
-				fmt.Printf("Menu id %v\n", menu.ID)
-				fmt.Printf("Menu Menu %v\n", menu.Menu)
-				printer, err = getPrinterByID(menu.AttachedAttributes.KitchenPrinter)
+		for printerID, events := range req.Invoice.ItemsPerPrinter {
+			printer, err = getPrinterByID(printerID)
+			if err != nil {
+				fmt.Printf("Printer Stopped with Printer Error %v\n", err)
+				continue
 			} else {
-				fmt.Printf("Printer Stopped with Menu Error %v\n", err)
-				return
-			}
-			fmt.Printf("Printer for E %v \t printer %v\n\n", e.Description, printer)
-			p := printing.MaptoPrinter(printer)
-			menuPrinter := MenuPrinter{
-				Printer: p,
-				Menu:    menu.Menu,
-			}
-			if items[menuPrinter] != nil {
-				fmt.Printf("Found Printer for E %v printer \t %v\n\n", e.Description, printer)
-				events := items[menuPrinter]
-				events = append(events, e)
-				items[menuPrinter] = events
-			} else {
-				fmt.Printf("Not Found Found Printer for E %v  \t printer %v\n\n", e.Description, printer)
-				items[menuPrinter] = []models.EJEvent{e}
-			}
-		}
-		for group, event := range items {
-			if group.Printer.PrinterIP != "" {
-				fmt.Printf("Start printing on %v\n", group.Printer.PrinterIP)
-				k := printing.KitchenPrint{}
-				k.GropLineItems = event
-				k.Printer = group.Printer
-				if !k.Printer.IsUSB {
-					k.Printer.PrinterIP = group.Printer.PrinterIP + ":9100"
+				if printer.PrinterIP == nil {
+					fmt.Printf("Printer Stopped with Printer Error IP == nil")
+					continue
 				}
-				k.Invoice = req.Invoice
-				k.Timezone = config.Config.TimeZone
-				// k.Timezone = "Africa/Cairo"
-				k.Cashier, err = getCashierByNumber(req.Invoice.CashierNumber)
-				if err != nil {
-					fmt.Printf("Can't get casher for number %v,ERR %v\n", req.Invoice.CashierNumber, err)
-					return
+				p := printing.MaptoPrinter(printer)
+
+				if p.PrinterIP != "" {
+					k := printing.KitchenPrint{}
+					k.GropLineItems = events
+					k.Printer = p
+					if !k.Printer.IsUSB {
+						k.Printer.PrinterIP = p.PrinterIP + ":9100"
+					}
+					k.Invoice = req.Invoice
+					k.Timezone = config.Config.TimeZone
+					// k.Timezone = "Africa/Cairo"
+					k.Cashier, err = getCashierByNumber(req.Invoice.CashierNumber)
+					if err != nil {
+						fmt.Printf("Can't get casher for number %v,ERR %v\n", req.Invoice.CashierNumber, err)
+						continue
+					}
+					// defer func() {
+					// 	if r := recover(); r != nil {
+					// 		fmt.Printf("Recovered Kitchen Print %v\n", r)
+					// 	}
+					// }()
+					fmt.Printf("Sent PrintKitchen %v\n", p.PrinterIP)
+					for _, i := range k.GropLineItems {
+						fmt.Println(i.Description)
+					}
+					err := printing.PrintKitchen(&k)
+					if err != nil {
+						fmt.Printf("Kitchen Printer err %v\n", err)
+					}
+				} else {
+					log.Println("Printing stop no printer IP")
 				}
-				// defer func() {
-				// 	if r := recover(); r != nil {
-				// 		fmt.Printf("Recovered Kitchen Print %v\n", r)
-				// 	}
-				// }()
-				fmt.Printf("Sent PrintKitchen %v\n", group.Printer.PrinterIP)
-				for _, i := range k.GropLineItems {
-					fmt.Println(i.Description)
-				}
-				err := printing.PrintKitchen(&k)
-				if err != nil {
-					fmt.Printf("Kitchen Printer err %v\n", err)
-				}
-			} else {
-				log.Println("Printing stop no printer IP")
+
 			}
 		}
 
 	}
 	if req.PrinterType == folioPrinter {
-		fmt.Printf("Items %v\n", len(req.OrderedItems))
-		fmt.Printf("Printer Type %v\n", req.PrinterType)
+		// fmt.Printf("Items %v\n", len(req.OrderedItems))
+		// fmt.Printf("Printer Type %v\n", req.PrinterType)
 		var printerIP string
 		printer, err := getPrinterForTerminalIP(req.Invoice.TerminalID, "cashier")
 		// printer, err := getPrinterForTerminalIP(2, "cashier")
@@ -135,7 +107,8 @@ func sendToPrint(req PrintRequest) {
 				printerIP = *printer.PrinterIP
 			}
 		}
-		fmt.Printf("Printer Folio %v\n", printer)
+		// fmt.Printf("Postings Length %v\n", len(req.Invoice.Postings))
+		// fmt.Printf("Printer Folio %v\n", printer)
 		if printerIP != "" {
 			fmt.Printf("Start printing on %v\n", printerIP)
 			f := printing.FolioPrint{}

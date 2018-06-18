@@ -687,18 +687,28 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 	syncer.QueueRequest(r.RequestURI, r.Method, r.Header, req)
 
+	session := db.Session.Copy()
+	defer session.Close()
+	dbInvoice := models.Invoice{}
+	err = db.DB.C("posinvoices").
+		With(session).
+		Find(bson.M{"invoice_number": req.Invoice.InvoiceNumber}).
+		One(&dbInvoice)
+	if err != nil {
+		log.Println("failed to find posinvoice with this invoice number")
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
 	for i := 0; i < len(req.Postings); i++ {
 		req.Postings[i].PosPostingInformations = []models.Posting{}
 		req.Postings[i].PosPostingInformations = append(req.Postings[i].PosPostingInformations, models.Posting{})
 		req.Postings[i].PosPostingInformations[0].Comments = ""
 	}
-	req.Invoice.Postings = append(req.Invoice.Postings, req.Postings...)
+	dbInvoice.Postings = append(dbInvoice.Postings, req.Postings...)
+	req.Invoice.Postings = dbInvoice.Postings
 	req.Invoice.IsSettled = true
 	req.Invoice.PaidAmount = req.Invoice.Total
 	req.Invoice.Change = req.ChangeAmount
-
-	session := db.Session.Copy()
-	defer session.Close()
 
 	err = db.DB.C("posinvoices").With(session).Update(bson.M{"invoice_number": req.Invoice.InvoiceNumber}, req.Invoice)
 	if err != nil {
