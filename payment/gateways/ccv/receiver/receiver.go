@@ -75,6 +75,21 @@ func handleIncomingMessages(c *net.Listener, notif chan<- socket.Event) {
 	}
 }
 
+func handleInput(conn *net.Conn, resp entity.DeviceRequest) error {
+	req := entity.DeviceResponse{}
+	req.Attrs.RequestType = "Input"
+	req.Attrs.RequestID = resp.Attrs.RequestID
+	req.Attrs.WorkstationID = resp.Attrs.WorkstationID
+	req.Attrs.OverallResult = "Success"
+	req.Output.Target = resp.Output.Target
+	req.Output.OutResult = "Success"
+	req.Attrs.XMLNS = resp.Attrs.XMLNS
+	req.Input.Target = "CashierKeyboard"
+	req.Input.InResult = "Success"
+	req.Input.InputValue.InNumber = 1
+	return sendToChan(conn, &req)
+}
+
 func processMessage(conn *net.Conn, notif chan<- socket.Event) (*entity.DeviceRequest, error) {
 	defer (*conn).Close()
 	resp := entity.DeviceRequest{}
@@ -143,6 +158,11 @@ func processMessage(conn *net.Conn, notif chan<- socket.Event) (*entity.DeviceRe
 	notif <- m
 	log.Println("=======================")
 	// time.Sleep(1 * time.Second)
+
+	if resp.RequestType == "Input" {
+		err = handleInput(conn, resp)
+		return &resp, err
+	}
 
 	req := entity.DeviceResponse{}
 	req.Attrs.RequestType = "Output"

@@ -31,6 +31,7 @@ type DeviceResponse struct {
 	XMLName xml.Name `xml:"DeviceResponse"`
 	Attrs
 	Output Output
+	Input  Input
 }
 
 type POSdata struct {
