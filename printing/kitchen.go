@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/cloudinn/escpos"
 	"github.com/cloudinn/escpos/connection"
@@ -16,23 +17,30 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 
 	printingParams[80] = make(map[string]int)
 	printingParams[80]["width"] = 800
-	printingParams[80]["char_per_line"] = 28
-	printingParams[80]["item_width"] = 18
-	printingParams[80]["store_unit"] = 5
-	printingParams[80]["qty"] = 8
+	printingParams[80]["char_per_line"] = 40
+	printingParams[80]["item_width"] = 30
+	printingParams[80]["store_unit"] = 2
+	printingParams[80]["qty"] = 5
 
 	printingParams[76] = make(map[string]int)
 	printingParams[76]["width"] = 760
-	printingParams[76]["char_per_line"] = 33
-	printingParams[76]["item_width"] = 26
-	printingParams[76]["store_unit"] = 5
-	printingParams[76]["qty"] = 8
+	printingParams[76]["char_per_line"] = 32
+	printingParams[76]["item_width"] = 24
+	printingParams[76]["store_unit"] = 2
+	printingParams[76]["qty"] = 5
 
 	var p *escpos.Printer
 	var err error
 	if kitchen.Printer.IsUSB {
 		p, err = connection.NewConnection("usb", kitchen.Printer.PrinterIP)
 		if err != nil {
+			for i := 0; i <= 2; i++ {
+				time.Sleep(1 * time.Second)
+				p, err = connection.NewConnection("usb", kitchen.Printer.PrinterIP)
+				if err == nil {
+					break
+				}
+			}
 			return err
 		}
 	} else {
@@ -41,25 +49,27 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 			return err
 		}
 	}
-	// fmt.Println("Printer Kitchen After Connect")
 
-	p.SetAlign("left")
-	if kitchen.Printer.PaperWidth == 76 {
-		p.SetFont("A")
-		p.SetFontSize(1, 2)
-	} else {
-		p.SetFont("B")
-		p.SetFontSize(2, 2)
-	}
-	p.WriteString("Printer ID: " + kitchen.Printer.PrinterID + "\n")
-	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
-	p.SetAlign("center")
-	p.WriteString("Invoice Number" + ": " + kitchen.Invoice.InvoiceNumber + "\n")
-	p.WriteString("Covers" + ": " + fmt.Sprintf("%d", kitchen.Invoice.Pax) + "\n")
+	p.WriteString(CheckLang("Printer ID: " + kitchen.Printer.PrinterID))
+
+	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
+
+	// p.SetAlign("center")
+	p.WriteString(CheckLang(Center(utf8.RuneCountInString("Invoice Number"+": "+
+		kitchen.Invoice.InvoiceNumber))) + CheckLang("Invoice Number"+": "+
+		kitchen.Invoice.InvoiceNumber))
+
+	p.WriteString(CheckLang(Center(utf8.RuneCountInString("Covers"+": "+
+		fmt.Sprintf("%d", kitchen.Invoice.Pax)))) + CheckLang("Covers"+": "+
+		fmt.Sprintf("%d", kitchen.Invoice.Pax)))
+
 	if kitchen.Invoice.TableID != nil {
-		p.WriteString("Table" + ": " + *kitchen.Invoice.TableDetails + "\n")
+		p.WriteString(CheckLang(Center(utf8.RuneCountInString("Table"+": "+
+			*kitchen.Invoice.TableDetails))) + CheckLang("Table"+": "+
+			*kitchen.Invoice.TableDetails))
 	} else {
-		p.WriteString("Takeout" + "\n")
+		p.WriteString(CheckLang(Center(utf8.RuneCountInString("Takeout"))) +
+			CheckLang("Takeout"))
 	}
 	guestName := ""
 	if kitchen.Invoice.WalkinName != "" {
@@ -70,73 +80,61 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 		guestName = *kitchen.Invoice.RoomDetails
 	}
 	if guestName != "" {
-		p.WriteString("Guest name" + ": " + guestName + "\n")
+		p.WriteString(Center(utf8.RuneCountInString("Guest name"+": ")) +
+			CheckLang("Guest name"+": "))
+		p.WriteString(CheckLang(Center(utf8.RuneCountInString(guestName))) +
+			CheckLang(guestName))
 	}
-	p.WriteString(fmt.Sprintf("%d", kitchen.Cashier.Number) + "/" + kitchen.Cashier.Name + "\n")
+	p.WriteString(CheckLang(Center(utf8.RuneCountInString(fmt.Sprintf("%d", kitchen.Cashier.Number)+
+		"/"+kitchen.Cashier.Name))) + CheckLang(fmt.Sprintf("%d", kitchen.Cashier.Number)+
+		"/"+kitchen.Cashier.Name))
+
 	loc, _ := time.LoadLocation(kitchen.Timezone)
 	submittedOn := time.Now().In(loc)
 	date := submittedOn.Format(time.RFC1123)
-	p.SetFont("A")
-	p.SetFontSize(1, 1)
-	p.WriteString(date + "\n")
+	p.WriteString(Center(utf8.RuneCountInString(date)) + date)
 
-	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
-	p.SetAlign("left")
-	p.SetReverse(1)
-	p.SetEmphasize(1)
+	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
 
-	if kitchen.Printer.PaperWidth == 76 {
-		p.SetFont("A")
-		p.SetFontSize(1, 2)
-	} else {
-		p.SetFont("B")
-		p.SetFontSize(2, 2)
-	}
 	item := "Item"
 	qty := "Qty"
 	storeUnit := "Unit"
-	p.WriteString(item + Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
-		len(item)) + qty + Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-len(qty)) +
-		storeUnit + Pad(printingParams[kitchen.Printer.PaperWidth]["store_unit"]-
-		len(storeUnit)) + "\n")
-	p.SetReverse(0)
-	p.SetEmphasize(0)
-	if kitchen.Printer.PaperWidth == 76 {
-		p.SetFont("A")
-		p.SetFontSize(1, 2)
-	} else {
-		p.SetFont("B")
-		p.SetFontSize(2, 2)
-	}
-	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
+	p.SetWhiteOnBlack(false)
 
-	// fmt.Printf("Before Groplineitems size %v\n", len(kitchen.GropLineItems))
+	p.WriteString(item + Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
+		utf8.RuneCountInString(item)) + qty +
+		Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-utf8.RuneCountInString(qty)) +
+		storeUnit)
+
+	p.SetWhiteOnBlack(true)
+	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
+
 	for _, item := range kitchen.GropLineItems {
-		desc := item.Description
-		// fmt.Printf("Kitchen %v\n", desc)
-		p.WriteString(desc + Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
-			len(desc)) + fmt.Sprintf("%.2f", item.Quantity) +
+		desc := CheckLang(item.Description)
+		qty := CheckLang(fmt.Sprintf("%.2f", item.Quantity))
+		baseUnit := CheckLang(item.BaseUnit)
+		p.WriteString(desc +
+			Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
+				utf8.RuneCountInString(desc)) + qty +
 			Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-
-				len(fmt.Sprintf("%.2f", item.Quantity))) + item.BaseUnit + "\n")
+				utf8.RuneCountInString(qty)) + baseUnit)
+
 		for _, condiment := range item.CondimentLineItems {
-			p.WriteString(condiment.Description + "\n")
+			p.WriteString(CheckLang(condiment.Description))
 		}
 		if item.CondimentsComment != "" {
-			p.WriteString(item.CondimentsComment + "\n")
+			p.WriteString(CheckLang(item.CondimentsComment))
 		}
 		if item.LastChildInCourse {
-			p.WriteString(strings.Repeat("-", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
+			p.WriteString(strings.Repeat("-", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
 		}
 	}
-	// fmt.Println("After Groplineitems")
-	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
-	p.Formfeed()
-	p.SetAlign("center")
-	text := strings.ToUpper("This is not a") + "\n" + strings.ToUpper("valid tax invoice")
-	p.WriteString(text + "\n")
+	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
+	p.SetFontSizePoints(40)
+	p.WriteString(Pad((30-len("This is not a"))/2) + strings.ToUpper("This is not a"))
+	p.WriteString(Pad((30-len("valid tax invoice"))/2) + strings.ToUpper("valid tax invoice"))
 	p.Formfeed()
 	p.Cut()
-	// fmt.Println("Kitchen END")
 	return nil
 
 }
