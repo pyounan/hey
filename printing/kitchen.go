@@ -55,20 +55,20 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
 
 	// p.SetAlign("center")
-	p.WriteString(CheckLang(Center(utf8.RuneCountInString("Invoice Number"+": "+
-		kitchen.Invoice.InvoiceNumber))) + CheckLang("Invoice Number"+": "+
+	p.WriteString(Center(utf8.RuneCountInString("Invoice Number"+": "+
+		kitchen.Invoice.InvoiceNumber)) + CheckLang("Invoice Number"+": "+
 		kitchen.Invoice.InvoiceNumber))
 
-	p.WriteString(CheckLang(Center(utf8.RuneCountInString("Covers"+": "+
-		fmt.Sprintf("%d", kitchen.Invoice.Pax)))) + CheckLang("Covers"+": "+
+	p.WriteString(Center(utf8.RuneCountInString("Covers"+": "+
+		fmt.Sprintf("%d", kitchen.Invoice.Pax))) + CheckLang("Covers"+": "+
 		fmt.Sprintf("%d", kitchen.Invoice.Pax)))
 
 	if kitchen.Invoice.TableID != nil {
-		p.WriteString(CheckLang(Center(utf8.RuneCountInString("Table"+": "+
-			*kitchen.Invoice.TableDetails))) + CheckLang("Table"+": "+
+		p.WriteString(Center(utf8.RuneCountInString("Table"+": "+
+			*kitchen.Invoice.TableDetails)) + CheckLang("Table"+": "+
 			*kitchen.Invoice.TableDetails))
 	} else {
-		p.WriteString(CheckLang(Center(utf8.RuneCountInString("Takeout"))) +
+		p.WriteString(Center(utf8.RuneCountInString("Takeout")) +
 			CheckLang("Takeout"))
 	}
 	guestName := ""
@@ -82,11 +82,11 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	if guestName != "" {
 		p.WriteString(Center(utf8.RuneCountInString("Guest name"+": ")) +
 			CheckLang("Guest name"+": "))
-		p.WriteString(CheckLang(Center(utf8.RuneCountInString(guestName))) +
+		p.WriteString(Center(utf8.RuneCountInString(guestName)) +
 			CheckLang(guestName))
 	}
-	p.WriteString(CheckLang(Center(utf8.RuneCountInString(fmt.Sprintf("%d", kitchen.Cashier.Number)+
-		"/"+kitchen.Cashier.Name))) + CheckLang(fmt.Sprintf("%d", kitchen.Cashier.Number)+
+	p.WriteString(Center(utf8.RuneCountInString(fmt.Sprintf("%d", kitchen.Cashier.Number)+
+		"/"+kitchen.Cashier.Name)) + CheckLang(fmt.Sprintf("%d", kitchen.Cashier.Number)+
 		"/"+kitchen.Cashier.Name))
 
 	loc, _ := time.LoadLocation(kitchen.Timezone)
