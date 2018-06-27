@@ -2,6 +2,7 @@ package printing
 
 import (
 	"strings"
+	"unicode/utf8"
 
 	"github.com/01walid/goarabic"
 	"github.com/abadojack/whatlanggo"
@@ -17,7 +18,8 @@ func Pad(size int) string {
 }
 
 //Center to Center and Image
-func Center(wordLen int) string {
+func Center(phrase string) string {
+	wordLen := utf8.RuneCountInString(phrase)
 	return Pad((40 - wordLen) / 2)
 
 }

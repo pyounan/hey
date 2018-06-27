@@ -55,21 +55,17 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
 
 	// p.SetAlign("center")
-	p.WriteString(Center(utf8.RuneCountInString("Invoice Number"+": "+
-		kitchen.Invoice.InvoiceNumber)) + CheckLang("Invoice Number"+": "+
-		kitchen.Invoice.InvoiceNumber))
+	p.WriteString(Center("Invoice Number"+": "+kitchen.Invoice.InvoiceNumber) +
+		CheckLang("Invoice Number"+": "+kitchen.Invoice.InvoiceNumber))
 
-	p.WriteString(Center(utf8.RuneCountInString("Covers"+": "+
-		fmt.Sprintf("%d", kitchen.Invoice.Pax))) + CheckLang("Covers"+": "+
-		fmt.Sprintf("%d", kitchen.Invoice.Pax)))
+	p.WriteString(Center("Covers"+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax)) +
+		CheckLang("Covers"+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax)))
 
 	if kitchen.Invoice.TableID != nil {
-		p.WriteString(Center(utf8.RuneCountInString("Table"+": "+
-			*kitchen.Invoice.TableDetails)) + CheckLang("Table"+": "+
-			*kitchen.Invoice.TableDetails))
+		p.WriteString(Center("Table"+": "+*kitchen.Invoice.TableDetails) +
+			CheckLang("Table"+": "+*kitchen.Invoice.TableDetails))
 	} else {
-		p.WriteString(Center(utf8.RuneCountInString("Takeout")) +
-			CheckLang("Takeout"))
+		p.WriteString(Center("Takeout") + CheckLang("Takeout"))
 	}
 	guestName := ""
 	if kitchen.Invoice.WalkinName != "" {
@@ -80,19 +76,16 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 		guestName = *kitchen.Invoice.RoomDetails
 	}
 	if guestName != "" {
-		p.WriteString(Center(utf8.RuneCountInString("Guest name"+": ")) +
-			CheckLang("Guest name"+": "))
-		p.WriteString(Center(utf8.RuneCountInString(guestName)) +
-			CheckLang(guestName))
+		p.WriteString(Center("Guest name"+": ") + CheckLang("Guest name"+": "))
+		p.WriteString(Center(guestName) + CheckLang(guestName))
 	}
-	p.WriteString(Center(utf8.RuneCountInString(fmt.Sprintf("%d", kitchen.Cashier.Number)+
-		"/"+kitchen.Cashier.Name)) + CheckLang(fmt.Sprintf("%d", kitchen.Cashier.Number)+
-		"/"+kitchen.Cashier.Name))
+	p.WriteString(Center(fmt.Sprintf("%d", kitchen.Cashier.Number)+"/"+kitchen.Cashier.Name) +
+		CheckLang(fmt.Sprintf("%d", kitchen.Cashier.Number)+"/"+kitchen.Cashier.Name))
 
 	loc, _ := time.LoadLocation(kitchen.Timezone)
 	submittedOn := time.Now().In(loc)
 	date := submittedOn.Format(time.RFC1123)
-	p.WriteString(Center(utf8.RuneCountInString(date)) + date)
+	p.WriteString(Center(date) + date)
 
 	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
 
