@@ -30,21 +30,23 @@ func PrintFolio(folio *FolioPrint) error {
 	printingParams[80]["fdm_vat_padding"] = 10
 	printingParams[80]["fdm_net_padding"] = 10
 	printingParams[80]["tax_padding"] = 5
+	printingParams[80]["char_per_line"] = 40
 
 	printingParams[76] = make(map[string]int)
 	printingParams[76]["width"] = 760
 	printingParams[76]["company_name_width"] = 2
 	printingParams[76]["company_name_height"] = 2
-	printingParams[76]["item_padding"] = 19
+	printingParams[76]["item_padding"] = 25
 	printingParams[76]["qty_padding"] = 5
-	printingParams[76]["price_padding"] = 10
+	printingParams[76]["price_padding"] = 8
 	printingParams[76]["subtotal_padding"] = 32
-	printingParams[76]["total_padding"] = 17
-	printingParams[76]["fdm_rate_padding"] = 9
-	printingParams[76]["fdm_taxable_padding"] = 13
-	printingParams[76]["fdm_vat_padding"] = 12
+	printingParams[76]["total_padding"] = 15
+	printingParams[76]["fdm_rate_padding"] = 8
+	printingParams[76]["fdm_taxable_padding"] = 8
+	printingParams[76]["fdm_vat_padding"] = 8
 	printingParams[76]["fdm_net_padding"] = 8
-	printingParams[76]["tax_padding"] = 3
+	printingParams[76]["tax_padding"] = 5
+	printingParams[76]["char_per_line"] = 32
 
 	var p *escpos.Printer
 	var err error
@@ -65,7 +67,7 @@ func PrintFolio(folio *FolioPrint) error {
 		p.PrintImage(folio.Store.Logo)
 	}
 	p.SetImageHight(70)
-	p.SetFontSizePoints(72)
+	p.SetFontSizePoints(70)
 
 	taxInvoiceRT := "Tax Invoice"
 	proformaTR := "PRO FORMA"
@@ -96,23 +98,44 @@ func PrintFolio(folio *FolioPrint) error {
 	// p.SetFontSize(1, 1)
 	p.SetImageHight(38)
 	p.SetFontSizePoints(30)
-	p.WriteString(Center(folio.Company.VATNumber) + CheckLang(folio.Company.VATNumber))
-	p.WriteString(Center(folio.Company.Address) + CheckLang(folio.Company.Address))
-	p.WriteString(Center(folio.Company.PostalCode+"-"+folio.Company.City) +
+	p.WriteString(Center(folio.Company.VATNumber,
+		printingParams[folio.Printer.PaperWidth]["width"]) +
+		CheckLang(folio.Company.VATNumber))
+	p.WriteString(Center(folio.Company.Address,
+		printingParams[folio.Printer.PaperWidth]["width"]) +
+		CheckLang(folio.Company.Address))
+	p.WriteString(Center(folio.Company.PostalCode+"-"+folio.Company.City,
+		printingParams[folio.Printer.PaperWidth]["width"]) +
 		CheckLang(folio.Company.PostalCode+"-"+folio.Company.City))
 	var headers []string
 	if folio.Store.InvoiceHeader != "" {
 		headers = strings.Split(folio.Store.InvoiceHeader, "\n")
 		for _, header := range headers {
-			p.WriteString(Center(header) + CheckLang(header))
+			if utf8.RuneCountInString(header) >
+				printingParams[folio.Printer.PaperWidth]["char_per_line"] {
+				p.WriteString(Center(header[0:printingParams[folio.Printer.PaperWidth]["char_per_line"]],
+					printingParams[folio.Printer.PaperWidth]["width"]) +
+					CheckLang(header[0:printingParams[folio.Printer.PaperWidth]["char_per_line"]]))
+				p.WriteString(Center(header[printingParams[folio.Printer.PaperWidth]["char_per_line"]:],
+					printingParams[folio.Printer.PaperWidth]["width"]) +
+					CheckLang(header[printingParams[folio.Printer.PaperWidth]["char_per_line"]:]))
+			} else {
+
+				p.WriteString(Center(header,
+					printingParams[folio.Printer.PaperWidth]["width"]) +
+					CheckLang(header))
+			}
 		}
 	}
-	p.WriteString(Center(folio.Store.Description) + CheckLang(folio.Store.Description))
-	p.WriteString(Center("Invoice number: "+folio.Invoice.InvoiceNumber) +
+	p.WriteString(Center(folio.Store.Description,
+		printingParams[folio.Printer.PaperWidth]["width"]) +
+		CheckLang(folio.Store.Description))
+	p.WriteString(Center("Invoice number: "+folio.Invoice.InvoiceNumber,
+		printingParams[folio.Printer.PaperWidth]["width"]) +
 		CheckLang("Invoice number: "+folio.Invoice.InvoiceNumber))
 	// p.SetFontSize(2, 2)
 	p.SetImageHight(70)
-	p.SetFontSizePoints(72)
+	p.SetFontSizePoints(70)
 	p.WriteString(Pad((16-
 		utf8.RuneCountInString("Covers: "+fmt.Sprintf("%d", folio.Invoice.Pax)))/2) +
 		CheckLang("Covers: "+fmt.Sprintf("%d", folio.Invoice.Pax)))
@@ -121,7 +144,9 @@ func PrintFolio(folio *FolioPrint) error {
 			utf8.RuneCountInString("Table: "+*folio.Invoice.TableDetails))/2) +
 			CheckLang("Table: "+*folio.Invoice.TableDetails))
 	} else {
-		p.WriteString(Center("Takeout") + CheckLang("Takeout"))
+		p.WriteString(Center("Takeout",
+			printingParams[folio.Printer.PaperWidth]["width"]) +
+			CheckLang("Takeout"))
 	}
 	guestName := ""
 	if folio.Invoice.WalkinName != "" {
@@ -137,8 +162,12 @@ func PrintFolio(folio *FolioPrint) error {
 	p.SetImageHight(38)
 	p.SetFontSizePoints(30)
 	if guestName != "" {
-		p.WriteString(Center("Guest name: ") + CheckLang("Guest name: "))
-		p.WriteString(Center(guestName) + CheckLang(guestName))
+		p.WriteString(Center("Guest name: ",
+			printingParams[folio.Printer.PaperWidth]["width"]) +
+			CheckLang("Guest name: "))
+		p.WriteString(Center(guestName,
+			printingParams[folio.Printer.PaperWidth]["width"]) +
+			CheckLang(guestName))
 	}
 	p.SetWhiteOnBlack(false)
 	item := "Item"
@@ -152,7 +181,11 @@ func PrintFolio(folio *FolioPrint) error {
 			utf8.RuneCountInString(price))
 
 	if config.Config.IsFDMEnabled {
-		p.SetFontSizePoints(28)
+		if printingParams[folio.Printer.PaperWidth]["width"] == 760 {
+			p.SetFontSizePoints(22)
+		} else {
+			p.SetFontSizePoints(28)
+		}
 		tax := "Tax"
 		p.WriteString(tableHeader + tax + Pad(printingParams[folio.Printer.PaperWidth]["tax_padding"]-
 			utf8.RuneCountInString(tax)))
@@ -183,10 +216,19 @@ func PrintFolio(folio *FolioPrint) error {
 				utf8.RuneCountInString(price))
 
 		if config.Config.IsFDMEnabled {
+			if printingParams[folio.Printer.PaperWidth]["width"] == 760 {
+
+				p.SetFontSizePoints(22)
+			} else {
+				p.SetFontSizePoints(28)
+			}
 			text += item.VAT + Pad(printingParams[folio.Printer.PaperWidth]["tax_padding"]-1)
 			vatsToDisplay[item.VAT] = true
+			p.WriteString(text)
+		} else {
+			p.SetFontSizePoints(30)
+			p.WriteString(text)
 		}
-		p.WriteString(text)
 		p.Formfeed()
 	}
 	subTotal := fmt.Sprintf("%.2f", folio.Invoice.Subtotal)
@@ -197,6 +239,7 @@ func PrintFolio(folio *FolioPrint) error {
 	} else {
 		subTotalVal = subTotal
 	}
+	p.SetFontSizePoints(30)
 	subTotalTrans := "Subtotal"
 	p.WriteString(CheckLang(subTotalTrans) +
 		Pad(printingParams[folio.Printer.PaperWidth]["subtotal_padding"]-
@@ -214,7 +257,7 @@ func PrintFolio(folio *FolioPrint) error {
 
 	total := fmt.Sprintf("%.2f", folio.Invoice.Total)
 	p.SetImageHight(70)
-	p.SetFontSizePoints(72)
+	p.SetFontSizePoints(70)
 	totalVal := "0.00"
 	if folio.Invoice.HouseUse {
 		totalVal = "0.00"
@@ -247,7 +290,7 @@ func PrintFolio(folio *FolioPrint) error {
 				}
 				p.WriteString(fmt.Sprintf("%d", posting.RoomNumber) +
 					" " + CheckLang(guestName) +
-					Pad(39-utf8.RuneCountInString(guestName)-
+					Pad(32-utf8.RuneCountInString(guestName)-
 						utf8.RuneCountInString(fmt.Sprintf("%d", posting.RoomNumber))-
 						utf8.RuneCountInString(deptAmount)) + deptAmount)
 			} else {
@@ -308,7 +351,7 @@ func PrintFolio(folio *FolioPrint) error {
 					vatAmount := fmt.Sprintf("%.2f", res.VATSummary[k]["vat_amount"])
 					netAmount := fmt.Sprintf("%.2f", res.VATSummary[k]["net_amount"])
 					p.WriteString(k +
-						Pad(printingParams[folio.Printer.PaperWidth]["fdm_rate_padding"]-1) +
+						Pad(printingParams[folio.Printer.PaperWidth]["fdm_rate_padding"]) +
 						Pad(printingParams[folio.Printer.PaperWidth]["fdm_taxable_padding"]-
 							utf8.RuneCountInString(taxableAmount)) + taxableAmount +
 						Pad(printingParams[folio.Printer.PaperWidth]["fdm_vat_padding"]-
@@ -339,8 +382,10 @@ func PrintFolio(folio *FolioPrint) error {
 	p.WriteString(CheckLang("Opened at: " + folio.Invoice.CreatedOn))
 	if folio.Invoice.ClosedOn != nil {
 		closedAt := folio.Invoice.ClosedOn.In(loc)
-		closedAtStr := closedAt.Format(time.RFC1123)
+		closedAtStr := closedAt.Format("02 Jan 2006 15:04:05")
+		p.SetFontSizePoints(28)
 		p.WriteString(CheckLang("Closed on: " + closedAtStr))
+		p.SetFontSizePoints(30)
 
 	}
 	p.WriteString(CheckLang("Created by: " + folio.Invoice.CashierDetails))
@@ -349,31 +394,54 @@ func PrintFolio(folio *FolioPrint) error {
 	if config.Config.IsFDMEnabled {
 		for _, res := range folio.Invoice.FDMResponses {
 			p.WriteString(CheckLang("Ticket Number: " + res.TicketNumber))
-			p.WriteString(CheckLang("Ticket Date: " + res.Date.String()))
-			p.WriteString(CheckLang("Event: " + res.EventLabel[0:30]))
-			p.WriteString(CheckLang(res.EventLabel[30:]))
-			p.WriteString(CheckLang("Terminal Identifier: " +
-				folio.Terminal.RCRS + "/" + folio.Terminal.Description[0:4]))
-			p.WriteString(CheckLang(folio.Terminal.Description[4:]))
+			p.SetFontSizePoints(28)
+			p.WriteString(CheckLang("Ticket Date: " + res.Date.Format("02 Jan 2006 15:04:05")))
+			p.SetFontSizePoints(30)
+			event := CheckLang("Event: ") + CheckLang(res.EventLabel)
+			if utf8.RuneCountInString(event) > 32 {
+				p.WriteString(event[0:32])
+				p.WriteString(event[32:])
+			} else {
+				p.WriteString(event)
+			}
+			terminalIdentifier := CheckLang("Terminal Identifier: ") +
+				CheckLang(folio.Terminal.RCRS) + "/" +
+				CheckLang(folio.Terminal.Description)
+			if utf8.RuneCountInString(terminalIdentifier) >
+				printingParams[folio.Printer.PaperWidth]["char_per_line"] {
+				p.WriteString(terminalIdentifier[0:32])
+				p.WriteString(terminalIdentifier[32:])
+			} else {
+				p.WriteString(terminalIdentifier)
+			}
 			p.WriteString(CheckLang("Production Number: " + folio.Terminal.RCRS))
 			p.WriteString(CheckLang("Software Version: " + res.SoftwareVersion))
 
-			p.WriteString(CheckLang("Ticket: " + strings.Join(strings.Fields(res.TicketCounter), " ") +
-				"/" + strings.Join(strings.Fields(res.TotalTicketCounter), " ") + " " +
-				res.EventLabel[0:30]))
+			ticket := CheckLang("Ticket: ") +
+				strings.Join(strings.Fields(res.TicketCounter), " ") +
+				"/" + strings.Join(strings.Fields(res.TotalTicketCounter), " ") +
+				" " + CheckLang(res.EventLabel)
+			if utf8.RuneCountInString(ticket) > 32 {
+				p.WriteString(ticket[0:32])
+				p.WriteString(ticket[32:])
+			} else {
+				p.WriteString(ticket)
+			}
 
 			if utf8.RuneCountInString(res.PLUHash) > 32 {
-				p.WriteString(CheckLang("Hash" + "s: " + res.PLUHash[0:31]))
-				p.WriteString(Pad(7) + CheckLang(res.PLUHash[31:]))
+				p.WriteString(CheckLang("Hash" + "s: " + res.PLUHash[0:25]))
+				p.WriteString(Pad(7) + CheckLang(res.PLUHash[25:]))
 			} else {
 				p.WriteString(CheckLang("Hash" + ":" + res.PLUHash))
 			}
 			if folio.Invoice.IsSettled {
-				p.WriteString(CheckLang("Ticket Sig" + ": " + res.Signature[0:25]))
-				p.WriteString(Pad(13) + CheckLang(res.Signature[25:]))
+				p.WriteString(CheckLang("Ticket Sig" + ": " + res.Signature[0:20]))
+				p.WriteString(Pad(13) + CheckLang(res.Signature[20:]))
 			}
+			p.SetFontSizePoints(28)
 			p.WriteString(CheckLang("Control Data" + ": " + res.Date.String()[0:10] +
-				" " + res.TimePeriod.Format(time.RFC1123)))
+				" " + res.TimePeriod.Format("15:04:00")))
+			p.SetFontSizePoints(30)
 			p.WriteString(CheckLang("Control Module ID" + ": " + res.ProductionNumber))
 			p.WriteString(CheckLang("VSC ID" + ": " + res.VSC))
 
@@ -383,7 +451,19 @@ func PrintFolio(folio *FolioPrint) error {
 	p.WriteString(CheckLang("Signature" + ":    " + "............."))
 	p.Formfeed()
 	if folio.Store.InvoiceFooter != "" {
-		p.WriteString(Center(folio.Store.InvoiceFooter) + CheckLang(folio.Store.InvoiceFooter))
+		if utf8.RuneCountInString(folio.Store.InvoiceFooter) >
+			printingParams[folio.Printer.PaperWidth]["char_per_line"] {
+			p.WriteString(Center(folio.Store.InvoiceFooter[0:printingParams[folio.Printer.PaperWidth]["char_per_line"]],
+				printingParams[folio.Printer.PaperWidth]["width"]) +
+				CheckLang(folio.Store.InvoiceFooter[0:printingParams[folio.Printer.PaperWidth]["char_per_line"]]))
+			p.WriteString(Center(folio.Store.InvoiceFooter[printingParams[folio.Printer.PaperWidth]["char_per_line"]:],
+				printingParams[folio.Printer.PaperWidth]["width"]) +
+				CheckLang(folio.Store.InvoiceFooter[printingParams[folio.Printer.PaperWidth]["char_per_line"]:]))
+		} else {
+
+			p.WriteString(Center(folio.Store.InvoiceFooter,
+				printingParams[folio.Printer.PaperWidth]["width"]) + CheckLang(folio.Store.InvoiceFooter))
+		}
 	}
 	p.Formfeed()
 	p.Cut()

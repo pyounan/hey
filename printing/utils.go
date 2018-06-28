@@ -18,10 +18,13 @@ func Pad(size int) string {
 }
 
 //Center to Center and Image
-func Center(phrase string) string {
+func Center(phrase string, paperWidth int) string {
 	wordLen := utf8.RuneCountInString(phrase)
-	return Pad((40 - wordLen) / 2)
+	if paperWidth == 800 {
 
+		return Pad((40 - wordLen) / 2)
+	}
+	return Pad((32 - wordLen) / 2)
 }
 
 //CheckLang to check language of the text before printing it to do the necessary processing
