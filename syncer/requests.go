@@ -164,15 +164,13 @@ func PushToBackend() {
 				logRecord.ResponseBody = res
 			}
 		} else if strings.Contains(req.URL.Path, "cancelpostings") {
-			res := []models.Posting{}
+			res := models.Invoice{}
 			err := json.NewDecoder(response.Body).Decode(&res)
 			if err != nil {
 				log.Println("Warning:", err.Error())
 			} else {
-				invoiceNumber := strings.Split(req.URL.Path, "/")[3]
-				q := bson.M{"invoice_number": invoiceNumber}
-				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(q,
-					bson.M{"$set": bson.M{"pospayment": res}})
+				q := bson.M{"invoice_number": res.InvoiceNumber}
+				_, err = db.DB.C("posinvoices").With(db.Session.Copy()).Upsert(q, res)
 				if err != nil {
 					log.Println("Warning:", err.Error())
 				}
