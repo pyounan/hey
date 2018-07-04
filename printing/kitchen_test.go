@@ -46,7 +46,7 @@ func TestPrintKitchen(t *testing.T) {
 		FDMLanguage: "fdm_language,omitempty",
 	}
 
-	printer := models.Printer{
+	printer := Printer{
 		ID:          6,
 		PrinterType: "Epson",
 		PrinterID:   "123456",
@@ -54,10 +54,10 @@ func TestPrintKitchen(t *testing.T) {
 		IsDefault:   true,
 		TerminalID:  88,
 		IsUSB:       true,
+		PrinterIP:   "192.168.1.114",
 	}
-	ip := "192.168.1.114:9100"
-	// ip := "/dev/usb/lp0"
-	printer.PrinterIP = &ip
+	// ip := "192.168.1.114:9100"
+	// printer.PrinterIP = &ip
 	kitchenPrint := KitchenPrint{
 		Invoice:  invoice,
 		Cashier:  cashier,

@@ -33,6 +33,13 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	if kitchen.Printer.IsUSB {
 		p, err = connection.NewConnection("usb", kitchen.Printer.PrinterIP)
 		if err != nil {
+			for i := 0; i <= 2; i++ {
+				time.Sleep(1 * time.Second)
+				p, err = connection.NewConnection("usb", kitchen.Printer.PrinterIP)
+				if err == nil {
+					break
+				}
+			}
 			return err
 		}
 	} else {
@@ -41,8 +48,6 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 			return err
 		}
 	}
-	// fmt.Println("Printer Kitchen After Connect")
-
 	p.SetAlign("left")
 	if kitchen.Printer.PaperWidth == 76 {
 		p.SetFont("A")
@@ -110,10 +115,8 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	}
 	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
 
-	// fmt.Printf("Before Groplineitems size %v\n", len(kitchen.GropLineItems))
 	for _, item := range kitchen.GropLineItems {
 		desc := item.Description
-		// fmt.Printf("Kitchen %v\n", desc)
 		p.WriteString(desc + Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
 			len(desc)) + fmt.Sprintf("%.2f", item.Quantity) +
 			Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-
@@ -128,7 +131,6 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 			p.WriteString(strings.Repeat("-", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
 		}
 	}
-	// fmt.Println("After Groplineitems")
 	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]) + "\n")
 	p.Formfeed()
 	p.SetAlign("center")
@@ -136,7 +138,6 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	p.WriteString(text + "\n")
 	p.Formfeed()
 	p.Cut()
-	// fmt.Println("Kitchen END")
 	return nil
 
 }
