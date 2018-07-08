@@ -1,0 +1,414 @@
+fr:
+    Discount%: 
+    API View: 
+    API views: 
+    About CloudInn: 
+    Add: 
+    Add New Course: 
+    Add New Fixed Discount: 
+    Add New Menu: 
+    Add New Terminal: 
+    Add payment: 
+    Add to selection: 
+    All: 
+    Amount: 
+    Amount and percentage must be greater than 0: 
+    Apply: 
+    Apply on all invoices on table: 
+    Apply on current invoice only: 
+    Are you sure you want to clear table#: 
+    Attendance sheet: 
+    Audit Date: 
+    Balance: 
+    Baud Speed: 
+    Build#: 
+    Bulk actions: 
+    CHECK CLOSED: 
+    CHK: 
+    Can't apply partial payments: 
+    Can't change order of submitted invoice: 
+    Can't refund after night turn: 
+    Can't refund house use: 
+    Cancel: 
+    Cannot apply discount on returned or wasted item: 
+    Cannot void this item: 
+    Capture: 
+    Cashier: 
+    Cashier printers must be associated with a terminal: 
+    Cashiering: 
+    Cashiers: 
+    Change: 
+    Change order: 
+    Change order of invoice#: 
+    Change payment: 
+    Change payments of invoice#: 
+    Change table: 
+    Change table of invoice: 
+    Choose your product choices: 
+    Chosen: 
+    Chosen groups: 
+    Clear: 
+    Clear IP: 
+    Clear table: 
+    Clock Out: 
+    Close Report: 
+    Closed at: 
+    Color: 
+    Comment: 
+    Company: 
+    Condiment: 
+    Condiment group: 
+    Configuration Changes: 
+    Configurations were saved successfully: 
+    Control Data: 
+    Control Module ID: 
+    Corrections: 
+    Course: 
+    Course was saved successfully: 
+    Covers: 
+    Created by: 
+    Created on: 
+    Credit card: 
+    Current Cash drawer content: 
+    Customer: 
+    Date: 
+    Department: 
+    Departments: 
+    Description: 
+    Description must be less than 25 characters: 
+    Dine In: 
+    Disc %: 
+    Disc amt: 
+    Discard: 
+    Discount amount can't exceed item price: 
+    Discount percentage can't exceed 100%: 
+    Discount percentage can't exceed item price: 
+    Discounts: 
+    Dutch: 
+    Edit Course#: 
+    Edit Fixed Discount#: 
+    Edit Menu#: 
+    Edit Terminal#: 
+    Electronic Journal: 
+    Employee report Version: 
+    Enter Cashier PIN: 
+    Enter IP and port of the proxy eg: 
+    Error: 
+    Error occured while trying to fetch configuration data from CloudInn: 
+    Error occured while trying to save configuration data to CloudInn: 
+    Error1: 
+    Error2: 
+    Error3: 
+    Event: 
+    Events: 
+    Excl: 
+    Expense account: 
+    Expiry date: 
+    FDM Communicatin Protocol Version: 
+    FDM Events: 
+    FDM Firmware Version Number: 
+    FDM Information: 
+    FDM Production Number: 
+    FDMs Configuration: 
+    Failed to clock out: 
+    Failed to fetch configurations: 
+    Failed to load records: 
+    Failed to save configurations: 
+    Failed to set pin: 
+    Failure: 
+    Fill in required fields: 
+    Fill in required time: 
+    Filter Results: 
+    Filter by check number: 
+    Filter:
+    Filtered: 
+    Filtered items: 
+    First action time: 
+    First name: 
+    Fixed Discount: 
+    Fixed Discounts: 
+    Fixed Excl: 
+    Fixed Incl: 
+    Fixed discount was saved successfully: 
+    Fixed discounts: 
+    Folio: 
+    Foreign amount: 
+    Formula: 
+    French: 
+    From Date: 
+    From audit date: 
+    From created on: 
+    From time: 
+    GST: 
+    GST 0: 
+    Generate New Report: 
+    Generate Report: 
+    Go to invoice: 
+    Guest name: 
+    Hash: 
+    Home: 
+    House Use: 
+    House use expense account: 
+    ID: 
+    IP Address: 
+    In: 
+    Inc: 
+    Individual Profile: 
+    Invalid qty: 
+    Invalid times: 
+    Invoice: 
+    Invoice#: 
+    Invoice# is locked by terminal number: 
+    Invoice ID: 
+    Invoice number: 
+    Invoice total must equal 0 before void invoice: 
+    Invoices: 
+    Invoices list: 
+    Item: 
+    Item#: 
+    Item category: 
+    Item condiments: 
+    Item description: 
+    Item family: 
+    Item group: 
+    Item number: 
+    Item qty can't be greater than: 
+    Item qty is required: 
+    Item qty must be greater than zero: 
+    Kitchen invoice: 
+    Language: 
+    Last action time: 
+    Last name: 
+    Launch demo modal: 
+    Lineitem has already applied open discount: 
+    Loading: 
+    Lock: 
+    Main company info: 
+    Maximum: 
+    Menu: 
+    Menu Items: 
+    Menu item configuration: 
+    Menu item configuration listing: 
+    Menu setup was saved successfully: 
+    Menus: 
+    Message Type: 
+    Minimum: 
+    NS+NR Per Item Family: 
+    Name: 
+    Net: 
+    Next: 
+    No available discounts: 
+    No payment: 
+    No records found: 
+    No terminals linked to selected store: 
+    Normal Return: 
+    Normal Sales: 
+    Note Use Drag and Drop to move items between invoices: 
+    Notice Discarding this process will remove any un-submitted items or payments from this invoice: 
+    Number: 
+    Only one cashier printer can be associated with a terminal: 
+    Only one name can be used in invoice: 
+    Open food: 
+    Opened: 
+    Opened at: 
+    Opera reservation: 
+    Order: 
+    Order must be greater than 0: 
+    Order printer: 
+    Other: 
+    Out: 
+    Outlets: 
+    POS: 
+    POS Cashier login: 
+    POS Proxy Configuration: 
+    POSInvoice was unlocked successfully: 
+    PRO FORMA: 
+    Paid amount: 
+    Paid house use: 
+    Paper Width: 
+    Partially paid invoice can't be splitted: 
+    Partially paid invoice can't void items: 
+    Partially paid invoice can't waste items: 
+    Pax: 
+    Pay to room: 
+    Paymaster: 
+    Payment: 
+    Payment details: 
+    Payment to Room can only be applied when opened to POS, please use another payment method: 
+    Payments details: 
+    Percentage: 
+    Permission denied: 
+    Please enter a credit card number: 
+    Please enter an amount: 
+    Please enter an expiry date: 
+    Please enter officer name: 
+    Please select a production number: 
+    Please select a room: 
+    Please select at least one item from below: 
+    Please select one or more items to be splitted: 
+    Please select the invoices that items will be split into: 
+    Port: 
+    Previous: 
+    Price: 
+    Print: 
+    Printed by: 
+    Printer: 
+    Printer ID: 
+    Printer Setup: 
+    Printer Type: 
+    Printer settings: 
+    Printers configurations were saved successfully: 
+    Printing setup: 
+    Pro Forma Tickets: 
+    Production Number: 
+    Production Number (RCRS): 
+    Proxy Settings: 
+    Proxy settings: 
+    Qty: 
+    Quantity must be greater than zero: 
+    RCRS: 
+    Rate: 
+    Reason: 
+    Reason field is required: 
+    Received: 
+    Recipe: 
+    Refund: 
+    Refund House use: 
+    Refund Room: 
+    Refund department must be the same as the original payment: 
+    Refund invoice: 
+    Refund invoice#: 
+    Refund room must have a room linked to invoice: 
+    Report Creation time: 
+    Report End Date: 
+    Report Serial Number: 
+    Report Start Date: 
+    Report from date: 
+    Report to date: 
+    Reports: 
+    Reprint#: 
+    Reservation ID: 
+    Results of: 
+    Retry: 
+    Return: 
+    Returned quantity must be less than or equal item quantity: 
+    Revenue Tax Incl: 
+    Revenue Tax Incl.: 
+    Revenue department: 
+    Role/Permissions: 
+    Room: 
+    Room number: 
+    Sales: 
+    Sales price: 
+    Save: 
+    Saved: 
+    Search: 
+    Search Form: 
+    Search for: 
+    Select: 
+    Select POSInvoice state: 
+    Select Production Number: 
+    Select an outlet: 
+    Select at least one item: 
+    Select at least one posting to cancel: 
+    Select either amount or percentage: 
+    Select store: 
+    Sequence: 
+    Set PIN: 
+    Settings: 
+    Settled: 
+    Signature: 
+    Software Version: 
+    Split: 
+    Split Item: 
+    Split invoice#: 
+    Store: 
+    Store Menu Item config (Detailed): 
+    Store Menu Item config (Summarized): 
+    Store unit: 
+    Submit: 
+    Subtotal: 
+    Successfully saved: 
+    Successfully set pin: 
+    Syncing table's data: 
+    TOTAL: 
+    Table: 
+    Table#: 
+    Table# is locked by terminal number: 
+    Tables: 
+    Take Out: 
+    Takeout: 
+    Tax Incl.: TVA Incl.
+    Tax Invoice: 
+    Tax code: 
+    Taxable: 
+    Taxes: 
+    Terminal: 
+    Terminal ID: 
+    Terminal Identifier: 
+    Terminal RCRS Number: 
+    Terminal was unlocked successfully: 
+    Terminals: 
+    Test IP: 
+    The currency linked to this payment method is different from the selected currency: 
+    The report is being generated in the background, search again in a minute...: 
+    There is no amount to apply: 
+    There is no more items to show: 
+    This field is required: 
+    This is not a: 
+    This will generate zreports for all terminals, continue?: 
+    Ticket: 
+    Ticket Date: 
+    Ticket Number: 
+    Ticket Sig: 
+    Time: 
+    To Date: 
+    To audit date: 
+    To created on: 
+    To time: 
+    Total: 
+    Total Cash: 
+    Total discounts: 
+    Total refund amount shouldn't exceed postings: 
+    Training Tickets: 
+    Try again: 
+    Unit: 
+    Unknown error: 
+    Unlock: 
+    Unsubmitted items can't be wasted: 
+    User: 
+    User/Roles: 
+    VAT: 
+    VAT Number: 
+    VAT invoices: 
+    VSC ID: 
+    VSC Identification Number: 
+    VSC Version Number: 
+    Void: 
+    Void invoice: 
+    Void invoice#: 
+    Voided invoice with reason: 
+    WS: 
+    Walkin name: 
+    Warning: 
+    Waste: 
+    Waste Item: 
+    Waste department: 
+    Workstation Identification: 
+    X Financial: 
+    X Report: 
+    X Users: 
+    Z Financial: 
+    Z Report: 
+    Z Users: 
+    Zeamster Refund amount must be the same as the original payment: 
+    Zeamster department: 
+    back: 
+    from table#: 
+    invoices: 
+    # is locked by terminal number: {{table}} is locked by terminal number {{terminal}}
+    returned: 
+    total records: 
+    unknown error occured while trying to set pin: 
+    valid tax invoice: 
+    wasted: 

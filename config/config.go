@@ -42,6 +42,7 @@ type ConfigHolder struct {
 	CallAccountingEnabled bool        `json:"call_accounting_enabled"`
 	ProxyPrintingEnabled  bool        `json:"proxy_printing_enabled"`
 	TimeZone              string      `json:"instance_tz"`
+	Language              string      `json:"language"`
 }
 
 // FDMConfig struct of each proxy configuration

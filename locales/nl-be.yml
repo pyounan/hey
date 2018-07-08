@@ -1,0 +1,482 @@
+nl-be:
+    Discount%: Korting%
+    API View: API-weergave
+    API views: API views
+    About CloudInn: Info Cloudinn 
+    Account: Rekening
+    Account family: Rekening Familie
+    Acquirer identifier: Handelsbank ID
+    Add: Toevoegen
+    Add New Course: Toevoegen Nieuwe Gang
+    Add New Fixed Discount: Toevoegen nieuwe korting
+    Add New Menu: Toevoegen Nieuwe Menu
+    Add New Terminal: Toevoegen Nieuwe Terminal
+    Add payment: Invoer betaling
+    Add to selection: Toevoegen aan selectie
+    Address: Adres
+    All: Alles
+    Amount: Bedrag
+    Amount and percentage must be greater than 0: Bedrag en percentage moet groter zijn dan 0
+    Application Identifier: Applicatie Identificatie
+    Apply: Toepassen
+    Apply on all invoices on table: Toepassen op alle deelrekeningen
+    Apply on current invoice only: Toepassen enkel op actieve deelrekening
+    Are you sure you want to clear: Bevestiging verwijdering van
+    Attendance sheet: Tijd en aanwezigheidslijst
+    Audit Date: Audit Datum
+    Balance: Saldo
+    Baud Speed: Baud Rate
+    Build#: Versie#
+    Bulk actions: Bulk Acties
+    CCV Pinpad: CCV Pinpad
+    CCV Setup: CCV Instellingen
+    CCV Terminal Integration: CCV Terminal Integratie
+    CCV department: CCV Departement
+    CHECK CLOSED: REKENING GESLOTEN
+    CHK: REK
+    Can't apply partial payments: Deelbetalingen niet mogelijk
+    Can't change order of submitted invoice: Wijziging gang niet mogelijk na verzending
+    Can't refund after night turn: Retour niet mogelijk na dagafsluiting
+    Can't refund house use: Retour niet mogelijk bij intern verbruik
+    Cancel: Annuleren
+    Cannot apply discount on returned or wasted item: Korting niet mogelijk op retour of verlies boeking
+    Cannot void this item: Correctie van dit artikel niet mogelijk
+    Capture: Capture
+    Card Holder name: Naam kaarthouder
+    Card Label name: Kaart Label naam
+    Card info: Kaart Info
+    Card number: Kaart nummer
+    Card sequence number: Kaart volgnummer
+    Cash: Cash
+    Cashier: Kassier
+    Cashier printers must be associated with a terminal: Rekeningprinters moeten gelinkt worden aan een terminal
+    Cashiering: Kassa
+    Cashiers: Kassiers
+    Change: Wisselgeld
+    Change order: Wijzig gang
+    Change order of invoice#: Wijzig gang van rekening#
+    Change payment: Wijzig betaling
+    Change payments of invoice#: Wijzig betaling van rekening#
+    Change table: Wijzig tafel
+    Change table of invoice: Wijzig tafel van rekening
+    Choose your product choices: Maak uw keuze
+    Chosen: Gekozen
+    Chosen groups: Gekozen Groepen
+    City: Stad
+    Clear: Verwijder
+    Clear IP: Verwijder IP
+    Clear table: Tafel beschikbaar maken
+    Clock Out: Klok uit
+    Close Report: Sluit Rapport
+    Closed at: Gesloten op
+    Color: Kleur
+    Comment: Commentaar
+    Company: Bedrijf
+    Condiment: Condiment
+    Condiment group: Condiment groep
+    Configuration Changes: Wijzigingen aan Instellingen
+    Configurations were saved successfully: Instellingen zijn bewaard
+    Control Data: Controle Data
+    Control Module ID: Controlemodule ID
+    Corrections: Correcties
+    Course: Gang
+    Course was saved successfully: Gang is met success bewaard
+    Covers: Gasten
+    Created by: Aangemaakt door
+    Created on: Aangemaakt op
+    Creation Date: Aanmaakdatum
+    Credit Card Sales: Kredietkaart verkoop
+    Credit card: Kredietkaart
+    Currency Sales: Cash valuta verkoop
+    Current Cash drawer content: Huidige Inhoud Geldlade
+    Customer: Klant
+    Date: Datum
+    Date and time: Datum en Tijd
+    Day Summary: Dag Overzicht
+    Day Summary Report: Dag Overzicht Rapport
+    Default: Standaard
+    Department: Departement
+    Departments: Departementen
+    Description: Omschrijving
+    Description must be less than 25 characters: Omschrijving mag max 25 karakters zijn
+    Detailed amount: Gedetailleerd bedrag
+    Dine In: Ter Plaatse
+    Disc %: Korting %
+    Disc amt: Korting Bdrg
+    Discard: Verwijder
+    Discount amount can't exceed item price: Korting bedrag kan niet hoger zijn dan artikel prijs
+    Discount percentage can't exceed 100%: Korting percentage max 100%
+    Discount percentage can't exceed item price: Korting percentage kan niet hoger zijn dan artikel prijs
+    Discounted Amount: Kortingsbedrag
+    Discounted Invoices: Rekeningen met kortring
+    Discounts: Kortingen
+    Dutch: Nederlands
+    Edit Course#: Wijzig Gang#
+    Edit Fixed Discount#: Wijzig Korting#
+    Edit Menu#: Wijzig Menu#
+    Edit Terminal#: Wijzig Terminal#
+    Electronic Journal: Electronisch Journaal
+    Employee report Version: Gebruiker rapport versie
+    Enter Cashier PIN: Ingave Kassier PIN code
+    Enter IP and port of the proxy eg: Ingave IP en poort van de proxy bvb
+    Error: Fout
+    Error diagnosis code: Diagnosis foutcode
+    Error occured while trying to fetch configuration data from CloudInn: Een fout is opgetreden bij het inlezen van de data van CloudInn
+    Error occured while trying to save configuration data to CloudInn: Een fout is opgetreden bij het doorzenden van de instellingen naar CloudInn
+    Error1: Fout1
+    Error2: Fout2
+    Error3: Fout3
+    Event: Event
+    Events: Events
+    Excl: Excl
+    Expense account: Onkostenrekening
+    Expenses account: Onkostenrekening
+    Expiration Date: Vervaldatum
+    Expiry date: Vervaldatum
+    FDM Communicatin Protocol Version: FDM Communicatie Protocol Versie
+    FDM Events: FDM Events
+    FDM Firmware Version Number: FDM Firmware Versie Nummer
+    FDM Information: FDM Informatie
+    FDM Production Number: FDM Produktienummer
+    FDMs Configuration: FDMs Instellingen
+    Failed to clock out: Heeft niet uitgeklokt
+    Failed to delete printer: Printer verwijderen mislukt
+    Failed to fetch configurations: Instellingen ophalen mislukt
+    Failed to load records: Laden records mislukt
+    Failed to save configurations: Instellingen bewaren mislukt
+    Failed to set pin: Set Pin mislukt
+    Failure: Storing
+    Fill in required fields: Vul verplichte velden in
+    Fill in required time: Vul verplichte tijd in
+    Filter Results: Filter Resultaten
+    Filter by check number: Filter per rekeningnummer
+    Filter: Filter
+    Filtered: Gefilterd
+    Filtered items: Gefilterde delen
+    First action time: Tijdstip Eerste Transactie
+    First name: Voornaam
+    Fixed Discount: Vaste Korting
+    Fixed Discounts: Vaste Kortingen
+    Fixed Excl: Vast Excl
+    Fixed Incl: Vast Incl
+    Fixed discount was saved successfully: Korting is met success bewaard
+    Fixed discounts: Vaste kortingen
+    Folio: Folio print
+    Foreign amount: Vreemde munt bedrag
+    Formula: Formule
+    French: Frans
+    From Date: Van datum
+    From audit date: Van audit datum
+    From created on: Van aanmaak op
+    From time: Van tijdstip
+    GST: GST 
+    Generate New Report: Aanmaak Nieuw Rapport
+    Generate Report: Aanmaak Rapport
+    Generated At: Aangemaakt op
+    Gross Sales: Omzet BTW Incl
+    Guest name: Gastnaam
+    Hash: PLU Hash
+    Home: Home
+    House Use: Intern Verbruik
+    House use expense account: Intern Verbruik Kostenrekening
+    Houseuse Invoices: Rekeningen Intern Verbruik
+    ID: ID
+    IP: IP
+    IP Address: IP adres
+    Import Recipe: Import Recepten
+    In: In
+    Inc: Inc
+    Individual Profile: Individueel Profiel
+    Invalid qty: Ongeldige hoeveelheid
+    Invalid times: Ongeldige tijden
+    Invoice: Rekening
+    Invoice#: Rekening#
+    # Invoice# is locked by terminal number: Rekening# {{invoice}} is geblokkeerd door terminalnummer {{terminal}}
+    Invoice ID: Rekening ID
+    Invoice number: Rekening nummer
+    Invoice total must equal 0 before void invoice: Rekeningtotaal moet 0 zijn voor Correctierekening
+    Invoices: Rekeningen
+    Invoices list: Rekeninglijst
+    Issuer label name: Uitgever label naam
+    Item: Artikel
+    Item#: Artikel#
+    Item Expenses account: Artikel Onkostenrekening
+    Item Expenses account configuration: Artikel Onkostenrekening Instellingen
+    Item category: Artikel categorie
+    Item condiments: Artikel condimenten en meldingen
+    Item description: Artikel omschrijving
+    Item expenses account configuration listing: Artikel Onkostenrekening Instellingen Lijst
+    Item family: Artikel familie
+    Item group: Artikel groep
+    Item number: Artikel nummer
+    Item qty can't be greater than: Hoeveelheid kan niet groter zijn dan 
+    Item qty is required: Hoeveelheid is vereist
+    Item qty must be greater than zero: Hoeveelheid moet meer dan 0 zijn
+    Kitchen invoice: Keukenbon
+    Language: Taal
+    Last action time: Tijdstip Laatste Transactie
+    Last name: Familienaam
+    Launch demo modal: Start demo module
+    Lineitem has already applied open discount: Op deze lijn is reeds open korting verrekend
+    Loading: Laden
+    Lock: Vergrendelen
+    Main company info: Algemene bedrijfsinformatie
+    Maximum: Maximum
+    Menu: Menu
+    Menu Items: Menu Artikelen
+    Menu item configuration: Menu Artikel Instellingen
+    Menu item configuration listing: Menu Artikel Instellingen Lijst
+    Menu setup was saved successfully: Menu setup bewaard
+    Menus: Menus
+    Merchant user Identifier: Handelaar Identificatie
+    Message Type: Type Boodschap
+    Minimum: Minimum
+    NS+NR Per Item Family: NS+NR per Familie
+    Name: Naam
+    Net: Netto
+    Net Sales: Netto Omzet
+    Newer: Nieuwer
+    Next: Volgende
+    No available discounts: Geen beschikbare korting
+    No payment: Nulbetaling
+    No records found: Geen records gevonden
+    No terminals linked to selected store: Geen terminals gelinkt aan geselecteerde afdeling
+    Normal Return: Normal Return
+    Normal Sales: Normal Sales
+    Note Use Drag and Drop to move items between invoices: Tip:gebruik drag en drop om artikelen tussen rekeningen te verplaatsen
+    Notice Discarding this process will remove any un-submitted items or payments from this invoice: Opm:Proces stoppen zal onverzonden wijzigingen verwijderen van de rekening
+    Number: Nummer
+    Older: Ouder
+    Only one cashier printer can be associated with a terminal: Enkel 1 rekeningprinter kan gelinkt worden aan een terminal
+    Only one name can be used in invoice: Enkel 1 naam kan worden gebruikt per rekening
+    Open food: Open prijs artikel
+    Opened: Geopend
+    Opened at: Geopend op
+    Opera reservation: Opera Reservatie
+    Order: Bestelling
+    Order must be greater than 0: Bestelling moet groter zijn dan 0
+    Order printer: Bestelprinter
+    Other: Andere
+    Out: Uit
+    Outlet: Afdeling
+    Outlets: Afdelingen
+    POS: POS
+    POS Cashier login: POS Kassier login
+    POS Proxy Configuration: POS Proxy Instellingen
+    POSInvoice was unlocked successfully: POS rekening werd correct ontgrendeld
+    PRO FORMA: PRO FORMA
+    Paid amount: Betaald bedrag
+    Paid house use: Betaling als Intern Verbruik
+    Paper Width: Papier breedte
+    Partially paid invoice can't be splitted: Splitsen rekening niet mogelijk bij gedeeltelijk betaalde rekening
+    Partially paid invoice can't void items: Correcties niet mogelijk bij gedeeltelijk betaalde rekening
+    Partially paid invoice can't waste items: Verlies ingave rekening niet mogelijk bij gedeeltelijk betaalde rekening
+    Pax: Pax
+    Pay to room: Betaal op kamer
+    Paymaster: Paymaster
+    Payment: Betaling
+    Payment Settings: Betaling Instellingen
+    Payment details: Betaling Details Payment to Room can only be applied when opened to POS, please use another 
+    payment method: Betaling op kamer enkel mogelijk wanneer deze is geopend voor POS. Gebruik aub een andere betalingsmethode
+    Payments details: Betaling details
+    Percentage: Percentage
+    Permission denied: Toestemming geweigerd
+    Pinpad Port: Pinpad Poort
+    Please enter a credit card number: Ingave kredietkaart nummer
+    Please enter an amount: Geef aub een bedrag in
+    Please enter an expiry date: Geef aub een vervaldatum in
+    Please enter officer name: Geef aub een Officer naam in
+    Please select a production number: Kies een produktienummer
+    Please select a room: Kies aub een kamer
+    Please select at least one item from below: Kies minstens één onderdeel van hieronder
+    Please select one or more items to be splitted: Kies één of meerdere artikelen om te splitsen
+    Please select the invoices that items will be split into: Kies de rekeningen waarnaar de atikelen zullen worden gesplitst
+    Port: Poort
+    Postal code: Postal Code
+    Previous: Vorige
+    Price: Prijs
+    Print: Print
+    Printed by: Geprint door
+    Printer: Printer
+    Printer ID: Printer ID
+    Printer IP: Printer IP
+    Printer Setup: Printer Instellingen
+    Printer Type: Printer Type
+    Printer has been deleted succesfully: Printer werd succesvol verwijderd
+    Printer settings: Printer Instellingen
+    Printers configurations were saved successfully: Printers Configuratie bewaard
+    Printing setup: Print Setup
+    Pro Forma Tickets: Pro Forma Tickets
+    Production Number: Produktienummer
+    Production Number (RCRS): Produktienummer GKS
+    Proxy Port: Proxy Poort
+    Proxy Settings: Proxy Instellingen
+    Proxy settings: Proxy instellingen
+    Qty: Aant
+    Quantity must be greater than zero: Aantal moet groter zijn dan nul
+    RCRS: Produktienummer
+    Rate: Tarief
+    Reason: Reden
+    Reason field is required: Reden ingave is verplicht
+    Received: Ontvangen
+    Recipe: Recept
+    Refund: Retour
+    Refund House use: Retour Intern Verbruik
+    Refund Room: Retour Kamerboeking
+    Refund department must be the same as the original payment: Retour betaalwijze moet gelijk zijn aan originele betaalwijze
+    Refund invoice: Terugbetaling rekening
+    Refund invoice#: Retour rekening#
+    Refund room must have a room linked to invoice: Retour op Kamer moet een kamernummer link hebben op de rekening
+    Refunded Amount: Bedrag Retours
+    Refunded Invoices: Rekeningen Retours
+    Report Creation time: Tijdstip rapport aanmaak
+    Report End Date: Rapport Einddatum
+    Report Serial Number: Rapport Volgnummer
+    Report Start Date: Rapport Startdatum
+    Report from date: Rapport van datum
+    Report to date: Rapport Einddatum
+    Reports: Rapporten
+    Reprint#: Herprint#
+    Reservation ID: Reservatie ID
+    Results of: Resultaten van
+    Retry: Opnieuw
+    Return: Refund
+    Returned quantity must be less than or equal item quantity: Retour aantal moet minder of gelijk zijn aan artikel aantal
+    Revenue Tax Incl: Omzet BTW Incl
+    Revenue Tax Incl.: Omzet BTW Incl.
+    Revenue department: Omzet departement
+    Role/Permissions: Rol/Toelatingen
+    Room: Kamer
+    Room number: Kamer nummer
+    Sale: Verkoop
+    Sales: Omzet
+    Sales price: Verkoopprijs
+    Save: Bewaar
+    Saved: Bewaard
+    Search: Zoek
+    Search Form: Zoek van
+    Search for: Zoek naar
+    Select: Kies
+    Select POSInvoice state: Kies POSrekening status
+    Select Production Number: Kies Produktienummer
+    Select an outlet: Kies een Afdeling
+    Select at least one item: Kies minstens één onderdeel
+    Select at least one posting to cancel: Kies tenminste 1 boeking om te annuleren
+    Select either amount or percentage: Kies ofwel bedrag of percentage
+    Select store: Kies een afdeling
+    Sequence: Reeks
+    Service label name: Service label naam
+    Set PIN: Set PIN
+    Settings: Instellingen
+    Settled: Betaald
+    Shop info: Winkel Info
+    Shop location: Winkel Locatie
+    Signature: Handtekening
+    Smart Printer IP Address: Smart Printer IP Adres
+    Software Version: Software Versie
+    Split: Splits
+    Split Item: Splits Artikel
+    Split invoice#: Splits Rekening#
+    Store: Afdeling
+    Store Menu Item config (Detailed): Afdeling Menu Artikel config (Detail)
+    Store Menu Item config (Summarized): Afdeling Menu Artikel config (Kort)
+    Store unit: Voorraad eenheid
+    Submit: Verzenden
+    Subtotal: Subtotaal
+    Success: Succes
+    Successfully saved: Bewaard
+    Successfully set pin: Set Pin gelukt
+    Syncing table's data: Synchronisatie table data
+    TOTAL: TOTAAL
+    Table: Tafel
+    Table#: Tafel#
+    # Table# is locked by terminal number: Tafel# {{table}} is geblokkeerd door terminalnummer {{terminal}}
+    Tables: Tafels
+    Take Out: Meeneem
+    Takeout: Meeneem
+    Tax Incl.: BTW Incl.
+    Tax Invoice: BTW KASTICKET
+    Tax code: BTW Code
+    Taxable: BTW Incl
+    Taxes: BTW
+    Terminal: Terminal
+    Terminal ID: Terminal ID
+    Terminal Identifier: Terminal Nr
+    Terminal RCRS Number: Terminal Produktienummer
+    Terminal was unlocked successfully: De terminal is met success ontgrendeld
+    Terminals: Terminals
+    Test IP: Test IP
+    The currency linked to this payment method is different from the selected currency: De valuta gelinkt aan deze betaalwijze verschilt van de geselecteerde valuta
+    The report is being generated in the background, search again in a minute...: Rapport wordt samengesteld in de achtergrond. Verifieer binnen enkele ogenblikken opnieuw...
+    There is no amount to apply: Er is geen bedrag te verrekenen
+    There is no more items to show: Er zijn geen verdere artikelen te tonen
+    This field is required: Dit veld is verplicht
+    This is not a: Dit is geen
+    This will generate zreports for all terminals, continue?: Z rapporten zullen worden aangemaakt voor alle terminals. Doorgaan?
+    Ticket: Ticket
+    Ticket Date: Ticket datum
+    Ticket Number: Ticket Nummer
+    Ticket Sig: Ticket Signatuur
+    Time: Tijd
+    To Date: Tot Datum
+    To audit date: Tot audit datum
+    To created on: Tot aanmaakdatum
+    To time: Tot Tijd
+    Total: Totaal
+    Total Cash: Totaal Cash
+    Total Invoices: Totaal Rekeningen
+    Total amount: Totaal bedrag
+    Total discounts: Totaal kortingen
+    # Total refund amount shouldn't exceed postings: Het totale retourbedrag mag niet hoger zijn dan {{type}} boekingen
+    Training Tickets: Training Tickets
+    Transaction identifier: Transactie Identifier
+    Transaction info: Transactie Info
+    Transaction result text: Transactie Resultaat tekst
+    Trx term treatment result: Trns term resultaat
+    Try again: Probeer opnieuw
+    Unit: Eenheid
+    Unknown error: Onbekende fout
+    Unlock: Ontgrendel
+    Unsubmitted items can't be wasted: Verliesingave van niet verzonden artikelen onmogelijk
+    User: Gebruiker
+    User/Roles: Gebruiker/Rollen
+    VAT: BTW
+    VAT Number: BTW Nummer
+    VAT invoices: BTW Kastickets
+    VSC ID: VSC ID
+    VSC Identification Number: VSC Identificatie Nummer
+    VSC Version Number: VSC Versie Nummer
+    Void: Correctie
+    Void invoice: Correctierekening
+    Void invoice#: Correctierekening#
+    Voided Amount: Correctie Bedrag
+    Voided Invoices: Gecorrigeerde Rekeningen
+    Voided Items: Gecorrigeerde Artikelen
+    Voided invoice with reason: Gecorrigeerde rekening met reden
+    WS: WS
+    Walkin name: Walkin Naam
+    Warning: Waarschuwing
+    Waste: Verspilling
+    Waste Item: Verliesingave Artikel
+    Waste department: Verliesingave Departement
+    Wasted Amount: Verlies Bedrag
+    Wasted Items: Verlies Artikelen
+    Workstation Identification: Werkstation ID
+    X Financial: X Financieel
+    X Report: X Rapport
+    X Users: X Gebruikers
+    Z Financial: Z Financieel
+    Z Report: Z Rapport
+    Z Users: Z Gebruikers
+    Zeamster Refund amount must be the same as the original payment: Zeamster Retour bedrag moet zelfde zijn als originele betaling
+    Zeamster department: Zeamster departement
+    back: terug
+    from table#: van tafel#
+    invoices: rekeningen
+    # is locked by terminal number: {{table}} is geblokkeerd door terminalnummer {{terminal}}
+    returned: retour
+    terminal_identifier: terminal_identifier
+    total records: totaal records
+    unknown error occured while trying to set pin: onbekende fout bij set pin procedure
+    valid tax invoice: geldig BTW kasticket
+    wasted: verlies 

@@ -1,12 +1,26 @@
 package printing
 
 import (
+	"pos-proxy/config"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/01walid/goarabic"
 	"github.com/abadojack/whatlanggo"
+	"github.com/qor/i18n"
+	"github.com/qor/i18n/backends/yaml"
 )
+
+//SetLang function to set language comes from configurations file
+func SetLang() string {
+	var LANG = ""
+	if config.Config.IsFDMEnabled == true {
+		LANG = config.Config.FDMs[0].Language
+		return LANG
+	}
+	LANG = config.Config.Language
+	return LANG
+}
 
 //Pad insert padding between text
 func Pad(size int) string {
@@ -35,4 +49,18 @@ func CheckLang(phrase string) string {
 		return arabicText
 	}
 	return phrase
+}
+
+//Translate takes a text and translate it to a language comes fromthe configurations
+func Translate(text string) string {
+	I18n := i18n.New(
+		yaml.New("../locales"),
+	)
+	lang := SetLang()
+	if lang == "" {
+		lang = "en-us"
+	}
+	translatedText := string(I18n.T(lang, text))
+
+	return translatedText
 }

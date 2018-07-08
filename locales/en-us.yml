@@ -1,0 +1,413 @@
+en-us:
+    Discount%: Discount% 
+    API View: API View 
+    API views: API views 
+    About CloudInn: About CloudInn 
+    Add: Add 
+    Add New Course: Add New Course 
+    Add New Fixed Discount: Add New Fixed Discount 
+    Add New Menu: Add New Menu 
+    Add New Terminal: Add New Terminal 
+    Add payment: Add payment 
+    Add to selection: Add to selection 
+    All: All 
+    Amount: Amount 
+    Amount and percentage must be greater than 0: Amount and percentage must be greater than 0 
+    Apply: Apply 
+    Apply on all invoices on table: Apply on all invoices on table 
+    Apply on current invoice only: Apply on current invoice only 
+    Are you sure you want to clear table#: Are you sure you want to clear table# 
+    Attendance sheet: Attendance sheet 
+    Audit Date: Audit Date 
+    Balance: Balance 
+    Baud Speed: Baud Speed 
+    Build#: Build# 
+    Bulk actions: Bulk actions 
+    CHECK CLOSED: CHECK CLOSED 
+    CHK: CHK 
+    Can't apply partial payments: Can't apply partial payments 
+    Can't change order of submitted invoice: Can't change order of submitted invoice 
+    Can't refund after night turn: Can't refund after night turn 
+    Can't refund house use: Can't refund house use 
+    Cancel: Cancel 
+    Cannot apply discount on returned or wasted item: Cannot apply discount on returned or wasted item 
+    Cannot void this item: Cannot void this item 
+    Capture: Capture 
+    Cashier: Cashier 
+    Cashier printers must be associated with a terminal: Cashier printers must be associated with a terminal 
+    Cashiering: Cashiering
+    Cashiers: Cashiers 
+    Change: Change 
+    Change order: Change order 
+    Change order of invoice#: Change order of invoice# 
+    Change payment: Change payment 
+    Change payments of invoice#: Change payments of invoice# 
+    Change table: Change table 
+    Change table of invoice: Change table of invoice 
+    Choose your product choices: Choose your product choices 
+    Chosen: Chosen 
+    Chosen groups: Chosen groups 
+    Clear: Clear 
+    Clear IP: Clear IP 
+    Clear table: Clear table 
+    Clock Out: Clock Out 
+    Close Report: Close Report 
+    Closed at: Closed at 
+    Color: Color 
+    Comment: Comment 
+    Company: Company 
+    Condiment: Condiment 
+    Condiment group: Condiment group 
+    Configuration Changes: Configuration Changes 
+    Configurations were saved successfully: Configurations were saved successfully 
+    Control Data: Control Data 
+    Control Module ID: Control Module ID 
+    Corrections: Corrections 
+    Course: Course 
+    Course was saved successfully: Course was saved successfully 
+    Covers: Covers 
+    Created by: Created by 
+    Created on: Created on 
+    Credit card: Credit card 
+    Current Cash drawer content: Current Cash drawer content 
+    Customer: Customer 
+    Date: Date 
+    Department: Department
+    Departments: Departments
+    Description: Description
+    Description must be less than 25 characters: Description must be less than 25 characters
+    Dine In: Dine In
+    Disc %: Disc %
+    Disc amt: Disc amt
+    Discard: Discard
+    Discount amount can't exceed item price: Discount amount can't exceed item price
+    Discount percentage can't exceed 100%: Discount percentage can't exceed 100%
+    Discount percentage can't exceed item price: Discount percentage can't exceed item price
+    Discounts: Discounts
+    Dutch: Dutch
+    Edit Course#: Edit Course#
+    Edit Fixed Discount#: Edit Fixed Discount#
+    Edit Menu#: Edit Menu#
+    Edit Terminal#: Edit Terminal#
+    Electronic Journal: Electronic Journal
+    Employee report Version: Employee report Version
+    Enter Cashier PIN: Enter Cashier PIN
+    Enter IP and port of the proxy eg: Enter IP and port of the proxy eg
+    Error: Error
+    Error occured while trying to fetch configuration data from CloudInn: Error occured while trying to fetch configuration data from CloudInn
+    Error occured while trying to save configuration data to CloudInn: Error occured while trying to save configuration data to CloudInn
+    Error1: Error1
+    Error2: Error2
+    Error3: Error3
+    Event: Event
+    Events: Events
+    Excl: Excl
+    Expense account: Expense account
+    Expiry date: Expiry date
+    FDM Communicatin Protocol Version: FDM Communicatin Protocol Version
+    FDM Events: FDM Events
+    FDM Firmware Version Number: FDM Firmware Version Number
+    FDM Information: FDM Information
+    FDM Production Number: FDM Production Number
+    FDMs Configuration: FDMs Configuration
+    Failed to clock out: Failed to clock out
+    Failed to fetch configurations: Failed to fetch configurations
+    Failed to load records: Failed to load records
+    Failed to save configurations: Failed to save configurations
+    Failed to set pin: Failed to set pin
+    Failure: Failure
+    Fill in required fields: Fill in required fields
+    Fill in required time: Fill in required time
+    Filter Results: Filter Results
+    Filter by check number: Filter by check number
+    Filter: Filte
+    Filtered: Filtered
+    Filtered items: Filtered items
+    First action time: First action time
+    First name: First name
+    Fixed Discount: Fixed Discount
+    Fixed Discounts: Fixed Discounts
+    Fixed Excl: Fixed Excl
+    Fixed Incl: Fixed Incl
+    Fixed discount was saved successfully: Fixed discount was saved successfully
+    Fixed discounts: Fixed discounts
+    Folio: Folio
+    Foreign amount: Foreign amount
+    Formula: Formula
+    French: French
+    From Date: From Date
+    From audit date: From audit date
+    From created on: From created on
+    From time: From time
+    GST: GST
+    GST 0: GST 0
+    Generate New Report: Generate New Report
+    Generate Report: Generate Report
+    Go to invoice: Go to invoice
+    Guest name: Guest name
+    Hash: Hash
+    Home: Home
+    House Use: House Use
+    House use expense account: House use expense account
+    ID: ID
+    IP Address: IP Address
+    In: In
+    Inc: Inc
+    Individual Profile: Individual Profile
+    Invalid qty: Invalid qty
+    Invalid times: Invalid times
+    Invoice: Invoice
+    Invoice#: Invoice#
+    # Invoice# is locked by terminal number: Invoice# {{invoice}} is locked by terminal number  {{terminInvoice# is locked by terminal number: Invoice# {{invoice}} is locked by terminal number  {{termal}}
+    Invoice ID: Invoice ID
+    Invoice number: Invoice number
+    Invoice total must equal 0 before void invoice: Invoice total must equal 0 before void invoice
+    Invoices: Invoices
+    Invoices list: Invoices list
+    Item: Item
+    Item#: Item#
+    Item category: Item category
+    Item condiments: Item condiments
+    Item description: Item description
+    Item family: Item family
+    Item group: Item group
+    Item number: Item number
+    # Item qty can't be greater than: Item qty can't be greater than {{qty}}Item qty can't be greater than: Item qty can't be greater than {{qty
+    Item qty is required: Item qty is required
+    Item qty must be greater than zero: Item qty must be greater than zero
+    Kitchen invoice: Kitchen invoice
+    Language: Language
+    Last action time: Last action time
+    Last name: Last name
+    Launch demo modal: Launch demo modal
+    Lineitem has already applied open discount: Lineitem has already applied open discount
+    Loading: Loading
+    Lock: Lock
+    Main company info: Main company info
+    Maximum: Maximum
+    Menu: Menu
+    Menu Items: Menu Items
+    Menu item configuration: Menu item configuration
+    Menu item configuration listing: Menu item configuration listing
+    Menu setup was saved successfully: Menu setup was saved successfully
+    Menus: Menus
+    Message Type: Message Type
+    Minimum: Minimum
+    NS+NR Per Item Family: NS+NR Per Item Family
+    Name: Name
+    Net: Net
+    Next: Next
+    No available discounts: No available discounts
+    No payment: No payment
+    No records found: No records found
+    No terminals linked to selected store: No terminals linked to selected store
+    Normal Return: Normal Return
+    Normal Sales: Normal Sales
+    Note Use Drag and Drop to move items between invoices: Note Use Drag and Drop to move items between invoices
+    Notice Discarding this process will remove any un-submitted items or payments from this invoice: Notice Discarding this process will remove any un-submitted items or payments from this invoice
+    Number: Number
+    Only one cashier printer can be associated with a terminal: Only one cashier printer can be associated with a terminal
+    Only one name can be used in invoice: Only one name can be used in invoice
+    Open food: Open food
+    Opened: Opened
+    Opened at: Opened at
+    Opera reservation: Opera reservation
+    Order: Order
+    Order must be greater than 0: Order must be greater than 0
+    Order printer: Order printer
+    Other: Other
+    Out: Out
+    Outlets: Outlets
+    POS: POS
+    POS Cashier login: POS Cashier login
+    POS Proxy Configuration: POS Proxy Configuration
+    POSInvoice was unlocked successfully: POSInvoice was unlocked successfully
+    PRO FORMA: PRO FORMA
+    Paid amount: Paid amount
+    Paid house use: Paid house use
+    Paper Width: Paper Width
+    Partially paid invoice can't be splitted: Partially paid invoice can't be splitted
+    Partially paid invoice can't void items: Partially paid invoice can't void items
+    Partially paid invoice can't waste items: Partially paid invoice can't waste items
+    Pax: Pax
+    Pay to room: Pay to room
+    Paymaster: Paymaster
+    Payment: Payment
+    Payment details: Payment details
+    Payment to Room can only be applied when opened to POS, please use another payment method: Payment to Room can only be applied when opened to POS, please use another payment method
+    Payments details: Payments details
+    Percentage: Percentage
+    Permission denied: Permission denied
+    Please enter a credit card number: Please enter a credit card number
+    Please enter an amount: Please enter an amount
+    Please enter an expiry date: Please enter an expiry date
+    Please enter officer name: Please enter officer name
+    Please select a production number: Please select a production number
+    Please select a room: Please select a room
+    Please select at least one item from below: Please select at least one item from below
+    Please select one or more items to be splitted: Please select one or more items to be splitted
+    Please select the invoices that items will be split into: Please select the invoices that items will be split into
+    Port: Port
+    Previous: Previous
+    Price: Price
+    Print: Print
+    Printed by: Printed by
+    Printer: Printer
+    Printer ID: Printer ID
+    Printer Setup: Printer Setup
+    Printer Type: Printer Type
+    Printer settings: Printer settings
+    Printers configurations were saved successfully: Printers configurations were saved successfully
+    Printing setup: Printing setup
+    Pro Forma Tickets: Pro Forma Tickets
+    Production Number: Production Number
+    Production Number (RCRS): Production Number (RCRS)
+    Proxy Settings: Proxy Settings
+    Proxy settings: Proxy settings
+    Qty: Qty
+    Quantity must be greater than zero: Quantity must be greater than zero
+    RCRS: RCRS
+    Rate: Rate
+    Reason: Reason
+    Reason field is required: Reason field is required
+    Received: Received
+    Recipe: Recipe
+    Refund: Refund
+    Refund House use: Refund House use
+    Refund Room: Refund Room
+    Refund department must be the same as the original payment: Refund department must be the same as the original payment
+    Refund invoice: Refund invoice
+    Refund invoice#: Refund invoice#
+    Refund room must have a room linked to invoice: Refund room must have a room linked to invoice
+    Report Creation time: Report Creation time
+    Report End Date: Report End Date
+    Report Serial Number: Report Serial Number
+    Report Start Date: Report Start Date
+    Report from date: Report from date
+    Report to date: Report to date
+    Reports: Reports
+    Reprint#: Reprint#
+    Reservation ID: Reservation ID
+    Results of: Results of
+    Retry: Retry
+    Return: Return
+    Returned quantity must be less than or equal item quantity: Returned quantity must be less than or equal item quantity
+    Revenue Tax Incl: Revenue Tax Incl
+    Revenue Tax Incl.: Revenue Tax Incl.
+    Revenue department: Revenue department
+    Role/Permissions: Role/Permissions
+    Room: Room
+    Room number: Room number
+    Sales: Sales
+    Sales price: Sales price
+    Save: Save
+    Saved: Saved
+    Search: Search
+    Search Form: Search Form
+    Search for: Search for
+    Select: Select
+    Select POSInvoice state: Select POSInvoice state
+    Select Production Number: Select Production Number
+    Select an outlet: Select an outlet
+    Select at least one item: Select at least one item
+    Select at least one posting to cancel: Select at least one posting to cancel
+    Select either amount or percentage: Select either amount or percentage
+    Select store: Select store
+    Sequence: Sequence
+    Set PIN: Set PIN
+    Settings: Settings
+    Settled: Settled
+    Signature: Signature
+    Software Version: Software Version
+    Split: Split
+    Split Item: Split Item
+    Split invoice#: Split invoice#
+    Store: Store
+    Store Menu Item config (Detailed): Store Menu Item config (Detailed)
+    Store Menu Item config (Summarized): Store Menu Item config (Summarized)
+    Store unit: Store unit
+    Submit: Submit
+    Subtotal: Subtotal
+    Successfully saved: Successfully saved
+    Successfully set pin: Successfully set pin
+    Syncing table's data: Syncing table's data
+    TOTAL: TOTAL
+    Table: Table
+    Table#: Table#
+    # Table# is locked by terminal number: Table# {{table}} is locked by terminal number  {{terminal}}Table# is locked by terminal number: Table# {{table}} is locked by terminal number  {{terminal
+    Tables: Tables
+    Take Out: Take Out
+    Takeout: Takeout
+    Tax Incl.: Tax Incl.
+    Tax Invoice: Tax Invoice
+    Tax code: Tax code
+    Taxable: Taxable
+    Taxes: Taxes
+    Terminal: Terminal
+    Terminal ID: Terminal ID
+    Terminal Identifier: Terminal Identifier
+    Terminal RCRS Number: Terminal RCRS Number
+    Terminal was unlocked successfully: Terminal was unlocked successfully
+    Terminals: Terminals
+    Test IP: Test IP
+    The currency linked to this payment method is different from the selected currency: The currency linked to this payment method is different from the selected currency
+    The report is being generated in the background, search again in a minute...: The report is being generated in the background, search again in a minute...
+    There is no amount to apply: There is no amount to apply
+    There is no more items to show: There is no more items to show
+    This field is required: This field is required
+    This is not a: This is not a
+    This will generate zreports for all terminals, continue?: This will generate zreports for all terminals, continue?
+    Ticket: Ticket
+    Ticket Date: Ticket Date
+    Ticket Number: Ticket Number
+    Ticket Sig: Ticket Sig
+    Time: Time
+    To Date: To Date
+    To audit date: To audit date
+    To created on: To created on
+    To time: To time
+    Total: Total
+    Total Cash: Total Cash
+    Total discounts: Total discounts
+    # Total refund amount shouldn't exceed postings: Total refund amount shouldn't exceed {{type}} postiTotal refund amount shouldn't exceed postings: Total refund amount shouldn't exceed {{type}} posngs
+    Training Tickets: Training Tickets
+    Try again: Try again
+    Unit: Unit
+    Unknown error: Unknown error
+    Unlock: Unlock
+    Unsubmitted items can't be wasted: Unsubmitted items can't be wasted
+    User: User
+    User/Roles: User/Roles
+    VAT: VAT
+    VAT Number: VAT Number
+    VAT invoices: VAT invoices
+    VSC ID: VSC ID
+    VSC Identification Number: VSC Identification Number
+    VSC Version Number: VSC Version Number
+    Void: Void
+    Void invoice: Void invoice
+    Void invoice#: Void invoice#
+    Voided invoice with reason: Voided invoice with reason
+    WS: WS
+    Walkin name: Walkin name
+    Warning: Warning
+    Waste: Waste
+    Waste Item: Waste Item
+    Waste department: Waste department
+    Workstation Identification: Workstation Identification
+    X Financial: X Financial
+    X Report: X Report
+    X Users: X Users
+    Z Financial: Z Financial
+    Z Report: Z Report
+    Z Users: Z Users
+    Zeamster Refund amount must be the same as the original payment: Zeamster Refund amount must be the same as the original payment
+    Zeamster department: Zeamster department
+    back: back
+    from table#: from table#
+    invoices: invoices
+    # is locked by terminal number:{{table}} is locked by terminal number {{terminal}}returned: # is locked by terminal number:{{table}} is locked by terminal number {{terminal}}returned
+    total records: total records
+    unknown error occured while trying to set pin: unknown error occured while trying to set pin
+    valid tax invoice: valid tax invoice
+    wasted: waste

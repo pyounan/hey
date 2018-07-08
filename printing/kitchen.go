@@ -6,6 +6,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/abadojack/whatlanggo"
 	"github.com/cloudinn/escpos"
 	"github.com/cloudinn/escpos/connection"
 )
@@ -56,20 +57,20 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 
 	p.WriteString(Center("Invoice Number"+": "+kitchen.Invoice.InvoiceNumber,
 		printingParams[kitchen.Printer.PaperWidth]["width"]) +
-		CheckLang("Invoice Number"+": "+kitchen.Invoice.InvoiceNumber))
+		CheckLang(Translate("Invoice number")+": "+kitchen.Invoice.InvoiceNumber))
 
 	p.WriteString(Center("Covers"+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax),
 		printingParams[kitchen.Printer.PaperWidth]["width"]) +
-		CheckLang("Covers"+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax)))
+		CheckLang(Translate("Covers")+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax)))
 
 	if kitchen.Invoice.TableID != nil {
 		p.WriteString(Center("Table"+": "+*kitchen.Invoice.TableDetails,
 			printingParams[kitchen.Printer.PaperWidth]["width"]) +
-			CheckLang("Table"+": "+*kitchen.Invoice.TableDetails))
+			CheckLang(Translate("Table")+": "+*kitchen.Invoice.TableDetails))
 	} else {
 		p.WriteString(Center("Takeout",
 			printingParams[kitchen.Printer.PaperWidth]["width"]) +
-			CheckLang("Takeout"))
+			CheckLang(Translate("Takeout")))
 	}
 	guestName := ""
 	if kitchen.Invoice.WalkinName != "" {
@@ -79,13 +80,19 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	} else if kitchen.Invoice.RoomDetails != nil {
 		guestName = *kitchen.Invoice.RoomDetails
 	}
+	guestNameTrans := Translate("Guest name")
+	info := whatlanggo.Detect(guestNameTrans)
 	if guestName != "" {
-		p.WriteString(Center("Guest name"+": ",
-			printingParams[kitchen.Printer.PaperWidth]["width"]) +
-			CheckLang("Guest name"+": "))
-		p.WriteString(Center(guestName,
-			printingParams[kitchen.Printer.PaperWidth]["width"]) +
-			CheckLang(guestName))
+		if whatlanggo.Scripts[info.Script] == "Arabic" {
+			p.WriteString(Center(guestNameTrans+": "+guestName,
+				printingParams[kitchen.Printer.PaperWidth]["width"]) +
+				CheckLang(guestName) + ": " + CheckLang(guestNameTrans))
+
+		} else {
+			p.WriteString(Center(guestNameTrans+": "+guestName,
+				printingParams[kitchen.Printer.PaperWidth]["width"]) +
+				CheckLang(guestNameTrans) + ": " + CheckLang(guestName))
+		}
 	}
 	p.WriteString(Center(fmt.Sprintf("%d", kitchen.Cashier.Number)+"/"+
 		kitchen.Cashier.Name, printingParams[kitchen.Printer.PaperWidth]["width"]) +
@@ -100,19 +107,27 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	p.WriteString(strings.Repeat("=",
 		printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
 
-	item := "Item"
-	qty := "Qty"
-	storeUnit := "Unit"
+	item := CheckLang(Translate("Item"))
+	qty := CheckLang(Translate("Qty"))
+	storeUnit := CheckLang(Translate("Unit"))
 	p.SetWhiteOnBlack(false)
 	if printingParams[kitchen.Printer.PaperWidth]["width"] == 760 {
 
 		p.SetFontSizePoints(28)
 	}
-	p.WriteString(item + Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
-		utf8.RuneCountInString(item)) + qty +
-		Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-
-			utf8.RuneCountInString(qty)) + storeUnit)
+	info = whatlanggo.Detect(item)
+	if whatlanggo.Scripts[info.Script] == "Arabic" {
+		p.WriteString(storeUnit + Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-
+			utf8.RuneCountInString(storeUnit)) + qty +
+			Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
+				utf8.RuneCountInString(qty)) + item)
 
+	} else {
+		p.WriteString(item + Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
+			utf8.RuneCountInString(item)) + qty +
+			Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-
+				utf8.RuneCountInString(qty)) + storeUnit)
+	}
 	p.SetWhiteOnBlack(true)
 	p.SetFontSizePoints(30)
 	p.WriteString(strings.Repeat("=",
@@ -126,17 +141,30 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 
 			p.SetFontSizePoints(28)
 		}
-		p.WriteString(desc +
-			Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
-				utf8.RuneCountInString(desc)) + qty +
-			Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-
-				utf8.RuneCountInString(qty)) + baseUnit)
+		if whatlanggo.Scripts[info.Script] == "Arabic" {
+			p.WriteString(baseUnit +
+				Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-
+					utf8.RuneCountInString(baseUnit)) + qty +
+				Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
+					utf8.RuneCountInString(desc)) + desc)
 
+		} else {
+			p.WriteString(desc +
+				Pad(printingParams[kitchen.Printer.PaperWidth]["item_width"]-
+					utf8.RuneCountInString(desc)) + qty +
+				Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-
+					utf8.RuneCountInString(qty)) + baseUnit)
+		}
 		for _, condiment := range item.CondimentLineItems {
 			p.WriteString(CheckLang(condiment.Description))
 		}
 		if item.CondimentsComment != "" {
-			p.WriteString(CheckLang(item.CondimentsComment))
+			if whatlanggo.Scripts[info.Script] == "Arabic" {
+				p.WriteString(Pad(37-utf8.RuneCountInString(item.CondimentsComment)) +
+					CheckLang(item.CondimentsComment))
+			} else {
+				p.WriteString(CheckLang(item.CondimentsComment))
+			}
 		}
 		p.SetFontSizePoints(30)
 		if item.LastChildInCourse {
@@ -146,9 +174,10 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	p.WriteString(strings.Repeat("=",
 		printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
 	p.SetFontSizePoints(40)
-	p.WriteString(Pad((30-len("This is not a"))/2) + strings.ToUpper("This is not a"))
+	p.SetImageHight(42)
+	p.WriteString(Pad((30-len("This is not a"))/2) + strings.ToUpper(CheckLang(Translate("This is not a"))))
 	p.WriteString(Pad((30-len("valid tax invoice"))/2) +
-		strings.ToUpper("valid tax invoice"))
+		strings.ToUpper(CheckLang(Translate("valid tax invoice"))))
 	p.Formfeed()
 	p.Cut()
 	return nil

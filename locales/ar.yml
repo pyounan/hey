@@ -1,0 +1,444 @@
+ar:
+    Discount %: نسبة الخصم %
+    API View: 
+    API views: 
+    About CloudInn: 
+    Add: إضافة
+    Add New Course: 
+    Add New Fixed Discount: إضافة تخفيض ثابت جديد
+    Add New Menu: إضافة قائمة طعام جديده
+    Add New Terminal: إضافة محطة جديده
+    Add payment: إضافة دفع
+    Add to selection: إضافة إلى الاختيار
+    Address: عنوان
+    All: الكل
+    Amount: قيمة
+    Amount and percentage must be greater than 0: القيمة والنسبة المئوية يجب ان يكونوا اعلى من 0
+    Apply: تطبيق
+    Apply on all invoices on table: تنطبق على جميع الفواتير على الطاولة
+    Apply on current invoice only: تنطبق على الفاتورة الحالية فقط
+    Are you sure you want to clear: هل أنت متأكد من أنك تريد مسح
+    Attendance sheet: ورقة الحضور
+    Audit Date: تاريخ مراجعة
+    Balance: رصيد
+    Baud Speed: 
+    Build#: 
+    Bulk actions: 
+    CHECK CLOSED: الفاتورة أغلقت
+    CHK: فاتوره
+    Can't apply partial payments: لا يمكن تطبيق المدفوعات الجزئية
+    Can't change order of submitted invoice: لا يمكن تغيير طلب للفاتورة المرسلة
+    Can't refund after night turn: لا يمكن استرداد الدفع بعد الدورة الليلية   
+    Can't refund house use: لا يمكن استرداد الدفع لمستخدمين الفندق 
+    Cancel: إلغاء
+    Cannot apply discount on returned or wasted item: 
+    Cannot void this item: لا يمكن إلغاء هذا الصنف
+    Capture: 
+    Cash: نقدى
+    Cashier: كاشير
+    Cashier printers must be associated with a terminal: 
+    Cashiering: منافذ البيع
+    Cashiers: كاشير
+    Change: الباقي
+    Change order: تغيير الطلب
+    Change order of invoice#: تغيير الطلب لفاتورة#
+    Change payment: تغيير الدفع
+    Change payments of invoice#: تغيير الدفع لفاتورة#
+    Change table: تغيير الطاولة
+    Change table of invoice: تغيير الطاولة لفاتورة#
+    Choose your product choices: 
+    Chosen: 
+    Chosen groups: 
+    City: 
+    Clear: نظف
+    Clear IP: 
+    Clear table: نظف الطاوله
+    Clock Out: 
+    Close Report: تقرير الاقفال
+    Closed at: تم الأغلاق في 
+    Closed on: تم الأغلاق في 
+    Color: اللون
+    Comment: تعليق
+    Company: شركة
+    Condiment: إضافات (توابل)
+    Condiment group: مجموعة الإضافات 
+    Configuration Changes: تغييرات الترتيب
+    Configurations were saved successfully: تم حفظ الترتيبات بنجاح
+    Control Data: 
+    Control Module ID: 
+    Corrections: تعديلات
+    Course: 
+    Course was saved successfully: 
+    Covers: عدد أفراد
+    Created by: تم انشائها بواسطة
+    Created on: تم انشائها في
+    Creation Date: تاريخ الانشاء
+    Credit Card Sales: مبيعات بطاقات الائتمان
+    Credit card:  بطاقة الائتمان
+    Currency Sales: عملة المبيعات
+    Current Cash drawer content: 
+    Customer: عميل(زبون)
+    Date: تاريخ
+    Day Summary: ملخص اليوم
+    Day Summary Report: تقرير ملخص اليوم
+    Department: الادارة
+    Departments: الادارات
+    Description: الوصف
+    Description must be less than 25 characters: يجب أن يكون الوصف أقل من 25 حرفًا
+    Dine In: تناول الطعام في
+    Disc %: خصم %
+    Disc amt: قيمة الخصم
+    Discard: تجاهل
+    Discount amount can't exceed item price: لا يمكن أن يتجاوز مبلغ الخصم سعر الصنف
+    Discount percentage can't exceed 100%: لا يمكن أن تتجاوز نسبة الخصم 100٪
+    Discount percentage can't exceed item price: لا يمكن أن تتجاوز نسبة الخصم سعر الصنف
+    Discounted Amount: القيمة المخفضة
+    Discounted Invoices: الفواتير المخفضة
+    Discounts: الخصومات
+    Dutch: 
+    Edit Course#: 
+    Edit Fixed Discount#: تعديل الخصم الثابت#
+    Edit Menu#: تعديل قائمة الطعام
+    Edit Terminal#: تعديل المحطة#
+    Electronic Journal: المنشورات الإلكترونية
+    Employee report Version: 
+    Enter Cashier PIN: تعديل رقم تعريف الكاشير
+    Enter IP and port of the proxy eg: 
+    Error: عطل
+    Error occured while trying to fetch configuration data from CloudInn: 
+    Error occured while trying to save configuration data to CloudInn: 
+    Error1: عطل 1
+    Error2: عطل 2
+    Error3: عطل 3
+    Event: حدث
+    Events: أحداث
+    Excl: غير شامل
+    Expense account: حساب المصروف
+    Expiry date: تاريخ الصلاحيه
+    FDM Communicatin Protocol Version: 
+    FDM Events: 
+    FDM Firmware Version Number: 
+    FDM Information: 
+    FDM Production Number: 
+    FDMs Configuration: 
+    Failed to clock out: 
+    Failed to delete printer: 
+    Failed to fetch configurations: 
+    Failed to load records: 
+    Failed to save configurations: فشل في حفظ الترتيبات
+    Failed to set pin: فشل في تكوين رقم التعريف
+    Failure: 
+    Fill in required fields: ادخل الحقول المطلوبة
+    Fill in required time: ادخل الوقت المطلوب 
+    Filter Results: تصفية النتائج
+    Filter by check number: تصفية برقم الشيك
+    Filter: صفى
+    Filtered: مصفى
+    Filtered items: الأصناف المصفاه
+    First action time: 
+    First name: الاسم الاول
+    Fixed Discount: خصم ثابت
+    Fixed Discounts: خصومات ثابته
+    Fixed Excl: ثابت وغير شامل
+    Fixed Incl: ثابت وشامل
+    Fixed discount was saved successfully: تم حفظ خصم ثابت بنجاح
+    Fixed discounts: خصومات ثابته
+    Folio: صفحه
+    Foreign amount: القيمة بالعملة
+    Formula: معادلة
+    French: 
+    From Date: من تاريخ
+    From audit date: من تاريخ المراجعه
+    From created on: من تاريخ الانشاء
+    From time: من وقت
+    GST: 
+    Generate New Report: إصدار تقرير جديد
+    Generate Report: إصدار تقرير
+    Generated At: أصدرت فى
+    Gross Sales: إجمالي المبيعات
+    Guest name: اسم النزيل
+    Hash: 
+    Home: الصفحة الرئيسية
+    House Use: مستخدم الفندق
+    House use expense account: حساب مصروف مستخدم الفندق
+    Houseuse Invoices: فاتورة مستخدم الفندق
+    ID: هوية شخصية
+    IP Address: 
+    Import Recipe: ادخال الوصفات
+    In: 
+    Inc: شامل الضريبه
+    Individual Profile: ملف شخصي فردي
+    Invalid qty: فشل الكميه
+    Invalid times: وقت غير صحصح
+    Invoice: فاتورة
+    Invoice#: فاتورة رقم#
+    Invoice# is locked by terminal number: فاتورة رقم# مغلق برقم المحطة
+    Invoice ID: هوية الفاتوره
+    Invoice number: رقم الفاتورة
+    Invoice total must equal 0 before void invoice: يجب أن يكون إجمالي الفاتورة مساويًا 0 قبل إلغاء الفاتورة
+    Invoices: الفواتير
+    Invoices list: قائمة الفواتير
+    Item: صنف
+    Item#: صنف رقم#
+    Item category: فئة الصنف
+    Item condiments: إضافات الصنف
+    Item description: وصف الصنف
+    Item family: عائلة الصنف
+    Item group: مجموعة الصنف
+    Item number: رقم الصنف
+    Item qty can't be greater than: لا يمكن أن يكون كمية الصنف أكبر من
+    Item qty is required: كمية الصنف المطلوبه
+    Item qty must be greater than zero: يجب أن تكون كمية الصنف أكبر من الصفر
+    Kitchen invoice: فاتورة المطبخ
+    Language: اللغة
+    Last action time: وقت أخر تصرف
+    Last name: الاسم الأخير
+    Launch demo modal: 
+    Lineitem has already applied open discount: 
+    Loading: جار التحميل
+    Lock: قفل
+    Main company info: معلومات الشركة الرئيسية
+    Maximum: الحد الاقصى
+    Menu: قائمة الطعام
+    Menu Items: أصناف قائمة الطعام
+    Menu item configuration: ترتيب عناصر قائمة الطعام
+    Menu item configuration listing: قائمة ترتيب عناصر قائمة الطعام
+    Menu setup was saved successfully: تم حفظ إعداد قائمة الطعام بنجاح
+    Menus: قوائم الطعام
+    Message Type: نوع الرسالة
+    Minimum: الحد الأدنى
+    NS+NR Per Item Family: 
+    Name: الاسم
+    Net: صافى
+    Net Sales: صافى المبيعات
+    Newer: أحدث
+    Next: التالى
+    No available discounts: لا خصومات متاحة
+    No payment: لا يوجد دفع
+    No records found: 
+    No terminals linked to selected store: لا توجد محطات مرتبطة بالمخزن المحدد
+    Normal Return: إرجاع طبيعى
+    Normal Sales: مبيعات طبيعيه
+    Note Use Drag and Drop to move items between invoices: 
+    Notice Discarding this process will remove any un-submitted items or payments from this invoice: 
+    Number: رقم
+    Older: أقدم
+    Only one cashier printer can be associated with a terminal: طابعه واحده فقط يمكن ربطها مع المحطه
+    Only one name can be used in invoice: يمكن استخدام اسم واحد فقط في الفاتورة
+    Open food: طعام مفتوح
+    Opened: افتتح
+    Opened at: افتتح في
+    Opera reservation: 
+    Order: طلب
+    Order must be greater than 0: يجب أن يكون الطلب أكبر من 0
+    Order printer: لب الطابعة
+    ther: آخر
+    Out: خارج
+    Outlet: منفذ البيع
+    Outlets: منافذ البيع
+    POS: نقاط البيع
+    POS Cashier login: تسجيل دخول كاشير نقاط البيع
+    POS Proxy Configuration: 
+    POSInvoice was unlocked successfully: تم إلغاء قفل فاتورة نقاط البيع بنجاح
+    PRO FORMA: 
+    Paid amount: المبلغ المدفوع
+    Paid house use: المدفوع من مستخدم الفندق
+    Paper Width: 
+    Partially paid invoice can't be splitted: لا يمكن تقسيم الفاتورة المدفوعة
+    Partially paid invoice can't void items: لا يمكن إلغاء أصناف للفاتورة المدفوعة 
+    Partially paid invoice can't waste items: لا يمكن هدر أصناف للفاتورة المدفوعة
+    Pax: فرد
+    Pay to room: الدفع على الغرفة
+    Paymaster: غرفة وهمية
+    Payment: الدفع
+    Payment details: تفاصيل الدفع
+    Payment to Room can only be applied when opened to POS, please use another payment method: لا يمكن تطبيق الدفع إلى الغرفة إلا عند فتحه لنقاط البيع ، يرجى استخدام طريقة دفع أخرى
+    Payments details: تفاصيل الدفع
+    Percentage: النسبة المئوية
+    Permission denied: طلب الاذن مرفوض
+    Please enter a credit card number: يرجى إدخال رقم بطاقة الائتمان
+    Please enter an amount: يرجى إدخال المبلغ
+    Please enter an expiry date: يرجى إدخال تاريخ انتهاء الصلاحية
+    Please enter officer name: يرجى إدخال اسم المسؤول
+    Please select a production number: يرجى تحديد رقم الإنتاج
+    Please select a room: يرجى اختيار الغرفة
+    Please select at least one item from below: يرجى تحديد صنف واحد على الأقل من الأسفل
+    Please select one or more items to be splitted: يرجى تحديد واحد أو أكثر من الاصناف المطلوب تقسيمها
+    Please select the invoices that items will be split into: يرجى تحديد الفواتير التي سيتم تقسيم الاصناف إليها
+    Port: 
+    Postal code: 
+    Previous: السابق
+    Price: السعر
+    Print: طباعة
+    Printed by: طبع بواسطة
+    Printer: طابعة
+    Printer ID: رقم تعريف الطابعة
+    Printer IP: 
+    Printer Setup: إعدادات الطابعة
+    Printer Type: نوع الطابعة
+    Printer has been deleted succesfully: تم حذف الطابعة بنجاح
+    Printer settings: إعدادات الطابعة
+    Printers configurations were saved successfully: تم حفظ ترتيبات الطابعات بنجاح
+    Printing setup: إعداد الطباعة
+    Pro Forma Tickets: 
+    Production Number: 
+    Production Number (RCRS): 
+    Proxy Settings: 
+    Proxy settings: 
+    Qty: الكمية
+    Quantity must be greater than zero: يجب أن تكون الكمية أكبر من الصفر
+    RCRS: 
+    Rate: معدل السعر
+    Reason: السبب
+    Reason field is required: نطاق السبب مطلوب
+    Received: تم الاستلام
+    Recipe: وصفة طعام
+    Refund: إعادة مال
+    Refund House use: استرداد دفع مستخدم الفندق
+    Refund Room: إعادة الدفع على الغرفه
+    Refund department must be the same as the original payment: يجب أن تكون إدارة رد الأموال هى نفس إدارة الدفع الاصلى
+    Refund invoice: الفاتورة المسترد قيمت دفعها
+    Refund invoice#: الفاتورة المسترد قيمت دفعها رقم#
+    Refund room must have a room linked to invoice: يجب أن تحتوي رد الأموال على غرفة مرتبطة بالفاتورة
+    Refunded Amount: المبلغ المسترد دفعه
+    Refunded Invoices: الفواتير المسترد دفعها
+    Report Creation time: تقرير وقت الإنشاء
+    Report End Date: تقرير تاريخ الانتهاء
+    Report Serial Number: تقرير الرقم التسلسلي
+    Report Start Date: تقرير تاريخ البدء
+    Report from date: تقرير من التاريخ
+    Report to date: تقرير الى التاريخ
+    Reports: التقارير
+    Reprint#: إعادة الطبع رقم#
+    Reservation ID: رقم هوية الحجز
+    Results of: نتائج
+    Retry: إعادة المحاولة
+    Return: إرجاع
+    Returned quantity must be less than or equal item quantity: يجب أن تكون الكمية المرتجعة أقل من أو تساوي قيمة الصنف
+    Revenue Tax Incl: إيرادات شاملة الضريبه
+    Revenue Tax Incl.: إيرادات شاملة الضريبه.
+    Revenue department: إدارة الايرادات
+    Role/Permissions: 
+    Room: غرفة
+    Room number: رقم الغرفة
+    Sales: مبيعات
+    Sales price: سعر البيع
+    Save: حفظ
+    Saved: تم الحفظ
+    Search: بحث
+    Search Form: اختار من 
+    Search for: إختار الى
+    Select: إختار
+    Select POSInvoice state: إختر حالة فاتورة نقاط البيع
+    Select Production Number: حدد رقم الإنتاج
+    Select an outlet: إختر منفذًا
+    Select at least one item: إختر على الأقل صنف واحد
+    Select at least one posting to cancel: إختر على الأقل منشور واحد للإلغاء
+    Select either amount or percentage: إختر إما القيمة أو النسبة المئويه
+    Select store: إختر مخزن
+    Sequence: تسلسل
+    Set PIN: اكتب رقم تعريفك الشخصى
+    Settings: إعدادات
+    Settled: المسدده
+    Signature: التوقيع
+    Smart Printer IP Address: 
+    Software Version: 
+    Split: تقسيم
+    Split Item: تقسيم الصنف
+    Split invoice#: تقسيم فاتورة رقم#
+    Store: مخزن
+    Store Menu Item config (Detailed): (تفاصيل) ترتيب أصناف قائمة الطعام
+    Store Menu Item config (Summarized): (ملخص) ترتيب أصناف قائمة الطعام
+    Store unit: وحدة المخزن
+    Submit: ارسال
+    Subtotal: إجمالي المبلغ
+    Successfully saved: تم الحفظ بنجاح
+    Successfully set pin: تم تعيين رقم تعريف بنجاح
+    Syncing table's data: إعادة التذكير بالبيانات على الطاولة
+    TOTAL: أجمالى
+    Table: طاوله
+    Table#: طاوله رقم#
+    Table# is locked by terminal number: 
+    Tables: طاولات
+    Take Out: طلب خارجى
+    Takeout: طلب خارجى
+    Tax Incl.: شامل الضريبة
+    Tax Invoice: فاتورة ضريبية
+    Tax code: رمز الضريبة
+    Taxable: خاضع للضريبة
+    Taxes: الضرائب
+    Terminal: محطه
+    Terminal ID: رقم المحطة
+    Terminal Identifier: المحطة معرفة
+    Terminal RCRS Number: 
+    Terminal was unlocked successfully: تم إلغاء قفل المحطة بنجاح
+    Terminals: محطات
+    Test IP: 
+    The currency linked to this payment method is different from the selected currency: العملة المرتبطة بطريقة الدفع مختلفة عن العملة المحددة
+    The report is being generated in the background, search again in a minute...: 
+    There is no amount to apply: لا يوجد أي مبلغ للتطبيق
+    There is no more items to show: لا يوجد المزيد من الأصناف  لإظهارها
+    This field is required: هذه الخانة مطلوبه
+    This is not a: هذه ليست
+    This will generate zreports for all terminals, continue?: 
+    Ticket: 
+    Ticket Date: 
+    Ticket Number: 
+    Ticket Sig: 
+    Time: وقت
+    To Date: الى تاريخ
+    To audit date: الى تاريخ المراجعه
+    To created on: الى المنشأة في 
+    To time: الى وقت
+    Total: إجمالى
+    Total Cash: إجمالي الدفع
+    Total Invoices: إجمالي الفواتير
+    Total discounts: إجمالي التخفيضات
+    Total refund amount shouldn't exceed postings: يجب ألا يتجاوز إجمالي المبلغ المرتجع المنشورات
+    Training Tickets: 
+    Try again: أعد المحاولة
+    Unit: وحدة
+    Unknown error: خطأ غير معروف
+    Unlock: مفتوح
+    Unsubmitted items can't be wasted: 
+    User: مستخدم
+    User/Roles: 
+    VAT: 
+    VAT Number: 
+    VAT invoices: 
+    VSC ID: 
+    VSC Identification Number: 
+    VSC Version Number: 
+    Void: ملغى
+    Void invoice: فاوره ملغيه
+    Void invoice#: فاتورة ملغية رقم#
+    Voided Amount: القيمة الملغية
+    Voided Invoices: الفواتير الملغية
+    Voided Items: الأصناف الملغية
+    Voided invoice with reason: الفاتورة الملغية مع السبب
+    WS: 
+    Walkin name: 
+    Warning: تحزير
+    Waste: هدر 
+    Waste Item: صنف الهدر
+    Waste department: إدارة الهدر
+    Wasted Amount: القيمة المهدره
+    Wasted Items: الأصناف المهدره
+    Workstation Identification: 
+    X Financial: 
+    X Report: 
+    X Users: 
+    Z Financial: 
+    Z Report: 
+    Z Users: 
+    Zeamster Refund amount must be the same as the original payment: 
+    Zeamster department: 
+    back: الى الخلف
+    from table#: من طاولة رقم#
+    invoices: الفواتير
+    # is locked by terminal number: {{table}} is locked by terminal number {{terminal}}
+    returned: إرتجع
+    total records: 
+    unknown error occured while trying to set pin: 
+    valid tax invoice: فاتورة ضريبية صالحة
+    wasted: هالك
