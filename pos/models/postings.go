@@ -30,4 +30,5 @@ type Posting struct {
 	Type             string   `json:"type,omitempty" bson:"type,omitempty"`
 	Cancelled        bool     `json:"cancelled,omitempty" bson:"cancelled,omitempty"`
 	GatewayResponses []string `json:"gateway_responses,omitempty" bson:"gateway_responses,omitempty"`
+	CCVDepartment    string   `json:"ccv_department,omitempty" bson:"ccv_department,omitempty"`
 }
