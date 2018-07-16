@@ -15,42 +15,20 @@ func TestPad(t *testing.T) {
 	log.Println(Pad(0), len(Pad(0)))
 	log.Println(Pad(10), len(Pad(10)))
 }
+
 func TestPrintFolio(t *testing.T) {
-	config.Config.IsFDMEnabled = true
+	config.Config.IsFDMEnabled = false
 	invoice := models.Invoice{
-		InvoiceNumber: "200-1153",
-		Pax:           1,
-		// 	Quantity:2,
-		// 	Price:50
-		// 	},
-		CreatedOn:  "June 7,2018 2:27pm",
-		IsSettled:  true,
-		WalkinName: "ميريت ايهاب",
-		Subtotal:   50,
-		// TableID:      7,
-		// TableDetails: "AER",
-		Total: 1120.50,
-		// FDMResponses: [{
-		// ProductionNumber:"production_number",
-		// VSC :"vsc",
-		// Date :time.Now(),
-		// TimePeriod :time.Now(),
-		// EventLabel:"event_label",
-		// TicketCounter:"ticket_counter",
-		// TotalTicketCounter :"total_ticket_counter",
-		// Signature :"signature",
-		// TicketNumber :"ticket_number",
-		// TicketActionTime:"ticket_datetime",
-		// SoftwareVersion:"software_version",
-		// PLUHash :"plu_hash",
-		// 	}],
-		// Room:        90,
-		// RoomDetails: "WER",
+		InvoiceNumber:  "200-1153",
+		Pax:            1,
+		CreatedOn:      "June 7,2018 2:27pm",
+		IsSettled:      true,
+		WalkinName:     "ميريت ايهاب",
+		Subtotal:       50,
+		Total:          1120.50,
 		HouseUse:       false,
 		Change:         8.5,
 		CashierDetails: "Sameh",
-
-		// ClosedOn: time.Now(),
 	}
 	var id int64 = 1
 	invoice.ID = &id
@@ -87,32 +65,15 @@ func TestPrintFolio(t *testing.T) {
 	}
 
 	postings := models.Posting{
-		Amount:         70.50,
-		AuditDate:      "2-05-2018",
-		CashierDetails: "Cashier X",
-		Cashier:        52,
-		CashierID:      80,
-		Comments:       "comment",
-		// CurrencyID             *int64     `json:"currency_id" bson:"currency_id"`
-		// Currency               int        `json:"currency" bson:"currency"`
-		// CurrencyDetails        string     `json:"currency_details" bson:"currency_details"`
+		Amount:            70.50,
+		AuditDate:         "2-05-2018",
+		CashierDetails:    "Cashier X",
+		Cashier:           52,
+		CashierID:         80,
+		Comments:          "comment",
 		Department:        8,
 		DepartmentDetails: "Dep details",
-		// ForeignAmount          float64    `json:"foreign_amount" bson:"foreign_amount"`
-		// FrontendID             string     `json:"frontend_id" bson:"frontend_id"`
-		// PosinvoiceID           int        `json:"posinvoice_id" bson:"posinvoice_id"`
-		PostingType: "Posting Type",
-		// Room                   *int64     `json:"room" bson:"room"`
-		// RoomNumber:  nil,
-		// RoomDetails: nil,
-		// PosPostingInformations []Posting  `json:"pospostinginformations" bson:"pospostinginformations"`
-		// PaymentLog             PaymentLog `json:"paymentlog" bson:"paymentlog"`
-		// CCType                 *string    `json:"cc_type" bson:"cc_type"`
-		// pospostinginformatios only
-		// Sign             string   `json:"sign,omitempty" bson:"sign,omitempty"`
-		// Type             string   `json:"type,omitempty" bson:"type,omitempty"`
-		// Cancelled        bool     `json:"cancelled,omitempty" bson:"cancelled,omitempty"`
-		// GatewayResponses: {"hi", "hola", "bye"},
+		PostingType:       "Posting Type",
 	}
 	var roomnum int64 = 84
 	postings.RoomNumber = &roomnum
@@ -152,11 +113,10 @@ func TestPrintFolio(t *testing.T) {
 	printer := models.Printer{
 		ID:          6,
 		PrinterType: "Epson",
-		// PrinterIP:   "192.168.1.220:9100",
-		PaperWidth: 80,
-		IsDefault:  true,
-		TerminalID: 88,
-		IsUSB:      true,
+		PaperWidth:  80,
+		IsDefault:   true,
+		TerminalID:  88,
+		IsUSB:       true,
 	}
 	// ip := "192.168.1.220:9100"
 	ip := "/dev/usb/lp0"

@@ -62,11 +62,10 @@ func TestPrintKitchen(t *testing.T) {
 		PaperWidth:  80,
 		IsDefault:   true,
 		TerminalID:  88,
-		IsUSB:       true,
-		PrinterIP:   "/dev/usb/lp0",
+		IsUSB:       false,
+		PrinterIP:   "192.168.1.220:9100",
+		// PrinterIP:   "/dev/usb/lp0",
 	}
-	// ip := "192.168.1.114:9100"
-	// ip := "/dev/usb/lp0"
 	kitchenPrint := KitchenPrint{
 		Invoice:       invoice,
 		Cashier:       cashier,
