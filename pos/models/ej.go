@@ -26,7 +26,7 @@ type EJEvent struct {
 	BaseUnit           string              `json:"base_unit,omitempty" bson:"base_unit,omitempty"`
 	CondimentLineItems []CondimentLineItem `json:"condimentlineitem_set" bson:"condimentlineitem_set"`
 	LastChildInCourse  bool                `json:"lastchildincourse" bson:"-"`
-	CondimentsComment  string              `json:"comment" bson:"-"`
+	CondimentsComment  string              `json:"condiments_comment" bson:"-"`
 }
 
 // String generates a text for a ej event in a format for the FDM.

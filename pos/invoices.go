@@ -838,7 +838,7 @@ func CancelPostings(w http.ResponseWriter, r *http.Request) {
 		helpers.ReturnErrorMessage(w, err.Error())
 		return
 	}
-	helpers.ReturnSuccessMessage(w, invoice.Postings)
+	helpers.ReturnSuccessMessage(w, invoice)
 }
 
 // RefundInvoice swagger:route POST /api/pos/posinvoices/refund/ invoices refundInvoice

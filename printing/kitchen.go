@@ -50,7 +50,6 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 			return err
 		}
 	}
-
 	p.WriteString(CheckLang("Printer ID: " + kitchen.Printer.PrinterID))
 
 	p.WriteString(strings.Repeat("=", printingParams[kitchen.Printer.PaperWidth]["char_per_line"]))
@@ -62,7 +61,6 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	p.WriteString(Center("Covers"+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax),
 		printingParams[kitchen.Printer.PaperWidth]["width"]) +
 		CheckLang(Translate("Covers")+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax)))
-
 	if kitchen.Invoice.TableID != nil {
 		p.WriteString(Center("Table"+": "+*kitchen.Invoice.TableDetails,
 			printingParams[kitchen.Printer.PaperWidth]["width"]) +
@@ -155,6 +153,7 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 				Pad(printingParams[kitchen.Printer.PaperWidth]["qty"]-
 					utf8.RuneCountInString(qty)) + baseUnit)
 		}
+
 		for _, condiment := range item.CondimentLineItems {
 			p.WriteString(CheckLang(condiment.Description))
 		}

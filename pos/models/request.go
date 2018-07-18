@@ -74,9 +74,10 @@ func (req *InvoicePOSTRequest) Submit() (Invoice, error) {
 // CancelPostingsRequest swagger:model cancelPostingsRequest
 // defines the body of a CancelPosting request
 type CancelPostingsRequest struct {
-	PostingsIDs []string `json:"frontend_ids" bson:"frontend_ids"`
-	CashierID   int      `json:"poscashier_id" bson:"poscashier_id"`
-	Posinvoice  Invoice  `json:"posinvoice" bson:"posinvoice"`
+	PostingsIDs      []string `json:"frontend_ids" bson:"frontend_ids"`
+	CashierID        int      `json:"poscashier_id" bson:"poscashier_id"`
+	Posinvoice       Invoice  `json:"posinvoice" bson:"posinvoice"`
+	GatewayResponses []string `json:"gateway_responses,omitempty" bson:"gateway_responses,omitempty"`
 }
 
 // BulkSubmitRequest swagger:model bulkSubmitRequest
