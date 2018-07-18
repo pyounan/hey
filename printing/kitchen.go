@@ -30,6 +30,7 @@ func PrintKitchen(kitchen *KitchenPrint) error {
 	printingParams[76]["store_unit"] = 2
 	printingParams[76]["qty"] = 5
 
+	SetLang("")
 	var p *escpos.Printer
 	var err error
 	if kitchen.Printer.IsUSB {

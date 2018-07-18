@@ -11,15 +11,22 @@ import (
 	"github.com/qor/i18n/backends/yaml"
 )
 
+var LANG string
+
 //SetLang function to set language comes from configurations file
-func SetLang() string {
-	var LANG = ""
-	if config.Config.IsFDMEnabled == true {
-		LANG = config.Config.FDMs[0].Language
+func SetLang(rcrs string) string {
+	if rcrs != "" && config.Config.IsFDMEnabled == true {
+		for _, fdm := range config.Config.FDMs {
+			if fdm.RCRS == rcrs {
+				LANG = fdm.Language
+				return LANG
+			}
+		}
+	} else if config.Config.Language != "" {
+		LANG = config.Config.Language
 		return LANG
 	}
-	LANG = config.Config.Language
-	return LANG
+	return "en-us"
 }
 
 //Pad insert padding between text
@@ -56,11 +63,6 @@ func Translate(text string) string {
 	I18n := i18n.New(
 		yaml.New("../locales"),
 	)
-	lang := SetLang()
-	if lang == "" {
-		lang = "en-us"
-	}
-	translatedText := string(I18n.T(lang, text))
-
+	translatedText := string(I18n.T(LANG, text))
 	return translatedText
 }

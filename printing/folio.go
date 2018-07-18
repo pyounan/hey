@@ -49,6 +49,8 @@ func PrintFolio(folio *FolioPrint) error {
 	printingParams[76]["tax_padding"] = 5
 	printingParams[76]["char_per_line"] = 32
 
+	SetLang(folio.Terminal.RCRS)
+
 	var p *escpos.Printer
 	var err error
 	if folio.Printer.IsUSB {
