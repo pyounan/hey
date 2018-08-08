@@ -7,46 +7,22 @@ import (
 
 //FolioPrint defines the objects and requried data for folio printing
 type FolioPrint struct {
-	Items          []models.EJEvent
-	Invoice        models.Invoice
-	Terminal       models.Terminal
-	Store          models.Store
-	Cashier        income.Cashier
-	Company        income.Company
-	Printer        models.Printer
-	TotalDiscounts float64
-	Timezone       string
+	Items          []models.EJEvent `bson:"items"`
+	Invoice        models.Invoice   `bson:"invoice"`
+	Terminal       models.Terminal  `bson:"termianl"`
+	Store          models.Store     `bson:"store"`
+	Cashier        income.Cashier   `bson:"cashier"`
+	Company        income.Company   `bson:"company"`
+	Printer        models.Printer   `bson:"printer"`
+	TotalDiscounts float64          `bson:"total_discounts"`
+	Timezone       string           `bson:"timezone"`
 }
 
 //KitchenPrint defines the objects and requried data for kitchen printing
 type KitchenPrint struct {
-	GropLineItems []models.EJEvent
-	Invoice       models.Invoice
-	Printer       Printer
-	Cashier       income.Cashier
-	Timezone      string
-}
-type Printer struct {
-	ID        int
-	PrinterID string
-	//type : cashier or kitchen
-	PrinterType string
-	PrinterIP   string
-	PaperWidth  int
-	IsDefault   bool
-	TerminalID  int
-	IsUSB       bool
-}
-
-func MaptoPrinter(p models.Printer) Printer {
-	printer := Printer{}
-	printer.ID = p.ID
-	printer.IsDefault = p.IsDefault
-	printer.PaperWidth = p.PaperWidth
-	printer.PrinterIP = *p.PrinterIP
-	printer.PrinterType = p.PrinterType
-	printer.PrinterID = p.PrinterID
-	printer.IsUSB = p.IsUSB
-	printer.TerminalID = p.TerminalID
-	return printer
+	GropLineItems []models.EJEvent `bson:"group_lineitems`
+	Invoice       models.Invoice   `bson:"invoice"`
+	Printer       models.Printer   `bson:"printer"`
+	Cashier       income.Cashier   `bson:"cashier"`
+	Timezone      string           `bson:"timezone"`
 }

@@ -55,7 +55,7 @@ func TestPrintKitchen(t *testing.T) {
 		FDMLanguage: "fdm_language,omitempty",
 	}
 
-	printer := Printer{
+	printer := models.Printer{
 		ID:          6,
 		PrinterType: "Epson",
 		PrinterID:   "123456",

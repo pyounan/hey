@@ -148,6 +148,7 @@ func main() {
 
 	go startTLS(handler)
 
+	go pos.StartPrinter()
 	graceful.LogListenAndServe(
 		&http.Server{
 			Addr:    ":" + *port,
