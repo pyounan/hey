@@ -8,6 +8,7 @@ import (
 	"pos-proxy/income"
 	"pos-proxy/pos/models"
 	"pos-proxy/printing"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -17,16 +18,45 @@ const folioPrinter = "Folio"
 
 //PrintRequest varibles for printing
 type PrintRequest struct {
-	PrinterType  string
-	OrderedItems []models.EJEvent
-	Items        []models.POSLineItem
-	Invoice      models.Invoice
+	PrinterType  string               `bson:"printer_type"`
+	OrderedItems []models.EJEvent     `bson:"ordered_posinvoicelineitem_set"`
+	Items        []models.POSLineItem `bson:"posinvoicelineitem_set"`
+	Invoice      models.Invoice       `bson:"posinvoice"`
 }
 
-// MenuPrinter used to group item by menu id and hold printer too
-type MenuPrinter struct {
-	Printer printing.Printer
-	Menu    int
+type QueuePrintRequest struct {
+	ID             bson.ObjectId    `json:"id" bson:"_id,omitempty"`
+	CreatedAt      time.Time        `bson:"created_at"`
+	UpdatedAt      time.Time        `bson:"updated_at"`
+	Status         string           `bson:"status"`
+	Items          []models.EJEvent `bson:"items"`
+	Invoice        models.Invoice   `bson:"invoice"`
+	Terminal       models.Terminal  `bson:"termianl"`
+	Store          models.Store     `bson:"store"`
+	Cashier        income.Cashier   `bson:"cashier"`
+	Company        income.Company   `bson:"company"`
+	Printer        models.Printer   `bson:"printer"`
+	TotalDiscounts float64          `bson:"total_discounts"`
+	Timezone       string           `bson:"timezone"`
+	GroupLineItems []models.EJEvent `bson:"group_lineitems"`
+	//Kitchen or Folio
+	PrintType string `bson:"print_type"`
+}
+
+//SetQueued mark print request as Queued to be print
+func (q *QueuePrintRequest) SetQueued() {
+	q.Status = "Queued"
+}
+
+//SetRetry mark print request as Retry
+//mean that it tried to print once and failed
+func (q *QueuePrintRequest) SetRetry() {
+	q.Status = "Retry"
+}
+
+//SetPrinted mark print request as Printed
+func (q *QueuePrintRequest) SetPrinted() {
+	q.Status = "Printed"
 }
 
 //sendToPrint
@@ -42,7 +72,6 @@ type MenuPrinter struct {
 //If printer id == null then chage it with smartprinter ip
 //printFolio
 func sendToPrint(req PrintRequest) {
-	// printerType = folioPrinter
 
 	var printer models.Printer
 	var err error
@@ -58,35 +87,30 @@ func sendToPrint(req PrintRequest) {
 					fmt.Printf("Printer Stopped with Printer Error IP == nil")
 					continue
 				}
-				p := printing.MaptoPrinter(printer)
 
-				if p.PrinterIP != "" {
-					k := printing.KitchenPrint{}
-					k.GropLineItems = events
-					k.Printer = p
-					if !k.Printer.IsUSB {
-						k.Printer.PrinterIP = p.PrinterIP + ":9100"
+				if *printer.PrinterIP != "" {
+					queueReq := QueuePrintRequest{}
+					queueReq.PrintType = kitchenPrinter
+					queueReq.GroupLineItems = events
+					queueReq.Printer = printer
+					if !queueReq.Printer.IsUSB {
+						printIP := *printer.PrinterIP + ":9100"
+						queueReq.Printer.PrinterIP = &printIP
 					}
-					k.Invoice = req.Invoice
-					k.Timezone = config.Config.TimeZone
+					queueReq.Invoice = req.Invoice
+					queueReq.Timezone = config.Config.TimeZone
 					// k.Timezone = "Africa/Cairo"
-					k.Cashier, err = getCashierByNumber(req.Invoice.CashierNumber)
+					queueReq.Cashier, err = getCashierByNumber(req.Invoice.CashierNumber)
 					if err != nil {
 						fmt.Printf("Can't get casher for number %v,ERR %v\n", req.Invoice.CashierNumber, err)
 						continue
 					}
-					// defer func() {
-					// 	if r := recover(); r != nil {
-					// 		fmt.Printf("Recovered Kitchen Print %v\n", r)
-					// 	}
-					// }()
-					fmt.Printf("Sent PrintKitchen %v\n", p.PrinterIP)
-					for _, i := range k.GropLineItems {
-						fmt.Println(i.Description)
-					}
-					err := printing.PrintKitchen(&k)
+					queueReq.CreatedAt = time.Now()
+					queueReq.UpdatedAt = time.Now()
+					queueReq.SetQueued()
+					err = QueuePrint(queueReq)
 					if err != nil {
-						fmt.Printf("Kitchen Printer err %v\n", err)
+						fmt.Printf("Failed to store request %v\n", err)
 					}
 				} else {
 					log.Println("Printing stop no printer IP")
@@ -97,46 +121,40 @@ func sendToPrint(req PrintRequest) {
 
 	}
 	if req.PrinterType == folioPrinter {
-		// fmt.Printf("Items %v\n", len(req.OrderedItems))
-		// fmt.Printf("Printer Type %v\n", req.PrinterType)
 		var printerIP string
 		printer, err := getPrinterForTerminalIP(req.Invoice.TerminalID, "cashier")
-		// printer, err := getPrinterForTerminalIP(2, "cashier")
 		if err == nil {
 			if printer.PrinterIP != nil {
 				printerIP = *printer.PrinterIP
 			}
 		}
-		// fmt.Printf("Postings Length %v\n", len(req.Invoice.Postings))
-		// fmt.Printf("Printer Folio %v\n", printer)
 		if printerIP != "" {
-			fmt.Printf("Start printing on %v\n", printerIP)
-			f := printing.FolioPrint{}
-			f.Printer = printer
-			if !f.Printer.IsUSB {
+			queueReq := QueuePrintRequest{}
+			queueReq.PrintType = folioPrinter
+			queueReq.Printer = printer
+			if !queueReq.Printer.IsUSB {
 				printerIP = printerIP + ":9100"
 			}
-			f.Items = req.OrderedItems
-			f.Printer.PrinterIP = &printerIP
-			f.Invoice = req.Invoice
-			f.Timezone = config.Config.TimeZone
-			// f.Timezone = "Africa/Cairo"
-			f.Cashier, err = getCashierByNumber(req.Invoice.CashierNumber)
+			queueReq.Items = req.OrderedItems
+			queueReq.Printer.PrinterIP = &printerIP
+			queueReq.Invoice = req.Invoice
+			queueReq.Timezone = config.Config.TimeZone
+			queueReq.Cashier, err = getCashierByNumber(req.Invoice.CashierNumber)
 			if err != nil {
 				fmt.Printf("Can't get casher for number %v,ERR %v\n", req.Invoice.CashierNumber, err)
 				return
 			}
-			f.Terminal, err = getTerminalByID(req.Invoice.TerminalID)
+			queueReq.Terminal, err = getTerminalByID(req.Invoice.TerminalID)
 			if err != nil {
 				fmt.Printf("Can't get terminal for id %v,ERR %v\n", req.Invoice.TerminalID, err)
 				return
 			}
-			f.Store, err = getStoreByID(req.Invoice.Store)
+			queueReq.Store, err = getStoreByID(req.Invoice.Store)
 			if err != nil {
 				fmt.Printf("Can't get store for number %v,ERR %v\n", req.Invoice.Store, err)
 				return
 			}
-			f.Company, err = getCompany()
+			queueReq.Company, err = getCompany()
 			if err != nil {
 				fmt.Printf("Can't get Company, ERR %v\n", err)
 				return
@@ -147,16 +165,13 @@ func sendToPrint(req PrintRequest) {
 					totalDiscount += d.Amount
 				}
 			}
-			f.TotalDiscounts = totalDiscount
-			// defer func() {
-			// 	if r := recover(); r != nil {
-			// 		fmt.Printf("Recovered Folio Print %v\n", r)
-			// 	}
-			// }()
-			fmt.Printf("Send PrintFolio %v\n", printerIP)
-			err := printing.PrintFolio(&f)
+			queueReq.TotalDiscounts = totalDiscount
+			queueReq.CreatedAt = time.Now()
+			queueReq.UpdatedAt = time.Now()
+			queueReq.SetQueued()
+			err := QueuePrint(queueReq)
 			if err != nil {
-				fmt.Printf("Folio Printer error : %v\n", err)
+				fmt.Printf("Failed to store request %v\n", err)
 			}
 		} else {
 			log.Println("Printing stop no printer IP")
@@ -274,4 +289,109 @@ func getCompany() (income.Company, error) {
 		return income.Company{}, err
 	}
 	return company, nil
+}
+
+//QueuePrint save new print request in printer queue
+func QueuePrint(req QueuePrintRequest) error {
+	session := db.Session.Copy()
+	defer session.Close()
+	err := db.DB.C("printerqueue").With(session).Insert(req)
+	return err
+}
+
+//GetQueuePrint try to get the latest print request with status == Queued
+//If no request availabe
+//then try to get the latest request with status == retry
+func GetQueuePrint() (QueuePrintRequest, error) {
+	session := db.Session.Copy()
+	defer session.Close()
+	req := QueuePrintRequest{}
+	req.SetQueued()
+	q := bson.M{"status": req.Status}
+	err := db.DB.C("printerqueue").With(session).Find(q).Limit(1).Sort("updated_at").One(&req)
+	if err != nil {
+		req.SetRetry()
+		q := bson.M{"status": req.Status}
+		err = db.DB.C("printerqueue").With(session).Find(q).Limit(1).Sort("updated_at").One(&req)
+	}
+	return req, err
+}
+func UpdateQueuePrint(req QueuePrintRequest) error {
+	session := db.Session.Copy()
+	defer session.Close()
+	q := bson.M{"_id": req.ID}
+	err := db.DB.C("printerqueue").With(session).Update(q, req)
+	return err
+}
+
+//StartPrinter get the
+func StartPrinter() {
+	req, err := GetQueuePrint()
+	if err != nil {
+		time.Sleep(1 * time.Second)
+		go StartPrinter()
+		return
+	}
+	if req.PrintType == folioPrinter {
+		folioPrint := printing.FolioPrint{}
+		folioPrint.Items = req.Items
+		folioPrint.Invoice = req.Invoice
+		folioPrint.Terminal = req.Terminal
+		folioPrint.Store = req.Store
+		folioPrint.Cashier = req.Cashier
+		folioPrint.Company = req.Company
+		folioPrint.Printer = req.Printer
+		folioPrint.TotalDiscounts = req.TotalDiscounts
+		folioPrint.Timezone = req.Timezone
+		err := printing.PrintFolio(&folioPrint)
+		if err != nil {
+			req.SetRetry()
+			req.UpdatedAt = time.Now()
+			//Update database
+			err := UpdateQueuePrint(req)
+			if err != nil {
+				fmt.Printf("Failed to update request %+v\n", err)
+			}
+			time.Sleep(1 * time.Second)
+			go StartPrinter()
+			return
+		}
+		req.SetPrinted()
+		req.UpdatedAt = time.Now()
+		//Update database
+		updateErr := UpdateQueuePrint(req)
+		if updateErr != nil {
+			fmt.Printf("Failed to update request %v\n", err)
+		}
+	} else if req.PrintType == kitchenPrinter {
+		kitchenPrint := printing.KitchenPrint{}
+		kitchenPrint.GropLineItems = req.GroupLineItems
+		kitchenPrint.Printer = req.Printer
+		kitchenPrint.Invoice = req.Invoice
+		kitchenPrint.Cashier = req.Cashier
+		kitchenPrint.Timezone = req.Timezone
+		err := printing.PrintKitchen(&kitchenPrint)
+		if err != nil {
+			req.SetRetry()
+			req.UpdatedAt = time.Now()
+			//Update database
+			updateErr := UpdateQueuePrint(req)
+			if updateErr != nil {
+				fmt.Printf("Failed to update request %v\n", err)
+			}
+			time.Sleep(1 * time.Second)
+			go StartPrinter()
+			return
+		}
+		req.SetPrinted()
+		req.UpdatedAt = time.Now()
+		//Update database
+		updateErr := UpdateQueuePrint(req)
+		if updateErr != nil {
+			fmt.Printf("Failed to update request %v\n", err)
+		}
+	}
+	time.Sleep(1 * time.Second)
+	go StartPrinter()
+	return
 }

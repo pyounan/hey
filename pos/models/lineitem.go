@@ -105,6 +105,6 @@ type POSLineItem struct {
 	// used for waste
 	PosinvoiceID      *int64 `json:"posinvoice" bson:"posinvoice"`
 	Reason            string `json:"reason,omitempty" bson:"reason,omitempty"`
-	CondimentsComment string `json:"condiments_comment" bson:"-"`
-	LastChildInCourse bool   `json:"last_child_in_course" bson:"-"`
+	CondimentsComment string `json:"condiments_comment" bson:"condiments_comment"`
+	LastChildInCourse bool   `json:"last_child_in_course" bson:"last_child_in_course"`
 }

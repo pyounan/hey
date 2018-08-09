@@ -25,8 +25,8 @@ type EJEvent struct {
 	CashierID          *int64              `json:"cashier" bson:"cashier"`
 	BaseUnit           string              `json:"base_unit,omitempty" bson:"base_unit,omitempty"`
 	CondimentLineItems []CondimentLineItem `json:"condimentlineitem_set" bson:"condimentlineitem_set"`
-	LastChildInCourse  bool                `json:"lastchildincourse" bson:"-"`
-	CondimentsComment  string              `json:"condiments_comment" bson:"-"`
+	LastChildInCourse  bool                `json:"lastchildincourse" bson:"lastchildincourse"`
+	CondimentsComment  string              `json:"condiments_comment" bson:"condiments_comment"`
 }
 
 // String generates a text for a ej event in a format for the FDM.

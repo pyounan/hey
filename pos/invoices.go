@@ -298,7 +298,6 @@ func SubmitInvoice(w http.ResponseWriter, r *http.Request) {
 	defer session.Close()
 
 	//Add audit_date if it was nil
-	fmt.Printf("Audit Date %v\n", req.Invoice.AuditDate)
 	if req.Invoice.AuditDate == nil {
 		type auditDate struct {
 			Date string `json:"audit_date" bson:"audit_date"`
