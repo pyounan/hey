@@ -1,5 +1,12 @@
 package models
 
+// CondimentGroup swagger:model CondimentGroup
+// defines attributes of CondimentGroup entity combinaation
+type CondimentGroups struct {
+	ID   int    `json:"id" bson:"id"`
+	Name string `json:"name" bson:"name"`
+}
+
 // Store swagger:model store
 // defines attributes of a Store entity
 type Store struct {
@@ -37,7 +44,8 @@ type Menu struct {
 // Group swagger:model group
 // defines attributes of Group entity
 type Group struct {
-	ID    int    `json:"id" bson:"id"`
-	Name  string `json:"name" bson:"name"`
-	Items []Item `json:"items" bson:"items"`
+	ID              int               `json:"id" bson:"id"`
+	Name            string            `json:"name" bson:"name"`
+	Items           []Item            `json:"items" bson:"items"`
+	CondimentGroups []CondimentGroups `json:"condimentgroups" bson:"condimentgroups"`
 }
