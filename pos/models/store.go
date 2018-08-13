@@ -3,17 +3,18 @@ package models
 // Store swagger:model store
 // defines attributes of a Store entity
 type Store struct {
-	ID             int                    `json:"id" bson:"id"`
-	Code           string                 `json:"code" bson:"code"`
-	Description    string                 `json:"description" bson:"description"`
-	InvoiceFooter  string                 `json:"invoice_footer" bson:"invoice_footer"`
-	InvoiceHeader  string                 `json:"invoice_header" bson:"invoice_header"`
-	KitchenSubmit  string                 `json:"kitchen_submit" bson:"kitchen_submit"`
-	Logo           string                 `json:"logo" bson:"logo"`
-	NumberOfTables int                    `json:"number_of_tables" bson:"number_of_tables"`
-	ShowPaymaster  bool                   `json:"show_paymaster" bson:"show_paymaster"`
-	AllowedRooms   string                 `json:"allowed_rooms" bson:"allowed_rooms"`
-	LayoutJson     map[string]interface{} `json:"layout_json" bson:"layout_json"`
+	ID                      int                    `json:"id" bson:"id"`
+	Code                    string                 `json:"code" bson:"code"`
+	Description             string                 `json:"description" bson:"description"`
+	InvoiceFooter           string                 `json:"invoice_footer" bson:"invoice_footer"`
+	InvoiceHeader           string                 `json:"invoice_header" bson:"invoice_header"`
+	KitchenSubmit           string                 `json:"kitchen_submit" bson:"kitchen_submit"`
+	Logo                    string                 `json:"logo" bson:"logo"`
+	NumberOfTables          int                    `json:"number_of_tables" bson:"number_of_tables"`
+	ShowPaymaster           bool                   `json:"show_paymaster" bson:"show_paymaster"`
+	AllowedRooms            string                 `json:"allowed_rooms" bson:"allowed_rooms"`
+	LayoutJson              map[string]interface{} `json:"layout_json" bson:"layout_json"`
+	ShowTaxBreakDownInFolio bool                   `json:"show_taxbreakdown_in_folio" bson:"show_taxbreakdown_in_folio"`
 }
 
 // StoreDetails swagger:model storeDetails
