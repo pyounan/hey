@@ -2,6 +2,10 @@ package printing
 
 import (
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
 	"pos-proxy/config"
 	"strings"
 	"time"
@@ -66,7 +70,24 @@ func PrintFolio(folio *FolioPrint) error {
 		}
 	}
 	if folio.Store.Logo != "" {
-		p.PrintImage(folio.Store.Logo)
+		url := folio.Store.Logo
+		response, err := http.Get(url)
+		if err != nil {
+			log.Println(err)
+		}
+
+		defer response.Body.Close()
+
+		file, err := os.Create("/tmp/logo.jpg")
+		if err != nil {
+			log.Println(err)
+		}
+		_, err = io.Copy(file, response.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		file.Close()
+		p.PrintImage(file.Name())
 	}
 	p.SetImageHight(52)
 	p.SetFontSizePoints(50)

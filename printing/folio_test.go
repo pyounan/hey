@@ -32,10 +32,10 @@ func TestPrintFolio(t *testing.T) {
 	}
 	var id int64 = 1
 	invoice.ID = &id
-	invoice.TableID = &id
+	// invoice.TableID = &id
 	invoice.Room = &id
-	tableDetails := "T #26"
-	invoice.TableDetails = &tableDetails
+	// tableDetails := "T #26"
+	// invoice.TableDetails = &tableDetails
 	roomDetails := "AAA"
 	invoice.RoomDetails = &roomDetails
 	now := time.Now()
@@ -86,7 +86,7 @@ func TestPrintFolio(t *testing.T) {
 		Description:   "description",
 		InvoiceFooter: "invoice_footer",
 		InvoiceHeader: "invoice_header",
-		Logo:          "image.png",
+		Logo:          "https://image.ibb.co/jzbjbU/images.png",
 	}
 	cashier := income.Cashier{
 		ID:          15,
@@ -116,10 +116,10 @@ func TestPrintFolio(t *testing.T) {
 		PaperWidth:  80,
 		IsDefault:   true,
 		TerminalID:  88,
-		IsUSB:       true,
+		IsUSB:       false,
 	}
-	// ip := "192.168.1.220:9100"
-	ip := "/dev/usb/lp0"
+	ip := "192.168.1.220:9100"
+	// ip := "/dev/usb/lp0"
 	printer.PrinterIP = &ip
 	folioPrint := FolioPrint{
 		Invoice:        invoice,
