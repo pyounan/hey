@@ -146,9 +146,7 @@ func PrintFolio(folio *FolioPrint) error {
 			utf8.RuneCountInString("Table: "+*folio.Invoice.TableDetails))/2) +
 			CheckLang(Translate("Table")+": "+*folio.Invoice.TableDetails))
 	} else {
-		p.WriteString(Center("Takeout",
-			printingParams[folio.Printer.PaperWidth]["width"]) +
-			CheckLang(Translate("Takeout")))
+		p.WriteString(Pad(10) + CheckLang(Translate("Takeout")))
 	}
 	guestName := ""
 	if folio.Invoice.WalkinName != "" {
