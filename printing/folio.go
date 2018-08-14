@@ -106,7 +106,7 @@ func PrintFolio(folio *FolioPrint) error {
 				CheckLang(strings.ToUpper(returnTR)))
 		}
 	} else {
-		p.WriteString(Pad((25 - utf8.RuneCountInString(proformaTR)/2)) +
+		p.WriteString(Pad((25-utf8.RuneCountInString(proformaTR))/2) +
 			CheckLang(strings.ToUpper(proformaTR)))
 		if config.Config.IsFDMEnabled {
 			p.WriteString(Pad((25-utf8.RuneCountInString(thisIsNotATR))/2) +
@@ -167,7 +167,7 @@ func PrintFolio(folio *FolioPrint) error {
 			utf8.RuneCountInString("Table: "+*folio.Invoice.TableDetails))/2) +
 			CheckLang(Translate("Table")+": "+*folio.Invoice.TableDetails))
 	} else {
-		p.WriteString(Pad(10) + CheckLang(Translate("Takeout")))
+		p.WriteString(Pad((25-utf8.RuneCountInString("Takeout"))/2) + CheckLang(Translate("Takeout")))
 	}
 	guestName := ""
 	if folio.Invoice.WalkinName != "" {
