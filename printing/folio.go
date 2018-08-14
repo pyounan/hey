@@ -376,7 +376,7 @@ func PrintFolio(folio *FolioPrint) error {
 		}
 		for _, posting := range folio.Invoice.Postings {
 			deptAmount := fmt.Sprintf("%.2f", posting.Amount)
-			if posting.RoomNumber != nil || *posting.RoomNumber != 0 {
+			if posting.RoomNumber != nil && *posting.RoomNumber != 0 {
 
 				if folio.Invoice.WalkinName != "" {
 					guestName = folio.Invoice.WalkinName
