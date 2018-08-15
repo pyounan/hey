@@ -3,12 +3,12 @@ package models
 // TaxDef swagger:model taxDef
 // Defines attributes of a Tax Definition
 type TaxDef struct {
-	Name          string `json:"name" bson:"name"`
-	VatCode       string `json:"vat_code,omitempty" bson:"vat_code,omitempty"`
-	VatPercentage string `json:"vat_percentage,omitempty" bson:"vat_percentage,omitempty"`
-	POS           string `json:"pos" bson:"pos"`
-	Formula       string `json:"formula" bson:"formula"`
-	DepartmentID  int    `json:"department_id" bson:"department_id"`
+	Name          string  `json:"name" bson:"name"`
+	VatCode       string  `json:"vat_code,omitempty" bson:"vat_code,omitempty"`
+	VatPercentage float64 `json:"vat_percentage" bson:"vat_percentage"`
+	POS           string  `json:"pos" bson:"pos"`
+	Formula       string  `json:"formula" bson:"formula"`
+	DepartmentID  int     `json:"department_id" bson:"department_id"`
 }
 
 // Department swagger:model department
