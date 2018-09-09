@@ -11,11 +11,11 @@ import (
 	"pos-proxy/socket"
 )
 
-var inputSignal = make(chan socket.Event)
+var InputSignal = make(chan socket.Event)
 var outputSignal = make(chan socket.Event)
 
 func init() {
-	socket.Register("payment", inputSignal)
+	socket.Register("payment", InputSignal)
 	go handleInputSignals()
 	go handleOutputSignals()
 }
@@ -29,7 +29,7 @@ type PaymentPayload struct {
 
 func handleInputSignals() {
 	log.Println("waiting for incoming payment events")
-	for event := range inputSignal {
+	for event := range InputSignal {
 		log.Println("a new socket event was received, processing...")
 		var payload PaymentPayload
 		err := json.Unmarshal(event.Payload, &payload)

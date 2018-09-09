@@ -14,10 +14,13 @@ import (
 	incomemodels "pos-proxy/income/models"
 	"pos-proxy/libs/libfdm"
 	"pos-proxy/opera"
+	"pos-proxy/payment"
+	"pos-proxy/payment/gateways/ccv"
 	"pos-proxy/pos/fdm"
 	"pos-proxy/pos/locks"
 	"pos-proxy/pos/models"
 	"pos-proxy/proxy"
+	"pos-proxy/socket"
 	"pos-proxy/syncer"
 	"strconv"
 	"strings"
@@ -647,7 +650,6 @@ func FolioInvoice(w http.ResponseWriter, r *http.Request) {
 // Responses:
 // 200: invoicePOSTRequest
 func PayInvoice(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("\n\tPayInvoice\n\n")
 	var req models.InvoicePOSTRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -662,12 +664,22 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		// create fdm connection
 		conn, err := fdm.Connect(req.RCRS)
 		if err != nil {
+			if len(req.Postings) > 0 {
+				if req.Postings[0].DepartmentDetails == "CCV" {
+					CancelLastPayment(req)
+				}
+			}
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
 		defer conn.Close()
 		responses, err := fdm.Payment(conn, req)
 		if err != nil {
+			if len(req.Postings) > 0 {
+				if req.Postings[0].DepartmentDetails == "CCV" {
+					CancelLastPayment(req)
+				}
+			}
 			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
@@ -738,6 +750,38 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		go sendToPrint(printReq)
 	}
 	helpers.ReturnSuccessMessage(w, req)
+}
+
+func CancelLastPayment(res models.InvoicePOSTRequest) {
+	cancelPayment := payment.PaymentPayload{}
+	if len(res.Postings) > 0 {
+		if res.Postings[0].DepartmentDetails == "CCV" {
+			cancelPayment.Gateway = "ccv"
+		}
+	}
+	if cancelPayment.Gateway == "" {
+		return
+	}
+	cancelPayment.Action = "cancel"
+	cancel := ccv.CancelPayload{}
+	cancel.TerminalID = res.TerminalID
+	cancel.TerminalNumber = res.TerminalNumber
+	cancel.CashierID = res.CashierNumber
+	// cancel.AuthCode donot set auth code to cancel last payment
+	event := socket.Event{}
+	cancelPayload, err := json.Marshal(cancel)
+	if err != nil {
+		fmt.Printf("Cancel Last json cancelPayload error %v\n", err)
+		return
+	}
+	cancelPayment.Data = cancelPayload
+	paymentPayload, err := json.Marshal(cancelPayment)
+	if err != nil {
+		fmt.Printf("Cancel Last json paymentPayload error %v\n", err)
+		return
+	}
+	event.Payload = paymentPayload
+	payment.InputSignal <- event
 }
 
 // CreatePaymentEJ swagger:route POST /api/pos/posinvoices/createpaymentej/ invoices createPaymentEJ
