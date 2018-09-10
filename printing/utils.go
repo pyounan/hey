@@ -1,6 +1,12 @@
 package printing
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"pos-proxy/config"
 	"strings"
 	"unicode/utf8"
@@ -65,4 +71,44 @@ func Translate(text string) string {
 	)
 	translatedText := string(I18n.T(LANG, text))
 	return translatedText
+}
+
+func AddLine(lineType string, charPerLine int) string {
+	if lineType == "doubledashed" {
+
+		return strings.Repeat("=", charPerLine)
+	} else if lineType == "dash" {
+		return strings.Repeat("-", charPerLine)
+	}
+	return ""
+}
+
+func Send(api string, payload []byte) (int, []byte, error) {
+	c := &http.Client{}
+	body := bytes.NewBuffer(payload)
+	req, err := http.NewRequest("POST", api, body)
+	if err != nil {
+		return 0, nil, err
+	}
+	req.Header.Set("Content-Type", "application/xml")
+	resp, err := c.Do(req)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		respBody, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return resp.StatusCode, respBody, err
+		}
+		str := fmt.Sprintf("failed to make request, returned error of %d %s\n", resp.StatusCode, string(respBody))
+		return resp.StatusCode, nil, errors.New(str)
+	}
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return resp.StatusCode, respBody, err
+	}
+	log.Println(respBody)
+	return resp.StatusCode, respBody, nil
 }

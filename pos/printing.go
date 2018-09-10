@@ -8,6 +8,7 @@ import (
 	"pos-proxy/income"
 	"pos-proxy/pos/models"
 	"pos-proxy/printing"
+	"pos-proxy/printing/epsonxml"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -332,6 +333,7 @@ func StartPrinter() {
 		go StartPrinter()
 		return
 	}
+	epsonxml := epsonxml.Epsonxml{}
 	if req.PrintType == folioPrinter {
 		folioPrint := printing.FolioPrint{}
 		folioPrint.Items = req.Items
@@ -343,7 +345,7 @@ func StartPrinter() {
 		folioPrint.Printer = req.Printer
 		folioPrint.TotalDiscounts = req.TotalDiscounts
 		folioPrint.Timezone = req.Timezone
-		err := printing.PrintFolio(&folioPrint)
+		err := epsonxml.PrintFolio(&folioPrint)
 		if err != nil {
 			req.SetRetry()
 			req.UpdatedAt = time.Now()
@@ -370,7 +372,7 @@ func StartPrinter() {
 		kitchenPrint.Invoice = req.Invoice
 		kitchenPrint.Cashier = req.Cashier
 		kitchenPrint.Timezone = req.Timezone
-		err := printing.PrintKitchen(&kitchenPrint)
+		err := epsonxml.PrintKitchen(&kitchenPrint)
 		if err != nil {
 			req.SetRetry()
 			req.UpdatedAt = time.Now()
