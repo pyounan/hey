@@ -664,23 +664,15 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		// create fdm connection
 		conn, err := fdm.Connect(req.RCRS)
 		if err != nil {
-			if len(req.Postings) > 0 {
-				if req.Postings[0].DepartmentDetails == "CCV" {
-					CancelLastPayment(req)
-				}
-			}
-			helpers.ReturnErrorMessage(w, err.Error())
+			cancelErr := CancelLastPayment(req)
+			helpers.ReturnErrorMessage(w, err.Error()+cancelErr.Error())
 			return
 		}
 		defer conn.Close()
 		responses, err := fdm.Payment(conn, req)
 		if err != nil {
-			if len(req.Postings) > 0 {
-				if req.Postings[0].DepartmentDetails == "CCV" {
-					CancelLastPayment(req)
-				}
-			}
-			helpers.ReturnErrorMessage(w, err.Error())
+			cancelErr := CancelLastPayment(req)
+			helpers.ReturnErrorMessage(w, err.Error()+cancelErr.Error())
 			return
 		}
 		fdmResponses = append(fdmResponses, responses...)
@@ -752,36 +744,43 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 	helpers.ReturnSuccessMessage(w, req)
 }
 
-func CancelLastPayment(res models.InvoicePOSTRequest) {
-	cancelPayment := payment.PaymentPayload{}
-	if len(res.Postings) > 0 {
-		if res.Postings[0].DepartmentDetails == "CCV" {
+//CancelLastPayment check if posting contains ccv , then send cancel request for all ccv posting
+func CancelLastPayment(res models.InvoicePOSTRequest) error {
+	postingLength := len(res.Postings)
+	lastCCVPayment := true
+	for i := postingLength - 1; i >= 0; i-- {
+		if strings.ToLower(res.Postings[i].PostingType) == "ccv" {
+			cancelPayment := payment.PaymentPayload{}
+			cancel := ccv.CancelPayload{}
+			if !lastCCVPayment {
+				//set authcode,amount,currency only if not last payment
+				cancel.AuthCode = res.Postings[i].Comments
+				cancel.Amount = res.Postings[i].ForeignAmount
+				cancel.Currency = res.Postings[i].CurrencyDetails
+			}
+			lastCCVPayment = false
 			cancelPayment.Gateway = "ccv"
+			cancelPayment.Action = "cancel"
+			cancel.TerminalID = res.TerminalID
+			cancel.TerminalNumber = res.TerminalNumber
+			cancel.CashierID = res.CashierNumber
+			event := socket.Event{}
+			cancelPayload, err := json.Marshal(cancel)
+			if err != nil {
+				fmt.Printf("Cancel Last json cancelPayload error %v\n", err)
+				return fmt.Errorf(" Cancel Last json cancelPayload %v", err.Error())
+			}
+			cancelPayment.Data = cancelPayload
+			paymentPayload, err := json.Marshal(cancelPayment)
+			if err != nil {
+				fmt.Printf("Cancel Last json paymentPayload error %v\n", err)
+				return fmt.Errorf(" Cancel Last json paymentPayload error %v", err)
+			}
+			event.Payload = paymentPayload
+			payment.InputSignal <- event
 		}
 	}
-	if cancelPayment.Gateway == "" {
-		return
-	}
-	cancelPayment.Action = "cancel"
-	cancel := ccv.CancelPayload{}
-	cancel.TerminalID = res.TerminalID
-	cancel.TerminalNumber = res.TerminalNumber
-	cancel.CashierID = res.CashierNumber
-	// cancel.AuthCode donot set auth code to cancel last payment
-	event := socket.Event{}
-	cancelPayload, err := json.Marshal(cancel)
-	if err != nil {
-		fmt.Printf("Cancel Last json cancelPayload error %v\n", err)
-		return
-	}
-	cancelPayment.Data = cancelPayload
-	paymentPayload, err := json.Marshal(cancelPayment)
-	if err != nil {
-		fmt.Printf("Cancel Last json paymentPayload error %v\n", err)
-		return
-	}
-	event.Payload = paymentPayload
-	payment.InputSignal <- event
+	return nil
 }
 
 // CreatePaymentEJ swagger:route POST /api/pos/posinvoices/createpaymentej/ invoices createPaymentEJ
