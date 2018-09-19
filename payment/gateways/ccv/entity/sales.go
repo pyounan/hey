@@ -6,6 +6,7 @@ import (
 
 func NewSaleRequest() *SaleRequest {
 	r := SaleRequest{}
+	// r.RequestType = "TicketReprint"
 	r.RequestType = "CardPayment"
 	r.XMLNS = "http://www.nrf-arts.org/IXRetail/namespace"
 	r.POSdata.POSTimeStamp = "2018-03-14T10:44:58.3913175-07:00" // time.Now().String()

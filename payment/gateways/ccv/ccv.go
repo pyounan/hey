@@ -271,19 +271,20 @@ func (gateway CCV) Abort() {
 	log.Println(res)*/
 }
 
+type CancelPayload struct {
+	AuthCode          string  `json:"auth_code"`
+	Amount            float64 `json:"amount"`
+	TerminalID        int     `json:"terminal_id"`
+	TerminalNumber    int     `json:"terminal_number"`
+	UseDefaultAccount bool    `json:"use_default_account"`
+	CashierID         int     `json:"cashier_id"`
+	Currency          string  `json:"currency"`
+}
+
 // Cancel initiates cancel operation for a certain Auth Code
 func (gateway CCV) Cancel(data json.RawMessage) {
 	log.Println("Starting CCV Cancel request")
 
-	type CancelPayload struct {
-		AuthCode          string  `json:"auth_code"`
-		Amount            float64 `json:"amount"`
-		TerminalID        int     `json:"terminal_id"`
-		TerminalNumber    int     `json:"terminal_number"`
-		UseDefaultAccount bool    `json:"use_default_account"`
-		CashierID         int     `json:"cashier_id"`
-		Currency          string  `json:"currency"`
-	}
 	payload := CancelPayload{}
 	err := json.Unmarshal(data, &payload)
 	if err != nil {
