@@ -74,7 +74,6 @@ func (q *QueuePrintRequest) SetPrinted() {
 //If printer id == null then chage it with smartprinter ip
 //printFolio
 func sendToPrint(req PrintRequest) {
-
 	var printer models.Printer
 	var err error
 
@@ -344,6 +343,7 @@ func StartPrinter() {
 		folioPrint.TotalDiscounts = req.TotalDiscounts
 		folioPrint.Timezone = req.Timezone
 		var err error
+		printer = req.Printer
 		if printer.PrintingFormat == "esc" {
 			esc := esc.Esc{}
 			err = esc.PrintFolio(&folioPrint)
@@ -378,6 +378,7 @@ func StartPrinter() {
 		kitchenPrint.Cashier = req.Cashier
 		kitchenPrint.Timezone = req.Timezone
 		var err error
+		printer = req.Printer
 		if printer.PrintingFormat == "esc" {
 			esc := esc.Esc{}
 			err = esc.PrintKitchen(&kitchenPrint)
