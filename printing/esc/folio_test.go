@@ -1,23 +1,24 @@
-package printing
+package esc
 
 import (
 	"log"
 	"pos-proxy/config"
 	"pos-proxy/income"
 	"pos-proxy/pos/models"
+	"pos-proxy/printing"
 	"testing"
 	"time"
 )
 
 func TestPad(t *testing.T) {
 	log.Println("test")
-	log.Println(Pad(1), len(Pad(1)))
-	log.Println(Pad(0), len(Pad(0)))
-	log.Println(Pad(10), len(Pad(10)))
+	log.Println(printing.Pad(1), len(printing.Pad(1)))
+	log.Println(printing.Pad(0), len(printing.Pad(0)))
+	log.Println(printing.Pad(10), len(printing.Pad(10)))
 }
 
 func TestPrintFolio(t *testing.T) {
-	config.Config.IsFDMEnabled = false
+	config.Config.IsFDMEnabled = true
 	invoice := models.Invoice{
 		InvoiceNumber:  "200-1153",
 		Pax:            1,
@@ -118,10 +119,10 @@ func TestPrintFolio(t *testing.T) {
 		TerminalID:  88,
 		IsUSB:       false,
 	}
-	ip := "192.168.1.220:9100"
+	ip := "192.168.1.220"
 	// ip := "/dev/usb/lp0"
 	printer.PrinterIP = &ip
-	folioPrint := FolioPrint{
+	folioPrint := printing.FolioPrint{
 		Invoice:        invoice,
 		Terminal:       termnial,
 		Store:          store,
@@ -132,7 +133,8 @@ func TestPrintFolio(t *testing.T) {
 		Timezone:       "Africa/Cairo",
 	}
 
-	err := PrintFolio(&folioPrint)
+	esc := Esc{}
+	err := esc.PrintFolio(&folioPrint)
 	if err != nil {
 		t.Log(err)
 		t.Fail()

@@ -6,12 +6,13 @@ type Printer struct {
 	ID        int    `json:"id" bson:"id"`
 	PrinterID string `json:"printer_id" bson:"printer_id"`
 	//type : cashier or kitchen
-	PrinterType string  `json:"printer_type" bson:"printer_type"`
-	PrinterIP   *string `json:"printer_ip" bson:"printer_ip"`
-	PaperWidth  int     `json:"paper_width" bson:"paper_width"`
-	IsDefault   bool    `json:"is_default" bson:"is_default"`
-	TerminalID  int     `json:"terminal" bson:"terminal"`
-	IsUSB       bool    `json:"is_usb" bson:"is_usb"`
+	PrinterType    string  `json:"printer_type" bson:"printer_type"`
+	PrinterIP      *string `json:"printer_ip" bson:"printer_ip"`
+	PaperWidth     int     `json:"paper_width" bson:"paper_width"`
+	IsDefault      bool    `json:"is_default" bson:"is_default"`
+	TerminalID     int     `json:"terminal" bson:"terminal"`
+	IsUSB          bool    `json:"is_usb" bson:"is_usb"`
+	PrintingFormat string  `json:"printing_format" bson:"printing_format"`
 }
 
 // PrinterSettings swagger:model printerSetting

@@ -1,7 +1,18 @@
 package printing
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
+	"image"
+	_ "image/png"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
 	"pos-proxy/config"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -11,6 +22,7 @@ import (
 	"github.com/qor/i18n/backends/yaml"
 )
 
+//LANG defines Language
 var LANG string
 
 //SetLang function to set language comes from configurations file
@@ -65,4 +77,82 @@ func Translate(text string) string {
 	)
 	translatedText := string(I18n.T(LANG, text))
 	return translatedText
+}
+
+//AddLine return lines for receipt
+func AddLine(lineType string, charPerLine int) string {
+	if lineType == "doubledashed" {
+
+		return strings.Repeat("=", charPerLine)
+	} else if lineType == "dash" {
+		return strings.Repeat("-", charPerLine)
+	}
+	return ""
+}
+
+//GetImage downloads and save images from a url
+func GetImage(url string) string {
+	response, err := http.Get(url)
+	if err != nil {
+		log.Println(err)
+	}
+
+	defer response.Body.Close()
+
+	file, err := os.Create("/tmp/logo.jpg")
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = io.Copy(file, response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Close()
+
+	return file.Name()
+}
+
+//GetImageDimension returns the width and height for an image
+func GetImageDimension(imagePath string) (string, string) {
+	file, err := os.Open(imagePath)
+	if err != nil {
+		log.Println(err)
+	}
+	image, _, err := image.DecodeConfig(file)
+	if err != nil {
+		log.Println(imagePath, err)
+	}
+	return strconv.Itoa(image.Width), strconv.Itoa(image.Height)
+}
+
+//Send sends a http request
+func Send(api string, payload []byte) (int, []byte, error) {
+	c := &http.Client{}
+	body := bytes.NewReader(payload)
+	req, err := http.NewRequest("POST", api, body)
+	if err != nil {
+		log.Println(err)
+		return 0, nil, err
+	}
+	req.Header.Set("Content-Type", "application/xml; charset=utf-8")
+	resp, err := c.Do(req)
+	if err != nil {
+		log.Println(err)
+		return 0, nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		respBody, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return resp.StatusCode, respBody, err
+		}
+		str := fmt.Sprintf("failed to make request, returned error of %d %s\n", resp.StatusCode, string(respBody))
+		return resp.StatusCode, nil, errors.New(str)
+	}
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return resp.StatusCode, respBody, err
+	}
+	return resp.StatusCode, respBody, nil
 }

@@ -1,10 +1,13 @@
-package printing
+package epsonxml
 
 import (
 	"pos-proxy/income"
 	"pos-proxy/pos/models"
+	"pos-proxy/printing"
 	"testing"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 func TestPrintKitchen(t *testing.T) {
@@ -58,22 +61,23 @@ func TestPrintKitchen(t *testing.T) {
 	printer := models.Printer{
 		ID:          6,
 		PrinterType: "Epson",
-		PrinterID:   "123456",
+		PrinterID:   "local_printer",
 		PaperWidth:  80,
 		IsDefault:   true,
 		TerminalID:  88,
 		IsUSB:       false,
-		PrinterIP:   "192.168.1.220:9100",
-		// PrinterIP:   "/dev/usb/lp0",
+		PrinterIP:   aws.String("192.168.1.220"),
+		// PrinterIP: aws.String("/dev/usb/lp0"),
 	}
-	kitchenPrint := KitchenPrint{
+	kitchenPrint := printing.KitchenPrint{
 		Invoice:       invoice,
 		Cashier:       cashier,
 		Printer:       printer,
 		GropLineItems: items,
 		Timezone:      "Africa/Cairo",
 	}
-	err := PrintKitchen(&kitchenPrint)
+	epsonxml := Epsonxml{}
+	err := epsonxml.PrintKitchen(&kitchenPrint)
 	if err != nil {
 		t.Log(err)
 		t.Fail()

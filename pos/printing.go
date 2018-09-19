@@ -8,6 +8,8 @@ import (
 	"pos-proxy/income"
 	"pos-proxy/pos/models"
 	"pos-proxy/printing"
+	"pos-proxy/printing/epsonxml"
+	"pos-proxy/printing/esc"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -94,8 +96,8 @@ func sendToPrint(req PrintRequest) {
 					queueReq.GroupLineItems = events
 					queueReq.Printer = printer
 					if !queueReq.Printer.IsUSB {
-						printIP := *printer.PrinterIP + ":9100"
-						queueReq.Printer.PrinterIP = &printIP
+						queueReq.Printer.PrinterIP = printer.PrinterIP
+
 					}
 					queueReq.Invoice = req.Invoice
 					queueReq.Timezone = config.Config.TimeZone
@@ -132,9 +134,6 @@ func sendToPrint(req PrintRequest) {
 			queueReq := QueuePrintRequest{}
 			queueReq.PrintType = folioPrinter
 			queueReq.Printer = printer
-			if !queueReq.Printer.IsUSB {
-				printerIP = printerIP + ":9100"
-			}
 			queueReq.Items = req.OrderedItems
 			queueReq.Printer.PrinterIP = &printerIP
 			queueReq.Invoice = req.Invoice
@@ -326,6 +325,7 @@ func UpdateQueuePrint(req QueuePrintRequest) error {
 
 //StartPrinter get the
 func StartPrinter() {
+	var printer models.Printer
 	req, err := GetQueuePrint()
 	if err != nil {
 		time.Sleep(1 * time.Second)
@@ -343,7 +343,14 @@ func StartPrinter() {
 		folioPrint.Printer = req.Printer
 		folioPrint.TotalDiscounts = req.TotalDiscounts
 		folioPrint.Timezone = req.Timezone
-		err := printing.PrintFolio(&folioPrint)
+		var err error
+		if printer.PrintingFormat == "ESC" {
+			esc := esc.Esc{}
+			err = esc.PrintFolio(&folioPrint)
+		} else if printer.PrintingFormat == "XML" {
+			xml := epsonxml.Epsonxml{}
+			err = xml.PrintFolio(&folioPrint)
+		}
 		if err != nil {
 			req.SetRetry()
 			req.UpdatedAt = time.Now()
@@ -370,7 +377,14 @@ func StartPrinter() {
 		kitchenPrint.Invoice = req.Invoice
 		kitchenPrint.Cashier = req.Cashier
 		kitchenPrint.Timezone = req.Timezone
-		err := printing.PrintKitchen(&kitchenPrint)
+		var err error
+		if printer.PrintingFormat == "ESC" {
+			esc := esc.Esc{}
+			err = esc.PrintKitchen(&kitchenPrint)
+		} else if printer.PrintingFormat == "XML" {
+			xml := epsonxml.Epsonxml{}
+			err = xml.PrintKitchen(&kitchenPrint)
+		}
 		if err != nil {
 			req.SetRetry()
 			req.UpdatedAt = time.Now()
