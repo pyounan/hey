@@ -162,12 +162,12 @@ func (e Esc) PrintKitchen(kitchen *printing.KitchenPrint) error {
 	var p *escpos.Printer
 	var err error
 	if kitchen.Printer.IsUSB {
-		p, err = connection.NewConnection("usb", *kitchen.Printer.PrinterIP)
+		p, err = connection.NewConnection("usb", *kitchen.Printer.PrinterIP+":9100")
 		if err != nil {
 			return err
 		}
 	} else {
-		p, err = connection.NewConnection("network", *kitchen.Printer.PrinterIP)
+		p, err = connection.NewConnection("network", *kitchen.Printer.PrinterIP+":9100")
 		if err != nil {
 			return err
 		}

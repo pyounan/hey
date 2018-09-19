@@ -1,6 +1,7 @@
 package epsonxml
 
 import (
+	"log"
 	"pos-proxy/config"
 	"pos-proxy/income"
 	"pos-proxy/pos/models"
@@ -105,13 +106,14 @@ func TestPrintFolio(t *testing.T) {
 	}
 	printer := models.Printer{
 		ID:          6,
+		PrinterID:   "local_printer",
 		PrinterType: "Epson",
 		PaperWidth:  80,
 		IsDefault:   true,
 		TerminalID:  88,
 		IsUSB:       false,
 	}
-	ip := "192.168.1.220:9100"
+	ip := "192.168.1.220"
 	// ip := "/dev/usb/lp0"
 	printer.PrinterIP = &ip
 	folioPrint := printing.FolioPrint{
@@ -128,6 +130,7 @@ func TestPrintFolio(t *testing.T) {
 	epsonxml := Epsonxml{}
 	err := epsonxml.PrintFolio(&folioPrint)
 	if err != nil {
+		log.Println(err)
 		t.Log(err)
 		t.Fail()
 	}

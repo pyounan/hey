@@ -61,12 +61,12 @@ func TestPrintKitchen(t *testing.T) {
 	printer := models.Printer{
 		ID:          6,
 		PrinterType: "Epson",
-		PrinterID:   "123456",
+		PrinterID:   "local_printer",
 		PaperWidth:  80,
 		IsDefault:   true,
 		TerminalID:  88,
 		IsUSB:       false,
-		PrinterIP:   aws.String("192.168.1.220:9100"),
+		PrinterIP:   aws.String("192.168.1.220"),
 		// PrinterIP: aws.String("/dev/usb/lp0"),
 	}
 	kitchenPrint := printing.KitchenPrint{

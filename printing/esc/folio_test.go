@@ -119,7 +119,7 @@ func TestPrintFolio(t *testing.T) {
 		TerminalID:  88,
 		IsUSB:       false,
 	}
-	ip := "192.168.1.220:9100"
+	ip := "192.168.1.220"
 	// ip := "/dev/usb/lp0"
 	printer.PrinterIP = &ip
 	folioPrint := printing.FolioPrint{

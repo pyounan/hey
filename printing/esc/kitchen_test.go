@@ -66,7 +66,7 @@ func TestPrintKitchen(t *testing.T) {
 		IsDefault:   true,
 		TerminalID:  88,
 		IsUSB:       false,
-		PrinterIP:   aws.String("192.168.1.220:9100"),
+		PrinterIP:   aws.String("192.168.1.220"),
 		// PrinterIP: aws.String("/dev/usb/lp0"),
 	}
 	kitchenPrint := printing.KitchenPrint{

@@ -2,10 +2,6 @@ package esc
 
 import (
 	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"os"
 	"pos-proxy/config"
 	"pos-proxy/printing"
 	"strings"
@@ -22,24 +18,8 @@ func FolioHeader(folio *printing.FolioPrint, p *escpos.Printer) error {
 	printing.SetLang(folio.Terminal.RCRS)
 
 	if folio.Store.Logo != "" {
-		url := folio.Store.Logo
-		response, err := http.Get(url)
-		if err != nil {
-			log.Println(err)
-		}
-
-		defer response.Body.Close()
-
-		file, err := os.Create("/tmp/logo.jpg")
-		if err != nil {
-			log.Println(err)
-		}
-		_, err = io.Copy(file, response.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		file.Close()
-		p.PrintImage(file.Name())
+		imageFile := printing.GetImage(folio.Store.Logo)
+		p.PrintImage(imageFile)
 	}
 	p.SetImageHight(52)
 	p.SetFontSizePoints(50)
@@ -642,13 +622,13 @@ func (e Esc) PrintFolio(folio *printing.FolioPrint) error {
 	var p *escpos.Printer
 	var err error
 	if folio.Printer.IsUSB {
-		p, err = connection.NewConnection("usb", *folio.Printer.PrinterIP)
+		p, err = connection.NewConnection("usb", *folio.Printer.PrinterIP+":9100")
 		if err != nil {
 			return err
 		}
 	} else {
 
-		p, err = connection.NewConnection("network", *folio.Printer.PrinterIP)
+		p, err = connection.NewConnection("network", *folio.Printer.PrinterIP+":9100")
 		if err != nil {
 			return err
 		}

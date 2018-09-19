@@ -1,12 +1,18 @@
 package epsonxml
 
 import (
+	"encoding/base64"
 	"encoding/xml"
 	"fmt"
+	"image"
+	"os"
 	"pos-proxy/config"
 	"pos-proxy/printing"
 	"strings"
 	"time"
+
+	"github.com/cloudinn/escpos/raster"
+
 	"unicode/utf8"
 )
 
@@ -100,12 +106,12 @@ func FolioTableHeader(folio *printing.FolioPrint) []printing.Text {
 	item := printing.Translate("Item")
 	qty := printing.Translate("Qty")
 	price := printing.Translate("Price")
-	tableHeaderText := item + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "item_printing.Padding")-utf8.RuneCountInString(item)) +
-		qty + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "qty_printing.Padding")-utf8.RuneCountInString(qty)) +
-		price + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "price_printing.Padding")-utf8.RuneCountInString(price))
+	tableHeaderText := item + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "item_padding")-utf8.RuneCountInString(item)) +
+		qty + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "qty_padding")-utf8.RuneCountInString(qty)) +
+		price + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "price_padding")-utf8.RuneCountInString(price))
 	if config.Config.IsFDMEnabled {
 		tax := printing.Translate("Tax")
-		tableHeaderText += tax + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "tax_printing.Padding")-utf8.RuneCountInString(tax))
+		tableHeaderText += tax + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "tax_padding")-utf8.RuneCountInString(tax))
 	}
 	tableHeader = append(
 		tableHeader,
@@ -137,14 +143,14 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 		desc := item.Description
 		qty := fmt.Sprintf("%.2f", item.Quantity)
 		row := ""
-		row = desc + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "item_printing.Padding")-
+		row = desc + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "item_padding")-
 			utf8.RuneCountInString(desc)) + qty +
-			printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "qty_printing.Padding")-
+			printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "qty_padding")-
 				utf8.RuneCountInString(qty)) + price +
-			printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "price_printing.Padding")-
+			printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "price_padding")-
 				utf8.RuneCountInString(price))
 		if config.Config.IsFDMEnabled {
-			row += item.VAT + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "tax_printing.Padding")-1)
+			row += item.VAT + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "tax_padding")-1)
 			vatsToDisplay[item.VAT] = true
 		}
 		folioItems = append(folioItems, printing.Text{Text: row + "\n"})
@@ -157,7 +163,7 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 		subTotalVal = subTotal
 	}
 	subTotalTrans := printing.Translate("Subtotal")
-	subTotalText := subTotalTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_printing.Padding")-
+	subTotalText := subTotalTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 		utf8.RuneCountInString(subTotalVal)-utf8.RuneCountInString(subTotalTrans)) +
 		subTotalVal
 	totalDiscountText := ""
@@ -165,7 +171,7 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 		totalDiscount := fmt.Sprintf("%.2f", folio.TotalDiscounts)
 		totalDiscountTrans := printing.Translate("Total discounts")
 		totalDiscountText = totalDiscountTrans +
-			printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_printing.Padding")-
+			printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 				utf8.RuneCountInString(totalDiscount)-utf8.RuneCountInString(totalDiscountTrans)) +
 			totalDiscount
 	}
@@ -177,13 +183,13 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 		totalVal = total
 	}
 	totalTrans := printing.Translate("Total")
-	totalText := totalTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "total_printing.Padding")-
+	totalText := totalTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "total_padding")-
 		utf8.RuneCountInString(totalVal)-utf8.RuneCountInString(totalTrans)) + totalVal
 	paymentText := ""
 	if folio.Invoice.IsSettled == true && folio.Invoice.Postings != nil &&
 		len(folio.Invoice.Postings) > 0 {
 		paymentTrans := printing.Translate("Payment")
-		paymentText = paymentTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_printing.Padding")-
+		paymentText = paymentTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 			utf8.RuneCountInString(paymentTrans)-utf8.RuneCountInString(total)) + total
 	}
 	postingSlice := []printing.Text{}
@@ -208,7 +214,7 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 		} else {
 
 			postingText = posting.DepartmentDetails +
-				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_printing.Padding")-
+				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 					utf8.RuneCountInString(posting.DepartmentDetails)-
 					utf8.RuneCountInString(deptAmount)) + deptAmount
 
@@ -227,7 +233,7 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 		received = fmt.Sprintf("%.2f", folio.Invoice.Total)
 	}
 	receivedTrans := printing.Translate("Received")
-	receivedText := receivedTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_printing.Padding")-
+	receivedText := receivedTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 		utf8.RuneCountInString(receivedTrans)-utf8.RuneCountInString(received)) +
 		received
 
@@ -237,7 +243,7 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 	if folio.Invoice.Change != 0.0 {
 		change = fmt.Sprintf("%.2f", folio.Invoice.Change)
 	}
-	changeText := changeTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_printing.Padding")-
+	changeText := changeTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 		utf8.RuneCountInString(change)-utf8.RuneCountInString(changeTrans)) + change
 
 	tableContent = append(tableContent, folioItems...)
@@ -278,13 +284,13 @@ func FDMSection(folio *printing.FolioPrint) []printing.Text {
 		netTrans := printing.Translate("Net")
 		fdmTable := []printing.Text{}
 		for _, res := range folio.Invoice.FDMResponses {
-			fdmTableHeader := rateTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_rate_printing.Padding")-
+			fdmTableHeader := rateTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_rate_padding")-
 				utf8.RuneCountInString(rateTrans)) +
-				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_taxable_printing.Padding")-
+				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_taxable_padding")-
 					utf8.RuneCountInString(taxableTrans)) + taxableTrans +
-				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_vat_printing.Padding")-
+				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_vat_padding")-
 					utf8.RuneCountInString(vatTrans)) + vatTrans +
-				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_net_printing.Padding")-
+				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_net_padding")-
 					utf8.RuneCountInString(netTrans)) + netTrans
 			fdmTable = append(
 				fdmTable,
@@ -304,12 +310,12 @@ func FDMSection(folio *printing.FolioPrint) []printing.Text {
 					vatAmount := fmt.Sprintf("%.2f", res.VATSummary[k]["vat_amount"])
 					netAmount := fmt.Sprintf("%.2f", res.VATSummary[k]["net_amount"])
 					fdmTableContent := k +
-						printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_rate_printing.Padding")) +
-						printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_taxable_printing.Padding")-
+						printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_rate_padding")) +
+						printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_taxable_padding")-
 							utf8.RuneCountInString(taxableAmount)) + taxableAmount +
-						printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_vat_printing.Padding")-
+						printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_vat_padding")-
 							utf8.RuneCountInString(vatAmount)) + vatAmount +
-						printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_net_printing.Padding")-
+						printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_net_padding")-
 							utf8.RuneCountInString(netAmount)) + netAmount
 					fdmTable = append(
 						fdmTable,
@@ -322,13 +328,13 @@ func FDMSection(folio *printing.FolioPrint) []printing.Text {
 			totalVatAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["vat_amount"])
 			totalNetAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["net_amount"])
 			totalTrans := printing.Translate("Total")
-			totalText := totalTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_rate_printing.Padding")-
+			totalText := totalTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_rate_padding")-
 				utf8.RuneCountInString(totalTrans)) +
-				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_taxable_printing.Padding")-
+				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_taxable_padding")-
 					utf8.RuneCountInString(totalTaxableAmount)) + totalTaxableAmount +
-				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_vat_printing.Padding")-
+				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_vat_padding")-
 					utf8.RuneCountInString(totalVatAmount)) + totalVatAmount +
-				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_net_printing.Padding")-
+				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_net_padding")-
 					utf8.RuneCountInString(totalNetAmount)) + totalNetAmount
 			fdmTable = append(fdmTable, printing.Text{Text: totalText + "\n"})
 		}
@@ -470,7 +476,33 @@ func FolioFooter(folio *printing.FolioPrint) []printing.Text {
 }
 func (e Epsonxml) PrintFolio(folio *printing.FolioPrint) error {
 	xmlReq := printing.New()
-	xmlReq.XMLns = "http://www.epson-pos.com/schemas/2011/03/epos-print"
+	xmlReq.XMLns = "http://schemas.xmlsoap.org/soap/envelope/"
+	eposPrint := printing.EposPrint{}
+	eposPrint.XMLns = "http://www.epson-pos.com/schemas/2011/03/epos-print"
+	eposPrint.Align = &printing.Text{Align: "center"}
+	if folio.Store.Logo != "" {
+		imagePath := printing.GetImage(folio.Store.Logo)
+		imgFile, err := os.Open(imagePath)
+		if err != nil {
+			return err
+		}
+		img, _, err := image.Decode(imgFile)
+		imgFile.Close()
+		if err != nil {
+			return err
+		}
+		rasterConv := &raster.Converter{
+			MaxWidth:  512,
+			Threshold: 0.5,
+		}
+		data, _, _ := rasterConv.ToRaster(img)
+		eposPrint.Image = &printing.Image{}
+		eposPrint.Image.Image = base64.StdEncoding.EncodeToString(data)
+		eposPrint.Image.Width, eposPrint.Image.Height = printing.GetImageDimension(imagePath)
+		eposPrint.Image.Color = "color_1"
+		eposPrint.Image.Mode = "mono"
+	}
+	eposPrint.Text = append(eposPrint.Text, printing.Text{Text: "\n\n"})
 	folioHeader := FolioHeader(folio)
 	folioTableHeader := FolioTableHeader(folio)
 	folioTableContent := FolioTableContent(folio)
@@ -479,20 +511,20 @@ func (e Epsonxml) PrintFolio(folio *printing.FolioPrint) error {
 		fdmSection = FDMSection(folio)
 	}
 	folioFooter := FolioFooter(folio)
-	xmlReq.Text = append(xmlReq.Text, folioHeader...)
-	xmlReq.Text = append(xmlReq.Text, folioTableHeader...)
-	xmlReq.Text = append(xmlReq.Text, folioTableContent...)
-	xmlReq.Text = append(xmlReq.Text, fdmSection...)
-	xmlReq.Text = append(xmlReq.Text, folioFooter...)
-
-	xmlReq.Cut.Type = "feed"
+	eposPrint.Text = append(eposPrint.Text, folioHeader...)
+	eposPrint.Text = append(eposPrint.Text, folioTableHeader...)
+	eposPrint.Text = append(eposPrint.Text, folioTableContent...)
+	eposPrint.Text = append(eposPrint.Text, fdmSection...)
+	eposPrint.Text = append(eposPrint.Text, folioFooter...)
+	eposPrint.Text = append(eposPrint.Text, printing.Text{Text: "\n\n"})
+	eposPrint.Cut.Type = "feed"
+	xmlReq.Body.EposPrint = eposPrint
 	reqBody, err := xml.Marshal(xmlReq)
 	if err != nil {
 		return err
 	}
-	api := "http://" + *folio.Printer.PrinterIP + "/cgi-bin/epos/service.cgi?devid=local_printer"
-
+	api := "http://" + *folio.Printer.PrinterIP + "/cgi-bin/epos/service.cgi?devid=" +
+		folio.Printer.PrinterID + "&timeout=6000"
 	printing.Send(api, reqBody)
-	// log.Println(string(reqBody))
 	return nil
 }

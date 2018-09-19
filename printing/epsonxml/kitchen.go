@@ -117,29 +117,38 @@ func KitchenFooter(kitchen *printing.KitchenPrint) []printing.Text {
 		printing.Text{DoubleHight: "true"},
 		printing.Text{Align: "center"},
 		printing.Text{Text: strings.ToUpper(printing.Translate("This is not a")) + "\n"},
-		printing.Text{Text: strings.ToUpper(printing.Translate("valid tax invoice"))},
+		printing.Text{Text: strings.ToUpper(printing.Translate("valid tax invoice")) + "\n"},
 	)
 	return fotter
 
 }
 func (e Epsonxml) PrintKitchen(kitchen *printing.KitchenPrint) error {
 	xmlReq := printing.New()
-	xmlReq.XMLns = "http://www.epson-pos.com/schemas/2011/03/epos-print"
+	xmlReq.XMLns = "http://schemas.xmlsoap.org/soap/envelope/"
+	eposPrint := printing.EposPrint{}
+	eposPrint.XMLns = "http://www.epson-pos.com/schemas/2011/03/epos-print"
+	eposPrint.Layout = &printing.Layout{}
+	eposPrint.Layout.Type = "receipt"
+	eposPrint.Layout.Width = "800"
 	kitchenHeader := KitchenHeader(kitchen)
 	tableHeader := OrderTableHeader(kitchen)
 	tableContent := OrderTableContent(kitchen)
 	kitchenFooter := KitchenFooter(kitchen)
-	xmlReq.Text = append(xmlReq.Text, kitchenHeader...)
-	xmlReq.Text = append(xmlReq.Text, tableHeader...)
-	xmlReq.Text = append(xmlReq.Text, tableContent...)
-	xmlReq.Text = append(xmlReq.Text, kitchenFooter...)
-	xmlReq.Cut.Type = "feed"
+	eposPrint.Text = append(eposPrint.Text, kitchenHeader...)
+	eposPrint.Text = append(eposPrint.Text, tableHeader...)
+	eposPrint.Text = append(eposPrint.Text, tableContent...)
+	eposPrint.Text = append(eposPrint.Text, kitchenFooter...)
+	eposPrint.Text = append(eposPrint.Text, printing.Text{Text: "\n\n"})
+	eposPrint.Cut.Type = "feed"
+	xmlReq.Body.EposPrint = eposPrint
 	reqBody, err := xml.Marshal(xmlReq)
 	if err != nil {
 		return err
 	}
-	api := "http://" + *kitchen.Printer.PrinterIP + "/cgi-bin/epos/service.cgi?devid=local_printer"
+	api := "http://" + *kitchen.Printer.PrinterIP + "/cgi-bin/epos/service.cgi?devid=" +
+		kitchen.Printer.PrinterID + "&timeout=6000"
+
+	// api := "http://" + "192.168.1.220" + "/cgi-bin/epos/service.cgi?devid=local_printer&timeout=6000"
 	printing.Send(api, reqBody)
-	// log.Println(string(reqBody))
 	return nil
 }
