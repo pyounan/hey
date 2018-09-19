@@ -344,10 +344,10 @@ func StartPrinter() {
 		folioPrint.TotalDiscounts = req.TotalDiscounts
 		folioPrint.Timezone = req.Timezone
 		var err error
-		if printer.PrintingFormat == "ESC" {
+		if printer.PrintingFormat == "esc" {
 			esc := esc.Esc{}
 			err = esc.PrintFolio(&folioPrint)
-		} else if printer.PrintingFormat == "XML" {
+		} else if printer.PrintingFormat == "xml" {
 			xml := epsonxml.Epsonxml{}
 			err = xml.PrintFolio(&folioPrint)
 		}
