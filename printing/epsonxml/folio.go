@@ -474,6 +474,8 @@ func FolioFooter(folio *printing.FolioPrint) []printing.Text {
 	return footer
 
 }
+
+//PrintFolio Prints xml format of folio receipt
 func (e Epsonxml) PrintFolio(folio *printing.FolioPrint) error {
 	xmlReq := printing.New()
 	xmlReq.XMLns = "http://schemas.xmlsoap.org/soap/envelope/"
@@ -481,7 +483,10 @@ func (e Epsonxml) PrintFolio(folio *printing.FolioPrint) error {
 	eposPrint.XMLns = "http://www.epson-pos.com/schemas/2011/03/epos-print"
 	eposPrint.Align = &printing.Text{Align: "center"}
 	if folio.Store.Logo != "" {
-		imagePath := printing.GetImage(folio.Store.Logo)
+		imagePath, err := printing.GetImage(folio.Store.Logo)
+		if err != nil {
+			return err
+		}
 		imgFile, err := os.Open(imagePath)
 		if err != nil {
 			return err
@@ -498,7 +503,10 @@ func (e Epsonxml) PrintFolio(folio *printing.FolioPrint) error {
 		data, _, _ := rasterConv.ToRaster(img)
 		eposPrint.Image = &printing.Image{}
 		eposPrint.Image.Image = base64.StdEncoding.EncodeToString(data)
-		eposPrint.Image.Width, eposPrint.Image.Height = printing.GetImageDimension(imagePath)
+		eposPrint.Image.Width, eposPrint.Image.Height, err = printing.GetImageDimension(imagePath)
+		if err != nil {
+			return err
+		}
 		eposPrint.Image.Color = "color_1"
 		eposPrint.Image.Mode = "mono"
 	}

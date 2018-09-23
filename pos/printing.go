@@ -352,6 +352,7 @@ func StartPrinter() {
 			err = xml.PrintFolio(&folioPrint)
 		}
 		if err != nil {
+			log.Println("Folio Print faild", err)
 			req.SetRetry()
 			req.UpdatedAt = time.Now()
 			//Update database
@@ -387,6 +388,7 @@ func StartPrinter() {
 			err = xml.PrintKitchen(&kitchenPrint)
 		}
 		if err != nil {
+			log.Println("Kitchen Print faild", err)
 			req.SetRetry()
 			req.UpdatedAt = time.Now()
 			//Update database

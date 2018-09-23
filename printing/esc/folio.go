@@ -18,7 +18,10 @@ func FolioHeader(folio *printing.FolioPrint, p *escpos.Printer) error {
 	printing.SetLang(folio.Terminal.RCRS)
 
 	if folio.Store.Logo != "" {
-		imageFile := printing.GetImage(folio.Store.Logo)
+		imageFile, err := printing.GetImage(folio.Store.Logo)
+		if err != nil {
+			return err
+		}
 		p.PrintImage(imageFile)
 	}
 	p.SetImageHight(52)

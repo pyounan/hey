@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	_ "image/png"
+
 	"io"
 	"io/ioutil"
 	"log"
@@ -91,38 +92,41 @@ func AddLine(lineType string, charPerLine int) string {
 }
 
 //GetImage downloads and save images from a url
-func GetImage(url string) string {
+func GetImage(url string) (string, error) {
 	response, err := http.Get(url)
 	if err != nil {
-		log.Println(err)
+		return "", err
+	}
+	defer response.Body.Close()
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		str := fmt.Sprintf("failed to make request, returned error of %d \n", response.StatusCode)
+		return "", errors.New(str)
 	}
 
-	defer response.Body.Close()
-
-	file, err := os.Create("/tmp/logo.jpg")
+	file, err := os.Create("/tmp/logo.png")
 	if err != nil {
-		log.Println(err)
+		return "", err
 	}
 	_, err = io.Copy(file, response.Body)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	file.Close()
 
-	return file.Name()
+	return file.Name(), nil
 }
 
 //GetImageDimension returns the width and height for an image
-func GetImageDimension(imagePath string) (string, string) {
+func GetImageDimension(imagePath string) (string, string, error) {
 	file, err := os.Open(imagePath)
 	if err != nil {
-		log.Println(err)
+		return "", "", err
 	}
 	image, _, err := image.DecodeConfig(file)
 	if err != nil {
-		log.Println(imagePath, err)
+		return "", "", err
 	}
-	return strconv.Itoa(image.Width), strconv.Itoa(image.Height)
+	return strconv.Itoa(image.Width), strconv.Itoa(image.Height), nil
 }
 
 //Send sends a http request
