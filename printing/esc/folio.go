@@ -15,8 +15,7 @@ import (
 
 func FolioHeader(folio *printing.FolioPrint, p *escpos.Printer) error {
 
-	printing.SetLang(folio.Terminal.RCRS)
-
+	lang := printing.SetLang(folio.Terminal.RCRS)
 	if folio.Store.Logo != "" {
 		imageFile, err := printing.GetImage(folio.Store.Logo)
 		if err != nil {
@@ -27,11 +26,11 @@ func FolioHeader(folio *printing.FolioPrint, p *escpos.Printer) error {
 	p.SetImageHight(52)
 	p.SetFontSizePoints(50)
 
-	taxInvoiceRT := printing.Translate("Tax Invoice")
-	proformaTR := printing.Translate("PRO FORMA")
-	thisIsNotATR := printing.Translate("This is not a")
-	validTaxInvoiceTR := printing.Translate("valid tax invoice")
-	returnTR := printing.Translate("Return")
+	taxInvoiceRT := printing.Translate("Tax Invoice", lang)
+	proformaTR := printing.Translate("PRO FORMA", lang)
+	thisIsNotATR := printing.Translate("This is not a", lang)
+	validTaxInvoiceTR := printing.Translate("valid tax invoice", lang)
+	returnTR := printing.Translate("Return", lang)
 
 	if folio.Invoice.IsSettled {
 		p.WriteString(printing.Pad((25-utf8.RuneCountInString(taxInvoiceRT))/2) +
@@ -53,7 +52,6 @@ func FolioHeader(folio *printing.FolioPrint, p *escpos.Printer) error {
 	p.Formfeed()
 	p.WriteString(printing.Pad((25-utf8.RuneCountInString(folio.Company.Name))/2) +
 		printing.CheckLang(folio.Company.Name))
-	// p.SetFontSize(1, 1)
 	p.SetImageHight(38)
 	p.SetFontSizePoints(30)
 	p.WriteString(printing.Center(folio.Company.VATNumber,
@@ -90,19 +88,19 @@ func FolioHeader(folio *printing.FolioPrint, p *escpos.Printer) error {
 		printing.CheckLang(folio.Store.Description))
 	p.WriteString(printing.Center("Invoice number: "+folio.Invoice.InvoiceNumber,
 		printing.PrintingParams(folio.Printer.PaperWidth, "width")) +
-		printing.CheckLang(printing.Translate("Invoice number")+": "+folio.Invoice.InvoiceNumber))
+		printing.CheckLang(printing.Translate("Invoice number", lang)+": "+folio.Invoice.InvoiceNumber))
 	// p.SetFontSize(2, 2)
 	p.SetImageHight(50)
 	p.SetFontSizePoints(45)
 	p.WriteString(printing.Pad((25-
 		utf8.RuneCountInString("Covers: "+fmt.Sprintf("%d", folio.Invoice.Pax)))/2) +
-		printing.CheckLang(printing.Translate("Covers")+": "+fmt.Sprintf("%d", folio.Invoice.Pax)))
+		printing.CheckLang(printing.Translate("Covers", lang)+": "+fmt.Sprintf("%d", folio.Invoice.Pax)))
 	if folio.Invoice.TableID != nil {
 		p.WriteString(printing.Pad((25-
 			utf8.RuneCountInString("Table: "+*folio.Invoice.TableDetails))/2) +
-			printing.CheckLang(printing.Translate("Table")+": "+*folio.Invoice.TableDetails))
+			printing.CheckLang(printing.Translate("Table", lang)+": "+*folio.Invoice.TableDetails))
 	} else {
-		p.WriteString(printing.Pad((25-utf8.RuneCountInString("Takeout"))/2) + printing.CheckLang(printing.Translate("Takeout")))
+		p.WriteString(printing.Pad((25-utf8.RuneCountInString("Takeout"))/2) + printing.CheckLang(printing.Translate("Takeout", lang)))
 	}
 	guestName := ""
 	if folio.Invoice.WalkinName != "" {
@@ -116,7 +114,7 @@ func FolioHeader(folio *printing.FolioPrint, p *escpos.Printer) error {
 	}
 	p.SetImageHight(38)
 	p.SetFontSizePoints(30)
-	guestNameTrans := printing.Translate("Guest name")
+	guestNameTrans := printing.Translate("Guest name", lang)
 	info := whatlanggo.Detect(guestNameTrans)
 	if guestName != "" {
 		if whatlanggo.Scripts[info.Script] == "Arabic" {
@@ -135,12 +133,12 @@ func FolioHeader(folio *printing.FolioPrint, p *escpos.Printer) error {
 	return nil
 }
 func FolioTable(folio *printing.FolioPrint, p *escpos.Printer) error {
-	printing.SetLang(folio.Terminal.RCRS)
+	lang := printing.SetLang(folio.Terminal.RCRS)
 
 	p.SetWhiteOnBlack(false)
-	item := printing.CheckLang(printing.Translate("Item"))
-	qty := printing.CheckLang(printing.Translate("Qty"))
-	price := printing.CheckLang(printing.Translate("Price"))
+	item := printing.CheckLang(printing.Translate("Item", lang))
+	qty := printing.CheckLang(printing.Translate("Qty", lang))
+	price := printing.CheckLang(printing.Translate("Price", lang))
 
 	info := whatlanggo.Detect(item)
 	tableHeader := ""
@@ -168,7 +166,7 @@ func FolioTable(folio *printing.FolioPrint, p *escpos.Printer) error {
 		} else {
 			p.SetFontSizePoints(28)
 		}
-		tax := printing.CheckLang(printing.Translate("Tax"))
+		tax := printing.CheckLang(printing.Translate("Tax", lang))
 		p.WriteString(tableHeader + tax + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "tax_padding")-
 			utf8.RuneCountInString(tax)))
 	} else {
@@ -242,7 +240,7 @@ func FolioTable(folio *printing.FolioPrint, p *escpos.Printer) error {
 		subTotalVal = subTotal
 	}
 	p.SetFontSizePoints(30)
-	subTotalTrans := printing.Translate("Subtotal")
+	subTotalTrans := printing.Translate("Subtotal", lang)
 	info = whatlanggo.Detect(subTotalTrans)
 	if whatlanggo.Scripts[info.Script] == "Arabic" {
 		p.WriteString(subTotalVal +
@@ -258,7 +256,7 @@ func FolioTable(folio *printing.FolioPrint, p *escpos.Printer) error {
 	}
 	if folio.TotalDiscounts > 0.0 {
 		totalDiscount := fmt.Sprintf("%.2f", folio.TotalDiscounts)
-		totalDiscountTrans := printing.Translate("Total discounts")
+		totalDiscountTrans := printing.Translate("Total discounts", lang)
 		info = whatlanggo.Detect(totalDiscountTrans)
 		if whatlanggo.Scripts[info.Script] == "Arabic" {
 			p.WriteString(totalDiscount +
@@ -283,7 +281,7 @@ func FolioTable(folio *printing.FolioPrint, p *escpos.Printer) error {
 	} else {
 		totalVal = total
 	}
-	totalTrans := printing.Translate("Total")
+	totalTrans := printing.Translate("Total", lang)
 	info = whatlanggo.Detect(totalTrans)
 	if whatlanggo.Scripts[info.Script] == "Arabic" {
 		p.WriteString(totalVal +
@@ -302,7 +300,7 @@ func FolioTable(folio *printing.FolioPrint, p *escpos.Printer) error {
 	guestName := ""
 	if folio.Invoice.IsSettled == true && folio.Invoice.Postings != nil &&
 		len(folio.Invoice.Postings) > 0 {
-		paymentTrans := printing.Translate("Payment")
+		paymentTrans := printing.Translate("Payment", lang)
 		info = whatlanggo.Detect(paymentTrans)
 		if whatlanggo.Scripts[info.Script] == "Arabic" {
 			p.WriteString(total +
@@ -377,7 +375,7 @@ func FolioTable(folio *printing.FolioPrint, p *escpos.Printer) error {
 		} else {
 			received = fmt.Sprintf("%.2f", folio.Invoice.Total)
 		}
-		receivedTrans := printing.Translate("Received")
+		receivedTrans := printing.Translate("Received", lang)
 		info = whatlanggo.Detect(receivedTrans)
 		if whatlanggo.Scripts[info.Script] == "Arabic" {
 			p.WriteString(received +
@@ -392,7 +390,7 @@ func FolioTable(folio *printing.FolioPrint, p *escpos.Printer) error {
 				received)
 		}
 		change := "0.00"
-		changeTrans := printing.Translate("Change")
+		changeTrans := printing.Translate("Change", lang)
 
 		if folio.Invoice.Change != 0.0 {
 			change = fmt.Sprintf("%.2f", folio.Invoice.Change)
@@ -416,7 +414,7 @@ func FolioTable(folio *printing.FolioPrint, p *escpos.Printer) error {
 
 func FDMSection(folio *printing.FolioPrint, p *escpos.Printer) error {
 
-	printing.SetLang(folio.Terminal.RCRS)
+	lang := printing.SetLang(folio.Terminal.RCRS)
 
 	vatsToDisplay := map[string]bool{
 		"A": false,
@@ -425,10 +423,10 @@ func FDMSection(folio *printing.FolioPrint, p *escpos.Printer) error {
 		"D": false,
 	}
 	if config.Config.IsFDMEnabled {
-		taxableTrans := printing.CheckLang(printing.Translate("Taxable"))
-		rateTrans := printing.CheckLang(printing.Translate("Rate"))
-		vatTrans := printing.CheckLang(printing.Translate("Vat"))
-		netTrans := printing.CheckLang(printing.Translate("Net"))
+		taxableTrans := printing.CheckLang(printing.Translate("Taxable", lang))
+		rateTrans := printing.CheckLang(printing.Translate("Rate", lang))
+		vatTrans := printing.CheckLang(printing.Translate("Vat", lang))
+		netTrans := printing.CheckLang(printing.Translate("Net", lang))
 		for _, res := range folio.Invoice.FDMResponses {
 			p.SetWhiteOnBlack(false)
 			p.WriteString(rateTrans +
@@ -460,7 +458,7 @@ func FDMSection(folio *printing.FolioPrint, p *escpos.Printer) error {
 			totalTaxableAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["taxable_amount"])
 			totalVatAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["vat_amount"])
 			totalNetAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["net_amount"])
-			totalTrans := printing.Translate("Total")
+			totalTrans := printing.Translate("Total", lang)
 			p.WriteString(printing.CheckLang(totalTrans) +
 				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_rate_padding")-
 					utf8.RuneCountInString(totalTrans)) +
@@ -477,10 +475,10 @@ func FDMSection(folio *printing.FolioPrint, p *escpos.Printer) error {
 }
 func FolioFooter(folio *printing.FolioPrint, p *escpos.Printer) error {
 
-	printing.SetLang(folio.Terminal.RCRS)
+	lang := printing.SetLang(folio.Terminal.RCRS)
 
 	loc, _ := time.LoadLocation(folio.Timezone)
-	openedAt := printing.Translate("Opened at")
+	openedAt := printing.Translate("Opened at", lang)
 	info := whatlanggo.Detect(openedAt)
 	if whatlanggo.Scripts[info.Script] == "Arabic" {
 		p.WriteString(printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
@@ -495,7 +493,7 @@ func FolioFooter(folio *printing.FolioPrint, p *escpos.Printer) error {
 		closedAt := folio.Invoice.ClosedOn.In(loc)
 		closedAtStr := closedAt.Format("02 Jan 2006 15:04:05")
 		p.SetFontSizePoints(28)
-		cloasedOn := printing.Translate("Closed on")
+		cloasedOn := printing.Translate("Closed on", lang)
 		info = whatlanggo.Detect(cloasedOn)
 		if whatlanggo.Scripts[info.Script] == "Arabic" {
 			p.WriteString(printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
@@ -509,7 +507,7 @@ func FolioFooter(folio *printing.FolioPrint, p *escpos.Printer) error {
 		p.SetFontSizePoints(30)
 
 	}
-	createdBy := printing.Translate("Created by")
+	createdBy := printing.Translate("Created by", lang)
 	info = whatlanggo.Detect(createdBy)
 	if whatlanggo.Scripts[info.Script] == "Arabic" {
 		p.WriteString(printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
@@ -520,7 +518,7 @@ func FolioFooter(folio *printing.FolioPrint, p *escpos.Printer) error {
 	} else {
 		p.WriteString(printing.CheckLang(createdBy) + ": " + printing.CheckLang(folio.Invoice.CashierDetails))
 	}
-	printedBy := printing.Translate("Printed by")
+	printedBy := printing.Translate("Printed by", lang)
 	info = whatlanggo.Detect(printedBy)
 	if whatlanggo.Scripts[info.Script] == "Arabic" {
 		p.WriteString(printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
@@ -533,11 +531,11 @@ func FolioFooter(folio *printing.FolioPrint, p *escpos.Printer) error {
 	}
 	if config.Config.IsFDMEnabled {
 		for _, res := range folio.Invoice.FDMResponses {
-			p.WriteString(printing.CheckLang(printing.Translate("Ticket Number") + ": " + res.TicketNumber))
+			p.WriteString(printing.CheckLang(printing.Translate("Ticket Number", lang) + ": " + res.TicketNumber))
 			p.SetFontSizePoints(28)
-			p.WriteString(printing.CheckLang(printing.Translate("Ticket Date") + ": " + res.Date.Format("02 Jan 2006 15:04:05")))
+			p.WriteString(printing.CheckLang(printing.Translate("Ticket Date", lang) + ": " + res.Date.Format("02 Jan 2006 15:04:05")))
 			p.SetFontSizePoints(30)
-			event := printing.CheckLang(printing.Translate("Event")+": ") + printing.CheckLang(res.EventLabel)
+			event := printing.CheckLang(printing.Translate("Event", lang)) + ": " + printing.CheckLang(res.EventLabel)
 			if utf8.RuneCountInString(event) > 32 {
 				p.WriteString(event[0:32])
 				p.WriteString(event[32:])
@@ -545,7 +543,7 @@ func FolioFooter(folio *printing.FolioPrint, p *escpos.Printer) error {
 			} else {
 				p.WriteString(event)
 			}
-			terminalIdentifier := printing.CheckLang(printing.Translate("Terminal Identifier")+": ") +
+			terminalIdentifier := printing.CheckLang(printing.Translate("Terminal Identifier", lang)+": ") +
 				printing.CheckLang(folio.Terminal.RCRS) + "/" +
 				printing.CheckLang(folio.Terminal.Description)
 			if utf8.RuneCountInString(terminalIdentifier) >
@@ -555,10 +553,10 @@ func FolioFooter(folio *printing.FolioPrint, p *escpos.Printer) error {
 			} else {
 				p.WriteString(terminalIdentifier)
 			}
-			p.WriteString(printing.CheckLang(printing.Translate("Production Number") + ": " + folio.Terminal.RCRS))
-			p.WriteString(printing.CheckLang(printing.Translate("Software Version") + ": " + res.SoftwareVersion))
+			p.WriteString(printing.CheckLang(printing.Translate("Production Number", lang) + ": " + folio.Terminal.RCRS))
+			p.WriteString(printing.CheckLang(printing.Translate("Software Version", lang) + ": " + res.SoftwareVersion))
 
-			ticket := printing.CheckLang(printing.Translate("Ticket")+": ") +
+			ticket := printing.CheckLang(printing.Translate("Ticket", lang)) + ": " +
 				strings.Join(strings.Fields(res.TicketCounter), " ") +
 				"/" + strings.Join(strings.Fields(res.TotalTicketCounter), " ") +
 				" " + printing.CheckLang(res.EventLabel)
@@ -570,26 +568,26 @@ func FolioFooter(folio *printing.FolioPrint, p *escpos.Printer) error {
 			}
 
 			if utf8.RuneCountInString(res.PLUHash) > 32 {
-				p.WriteString(printing.CheckLang(printing.Translate("Hash") + "s: " + res.PLUHash[0:25]))
+				p.WriteString(printing.CheckLang(printing.Translate("Hash", lang) + "s: " + res.PLUHash[0:25]))
 				p.WriteString(printing.Pad(7) + printing.CheckLang(res.PLUHash[25:]))
 			} else {
-				p.WriteString(printing.CheckLang(printing.Translate("Hash") + ":" + res.PLUHash))
+				p.WriteString(printing.CheckLang(printing.Translate("Hash", lang) + ":" + res.PLUHash))
 			}
 			if folio.Invoice.IsSettled {
-				p.WriteString(printing.CheckLang(printing.Translate("Ticket Sig") + ": " + res.Signature[0:20]))
+				p.WriteString(printing.CheckLang(printing.Translate("Ticket Sig", lang) + ": " + res.Signature[0:20]))
 				p.WriteString(printing.Pad(13) + printing.CheckLang(res.Signature[20:]))
 			}
 			p.SetFontSizePoints(28)
-			p.WriteString(printing.CheckLang(printing.Translate("Control Data") + ": " + res.Date.String()[0:10] +
+			p.WriteString(printing.CheckLang(printing.Translate("Control Data", lang) + ": " + res.Date.String()[0:10] +
 				" " + res.TimePeriod.Format("15:04:00")))
 			p.SetFontSizePoints(30)
-			p.WriteString(printing.CheckLang(printing.Translate("Control Module ID") + ": " + res.ProductionNumber))
-			p.WriteString(printing.CheckLang(printing.Translate("VSC ID") + ": " + res.VSC))
+			p.WriteString(printing.CheckLang(printing.Translate("Control Module ID", lang) + ": " + res.ProductionNumber))
+			p.WriteString(printing.CheckLang(printing.Translate("VSC ID", lang) + ": " + res.VSC))
 
 		}
 	}
 	p.Formfeed()
-	signature := printing.Translate("Signature")
+	signature := printing.Translate("Signature", lang)
 	info = whatlanggo.Detect(signature)
 	if whatlanggo.Scripts[info.Script] == "Arabic" {
 		p.WriteString(printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-

@@ -13,6 +13,7 @@ import (
 )
 
 func KitchenHeader(kitchen *printing.KitchenPrint, p *escpos.Printer) error {
+	lang := printing.SetLang("")
 
 	p.WriteString(printing.CheckLang("Printer ID: " + kitchen.Printer.PrinterID))
 
@@ -20,19 +21,19 @@ func KitchenHeader(kitchen *printing.KitchenPrint, p *escpos.Printer) error {
 
 	p.WriteString(printing.Center("Invoice Number"+": "+kitchen.Invoice.InvoiceNumber,
 		printing.PrintingParams(kitchen.Printer.PaperWidth, "width")) +
-		printing.CheckLang(printing.Translate("Invoice number")+": "+kitchen.Invoice.InvoiceNumber))
+		printing.CheckLang(printing.Translate("Invoice number", lang)+": "+kitchen.Invoice.InvoiceNumber))
 
 	p.WriteString(printing.Center("Covers"+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax),
 		printing.PrintingParams(kitchen.Printer.PaperWidth, "width")) +
-		printing.CheckLang(printing.Translate("Covers")+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax)))
+		printing.CheckLang(printing.Translate("Covers", lang)+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax)))
 	if kitchen.Invoice.TableID != nil {
 		p.WriteString(printing.Center("Table"+": "+*kitchen.Invoice.TableDetails,
 			printing.PrintingParams(kitchen.Printer.PaperWidth, "width")) +
-			printing.CheckLang(printing.Translate("Table")+": "+*kitchen.Invoice.TableDetails))
+			printing.CheckLang(printing.Translate("Table", lang)+": "+*kitchen.Invoice.TableDetails))
 	} else {
 		p.WriteString(printing.Center("Takeout",
 			printing.PrintingParams(kitchen.Printer.PaperWidth, "width")) +
-			printing.CheckLang(printing.Translate("Takeout")))
+			printing.CheckLang(printing.Translate("Takeout", lang)))
 	}
 	guestName := ""
 	if kitchen.Invoice.WalkinName != "" {
@@ -42,7 +43,7 @@ func KitchenHeader(kitchen *printing.KitchenPrint, p *escpos.Printer) error {
 	} else if kitchen.Invoice.RoomDetails != nil {
 		guestName = *kitchen.Invoice.RoomDetails
 	}
-	guestNameTrans := printing.Translate("Guest name")
+	guestNameTrans := printing.Translate("Guest name", lang)
 	info := whatlanggo.Detect(guestNameTrans)
 	if guestName != "" {
 		if whatlanggo.Scripts[info.Script] == "Arabic" {
@@ -72,9 +73,10 @@ func KitchenHeader(kitchen *printing.KitchenPrint, p *escpos.Printer) error {
 }
 
 func OrderTable(kitchen *printing.KitchenPrint, p *escpos.Printer) error {
-	item := printing.CheckLang(printing.Translate("Item"))
-	qty := printing.CheckLang(printing.Translate("Qty"))
-	storeUnit := printing.CheckLang(printing.Translate("Unit"))
+	lang := printing.SetLang("")
+	item := printing.CheckLang(printing.Translate("Item", lang))
+	qty := printing.CheckLang(printing.Translate("Qty", lang))
+	storeUnit := printing.CheckLang(printing.Translate("Unit", lang))
 	p.SetWhiteOnBlack(false)
 	if printing.PrintingParams(kitchen.Printer.PaperWidth, "width") == 760 {
 
@@ -145,11 +147,12 @@ func OrderTable(kitchen *printing.KitchenPrint, p *escpos.Printer) error {
 }
 
 func KitchenFooter(kitchen *printing.KitchenPrint, p *escpos.Printer) error {
+	lang := printing.SetLang("")
 	p.SetFontSizePoints(40)
 	p.SetImageHight(42)
-	p.WriteString(printing.Pad((30-len("This is not a"))/2) + strings.ToUpper(printing.CheckLang(printing.Translate("This is not a"))))
+	p.WriteString(printing.Pad((30-len("This is not a"))/2) + strings.ToUpper(printing.CheckLang(printing.Translate("This is not a", lang))))
 	p.WriteString(printing.Pad((30-len("valid tax invoice"))/2) +
-		strings.ToUpper(printing.CheckLang(printing.Translate("valid tax invoice"))))
+		strings.ToUpper(printing.CheckLang(printing.Translate("valid tax invoice", lang))))
 	p.Formfeed()
 
 	return nil

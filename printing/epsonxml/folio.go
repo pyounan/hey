@@ -17,20 +17,20 @@ import (
 )
 
 func FolioHeader(folio *printing.FolioPrint) []printing.Text {
-
+	lang := printing.SetLang(folio.Terminal.RCRS)
 	folioHeader := []printing.Text{}
 
 	headerText := ""
 	if folio.Invoice.IsSettled {
-		headerText = strings.ToUpper(printing.Translate("Tax Invoice")) + "\n\n"
+		headerText = strings.ToUpper(printing.Translate("Tax Invoice", lang)) + "\n\n"
 		if folio.Invoice.PaidAmount < 0 {
-			headerText += strings.ToUpper(printing.Translate("Return")) + "\n"
+			headerText += strings.ToUpper(printing.Translate("Return", lang)) + "\n"
 		}
 	} else {
-		headerText = strings.ToUpper(printing.Translate("proforma")) + "\n\n"
+		headerText = strings.ToUpper(printing.Translate("proforma", lang)) + "\n\n"
 		if config.Config.IsFDMEnabled {
-			headerText += strings.ToUpper(printing.Translate("This is not a")) + "\n"
-			headerText += strings.ToUpper(printing.Translate("vaild tax invoice")) + "\n"
+			headerText += strings.ToUpper(printing.Translate("This is not a", lang)) + "\n"
+			headerText += strings.ToUpper(printing.Translate("vaild tax invoice", lang)) + "\n"
 		}
 	}
 	headersSlice := []printing.Text{}
@@ -41,13 +41,13 @@ func FolioHeader(folio *printing.FolioPrint) []printing.Text {
 			if utf8.RuneCountInString(header) > printing.PrintingParams(folio.Printer.PaperWidth, "char_per_line") {
 				headersSlice = append(
 					headersSlice,
-					printing.Text{Text: printing.Translate(header[0:printing.PrintingParams(folio.Printer.PaperWidth, "char_per_line")])},
-					printing.Text{Text: printing.Translate(header[printing.PrintingParams(folio.Printer.PaperWidth, "char_per_line"):])},
+					printing.Text{Text: header[0:printing.PrintingParams(folio.Printer.PaperWidth, "char_per_line")]},
+					printing.Text{Text: header[printing.PrintingParams(folio.Printer.PaperWidth, "char_per_line"):]},
 				)
 			} else {
 				headersSlice = append(
 					headersSlice,
-					printing.Text{Text: printing.Translate(header) + "\n"},
+					printing.Text{Text: header + "\n"},
 				)
 			}
 
@@ -55,9 +55,9 @@ func FolioHeader(folio *printing.FolioPrint) []printing.Text {
 	}
 	tableTakeout := ""
 	if folio.Invoice.TableID != nil {
-		tableTakeout = printing.Translate("Table") + ": " + *folio.Invoice.TableDetails
+		tableTakeout = printing.Translate("Table", lang) + ": " + *folio.Invoice.TableDetails
 	} else {
-		tableTakeout = printing.Translate("Takeout")
+		tableTakeout = printing.Translate("Takeout", lang)
 	}
 	guestName := ""
 	if folio.Invoice.WalkinName != "" {
@@ -88,29 +88,30 @@ func FolioHeader(folio *printing.FolioPrint) []printing.Text {
 	folioHeader = append(
 		folioHeader,
 		printing.Text{Text: folio.Store.Description + "\n"},
-		printing.Text{Text: printing.Translate("Invoice number") + ": " + folio.Invoice.InvoiceNumber + "\n"},
+		printing.Text{Text: printing.Translate("Invoice number", lang) + ": " + folio.Invoice.InvoiceNumber + "\n"},
 		printing.Text{DoubleHight: "true"},
 		printing.Text{DoubleWidth: "true"},
-		printing.Text{Text: printing.Translate("Covers") + ":" + fmt.Sprintf("%d", folio.Invoice.Pax) + "\n"},
+		printing.Text{Text: printing.Translate("Covers", lang) + ":" + fmt.Sprintf("%d", folio.Invoice.Pax) + "\n"},
 		printing.Text{Text: tableTakeout + "\n"},
 		printing.Text{DoubleHight: "false"},
 		printing.Text{DoubleWidth: "false"},
-		printing.Text{Text: printing.Translate("Guest name") + ": " + guestName + "\n"},
+		printing.Text{Text: printing.Translate("Guest name", lang) + ": " + guestName + "\n"},
 		printing.Text{Text: "\n"},
 	)
 
 	return folioHeader
 }
 func FolioTableHeader(folio *printing.FolioPrint) []printing.Text {
+	lang := printing.SetLang(folio.Terminal.RCRS)
 	tableHeader := []printing.Text{}
-	item := printing.Translate("Item")
-	qty := printing.Translate("Qty")
-	price := printing.Translate("Price")
+	item := printing.Translate("Item", lang)
+	qty := printing.Translate("Qty", lang)
+	price := printing.Translate("Price", lang)
 	tableHeaderText := item + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "item_padding")-utf8.RuneCountInString(item)) +
 		qty + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "qty_padding")-utf8.RuneCountInString(qty)) +
 		price + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "price_padding")-utf8.RuneCountInString(price))
 	if config.Config.IsFDMEnabled {
-		tax := printing.Translate("Tax")
+		tax := printing.Translate("Tax", lang)
 		tableHeaderText += tax + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "tax_padding")-utf8.RuneCountInString(tax))
 	}
 	tableHeader = append(
@@ -130,6 +131,7 @@ func FolioTableHeader(folio *printing.FolioPrint) []printing.Text {
 	return tableHeader
 }
 func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
+	lang := printing.SetLang(folio.Terminal.RCRS)
 	tableContent := []printing.Text{}
 	vatsToDisplay := map[string]bool{
 		"A": false,
@@ -162,14 +164,14 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 	} else {
 		subTotalVal = subTotal
 	}
-	subTotalTrans := printing.Translate("Subtotal")
+	subTotalTrans := printing.Translate("Subtotal", lang)
 	subTotalText := subTotalTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 		utf8.RuneCountInString(subTotalVal)-utf8.RuneCountInString(subTotalTrans)) +
 		subTotalVal
 	totalDiscountText := ""
 	if folio.TotalDiscounts > 0.0 {
 		totalDiscount := fmt.Sprintf("%.2f", folio.TotalDiscounts)
-		totalDiscountTrans := printing.Translate("Total discounts")
+		totalDiscountTrans := printing.Translate("Total discounts", lang)
 		totalDiscountText = totalDiscountTrans +
 			printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 				utf8.RuneCountInString(totalDiscount)-utf8.RuneCountInString(totalDiscountTrans)) +
@@ -182,13 +184,13 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 	} else {
 		totalVal = total
 	}
-	totalTrans := printing.Translate("Total")
+	totalTrans := printing.Translate("Total", lang)
 	totalText := totalTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "total_padding")-
 		utf8.RuneCountInString(totalVal)-utf8.RuneCountInString(totalTrans)) + totalVal
 	paymentText := ""
 	if folio.Invoice.IsSettled == true && folio.Invoice.Postings != nil &&
 		len(folio.Invoice.Postings) > 0 {
-		paymentTrans := printing.Translate("Payment")
+		paymentTrans := printing.Translate("Payment", lang)
 		paymentText = paymentTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 			utf8.RuneCountInString(paymentTrans)-utf8.RuneCountInString(total)) + total
 	}
@@ -232,13 +234,13 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 	} else {
 		received = fmt.Sprintf("%.2f", folio.Invoice.Total)
 	}
-	receivedTrans := printing.Translate("Received")
+	receivedTrans := printing.Translate("Received", lang)
 	receivedText := receivedTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "subtotal_padding")-
 		utf8.RuneCountInString(receivedTrans)-utf8.RuneCountInString(received)) +
 		received
 
 	change := "0.00"
-	changeTrans := printing.Translate("Change")
+	changeTrans := printing.Translate("Change", lang)
 
 	if folio.Invoice.Change != 0.0 {
 		change = fmt.Sprintf("%.2f", folio.Invoice.Change)
@@ -270,6 +272,7 @@ func FolioTableContent(folio *printing.FolioPrint) []printing.Text {
 }
 
 func FDMSection(folio *printing.FolioPrint) []printing.Text {
+	lang := printing.SetLang(folio.Terminal.RCRS)
 	fdm := []printing.Text{}
 	vatsToDisplay := map[string]bool{
 		"A": false,
@@ -278,10 +281,10 @@ func FDMSection(folio *printing.FolioPrint) []printing.Text {
 		"D": false,
 	}
 	if config.Config.IsFDMEnabled {
-		taxableTrans := printing.Translate("Taxable")
-		rateTrans := printing.Translate("Rate")
-		vatTrans := printing.Translate("Vat")
-		netTrans := printing.Translate("Net")
+		taxableTrans := printing.Translate("Taxable", lang)
+		rateTrans := printing.Translate("Rate", lang)
+		vatTrans := printing.Translate("Vat", lang)
+		netTrans := printing.Translate("Net", lang)
 		fdmTable := []printing.Text{}
 		for _, res := range folio.Invoice.FDMResponses {
 			fdmTableHeader := rateTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_rate_padding")-
@@ -327,7 +330,7 @@ func FDMSection(folio *printing.FolioPrint) []printing.Text {
 			totalTaxableAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["taxable_amount"])
 			totalVatAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["vat_amount"])
 			totalNetAmount := fmt.Sprintf("%.2f", res.VATSummary["Total"]["net_amount"])
-			totalTrans := printing.Translate("Total")
+			totalTrans := printing.Translate("Total", lang)
 			totalText := totalTrans + printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_rate_padding")-
 				utf8.RuneCountInString(totalTrans)) +
 				printing.Pad(printing.PrintingParams(folio.Printer.PaperWidth, "fdm_taxable_padding")-
@@ -344,19 +347,20 @@ func FDMSection(folio *printing.FolioPrint) []printing.Text {
 	return fdm
 }
 func FolioFooter(folio *printing.FolioPrint) []printing.Text {
+	lang := printing.SetLang(folio.Terminal.RCRS)
 	footer := []printing.Text{}
 	loc, _ := time.LoadLocation(folio.Timezone)
-	openedAt := printing.Translate("Opened at")
+	openedAt := printing.Translate("Opened at", lang)
 	closedOnText := ""
 	fdm := []printing.Text{}
 	if folio.Invoice.ClosedOn != nil {
 		closedAt := folio.Invoice.ClosedOn.In(loc)
 		closedAtStr := closedAt.Format("02 Jan 2006 15:04:05")
-		cloasedOn := printing.Translate("Closed on")
+		cloasedOn := printing.Translate("Closed on", lang)
 		closedOnText = cloasedOn + ": " + closedAtStr
 	}
-	createdBy := printing.Translate("Created by")
-	printedBy := printing.Translate("Printed by")
+	createdBy := printing.Translate("Created by", lang)
+	printedBy := printing.Translate("Printed by", lang)
 	fdm = append(
 		fdm,
 		printing.Text{Text: openedAt + ": " + folio.Invoice.CreatedOn + "\n"},
@@ -367,9 +371,9 @@ func FolioFooter(folio *printing.FolioPrint) []printing.Text {
 	if config.Config.IsFDMEnabled {
 		for _, res := range folio.Invoice.FDMResponses {
 			fdmResponse := []printing.Text{}
-			ticketNumber := printing.Translate("Ticket Number") + ": " + res.TicketNumber + "\n"
-			ticketDate := printing.Translate("Ticket Date") + ": " + res.Date.Format("02 Jan 2006 15:04:05") + "\n"
-			event := printing.Translate("Event") + ": " + res.EventLabel + "\n"
+			ticketNumber := printing.Translate("Ticket Number", lang) + ": " + res.TicketNumber + "\n"
+			ticketDate := printing.Translate("Ticket Date", lang) + ": " + res.Date.Format("02 Jan 2006 15:04:05") + "\n"
+			event := printing.Translate("Event", lang) + ": " + res.EventLabel + "\n"
 			eventSlice := []printing.Text{}
 			if utf8.RuneCountInString(event) > 32 {
 				eventSlice = append(
@@ -382,7 +386,7 @@ func FolioFooter(folio *printing.FolioPrint) []printing.Text {
 			}
 
 			terminalSlice := []printing.Text{}
-			terminalIdentifier := printing.Translate("Terminal Identifier") + ": " +
+			terminalIdentifier := printing.Translate("Terminal Identifier", lang) + ": " +
 				folio.Terminal.RCRS + "/" + folio.Terminal.Description
 			if utf8.RuneCountInString(terminalIdentifier) >
 				printing.PrintingParams(folio.Printer.PaperWidth, "char_per_line") {
@@ -393,10 +397,10 @@ func FolioFooter(folio *printing.FolioPrint) []printing.Text {
 				terminalSlice = append(terminalSlice, printing.Text{Text: terminalIdentifier + "\n"})
 
 			}
-			productionNumber := printing.Translate("Production Number") + ": " + folio.Terminal.RCRS + "\n"
-			SWVersion := printing.Translate("Software Version") + ": " + res.SoftwareVersion + "\n"
+			productionNumber := printing.Translate("Production Number", lang) + ": " + folio.Terminal.RCRS + "\n"
+			SWVersion := printing.Translate("Software Version", lang) + ": " + res.SoftwareVersion + "\n"
 
-			ticket := printing.Translate("Ticket") + ": " +
+			ticket := printing.Translate("Ticket", lang) + ": " +
 				strings.Join(strings.Fields(res.TicketCounter), " ") +
 				"/" + strings.Join(strings.Fields(res.TotalTicketCounter), " ") +
 				" " + res.EventLabel
@@ -413,24 +417,24 @@ func FolioFooter(folio *printing.FolioPrint) []printing.Text {
 			if utf8.RuneCountInString(res.PLUHash) > 32 {
 				hashSlice = append(
 					hashSlice,
-					printing.Text{Text: printing.Translate("Hash") + "s: " + res.PLUHash[0:25] + "\n"},
+					printing.Text{Text: printing.Translate("Hash", lang) + "s: " + res.PLUHash[0:25] + "\n"},
 					printing.Text{Text: printing.Pad(7) + res.PLUHash[25:] + "\n"},
 				)
 			} else {
-				hashSlice = append(hashSlice, printing.Text{Text: printing.Translate("Hash") + ": " + res.PLUHash + "\n"})
+				hashSlice = append(hashSlice, printing.Text{Text: printing.Translate("Hash", lang) + ": " + res.PLUHash + "\n"})
 			}
 			ticketSigSlice := []printing.Text{}
 			if folio.Invoice.IsSettled {
 				ticketSigSlice = append(
 					ticketSigSlice,
-					printing.Text{Text: printing.Translate("Ticket Sig") + ": " + res.Signature[0:20] + "\n"},
+					printing.Text{Text: printing.Translate("Ticket Sig", lang) + ": " + res.Signature[0:20] + "\n"},
 					printing.Text{Text: printing.Pad(13) + res.Signature[20:] + "\n"},
 				)
 			}
-			controlData := printing.Translate("Control Data") + ": " + res.Date.String()[0:10] +
+			controlData := printing.Translate("Control Data", lang) + ": " + res.Date.String()[0:10] +
 				" " + res.TimePeriod.Format("15:04:00") + "\n"
-			controlModule := printing.Translate("Control Module ID") + ": " + res.ProductionNumber + "\n"
-			vsc := printing.Translate("VSC ID") + ": " + res.VSC + "\n"
+			controlModule := printing.Translate("Control Module ID", lang) + ": " + res.ProductionNumber + "\n"
+			vsc := printing.Translate("VSC ID", lang) + ": " + res.VSC + "\n"
 
 			fdmResponse = append(fdmResponse, printing.Text{Text: ticketNumber}, printing.Text{Text: ticketDate})
 			fdmResponse = append(fdmResponse, eventSlice...)
@@ -449,7 +453,7 @@ func FolioFooter(folio *printing.FolioPrint) []printing.Text {
 		}
 
 	}
-	signature := printing.Translate("Signature")
+	signature := printing.Translate("Signature", lang)
 	sigText := signature + ":    " + "............." + "\n"
 	footerSlice := []printing.Text{}
 	if folio.Store.InvoiceFooter != "" {

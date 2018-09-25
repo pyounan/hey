@@ -6,8 +6,6 @@ import (
 	"pos-proxy/printing"
 	"testing"
 	"time"
-
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 func TestPrintKitchen(t *testing.T) {
@@ -66,9 +64,10 @@ func TestPrintKitchen(t *testing.T) {
 		IsDefault:   true,
 		TerminalID:  88,
 		IsUSB:       false,
-		PrinterIP:   aws.String("192.168.1.220"),
-		// PrinterIP: aws.String("/dev/usb/lp0"),
 	}
+	ip := "192.168.1.220"
+	// ip := "/dev/usb/lp0"
+	printer.PrinterIP = &ip
 	kitchenPrint := printing.KitchenPrint{
 		Invoice:       invoice,
 		Cashier:       cashier,

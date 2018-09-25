@@ -10,14 +10,15 @@ import (
 )
 
 func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Text {
+	lang := printing.SetLang("")
 
 	header := []printing.Text{}
 	doubleDashedLine := printing.AddLine("doubledashed", 55)
 	tableTakeout := ""
 	if kitchen.Invoice.TableID != nil {
-		tableTakeout = printing.Translate("Table") + ": " + *kitchen.Invoice.TableDetails
+		tableTakeout = printing.Translate("Table", lang) + ": " + *kitchen.Invoice.TableDetails
 	} else {
-		tableTakeout = printing.Translate("Takeout")
+		tableTakeout = printing.Translate("Takeout", lang)
 	}
 	guestName := ""
 	if kitchen.Invoice.WalkinName != "" {
@@ -32,14 +33,14 @@ func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Text {
 	date := submittedOn.Format(time.RFC1123)
 	header = append(
 		header,
-		printing.Text{Text: printing.Translate("Printer ID") + ": " + kitchen.Printer.PrinterID + "\n"},
+		printing.Text{Text: printing.Translate("Printer ID", lang) + ": " + kitchen.Printer.PrinterID + "\n"},
 		printing.Text{Font: "font_b"},
 		printing.Text{Text: doubleDashedLine + "\n"},
 		printing.Text{Align: "center"},
-		printing.Text{Text: printing.Translate("Invoice number") + ": " + kitchen.Invoice.InvoiceNumber + "\n"},
-		printing.Text{Text: printing.Translate("Covers") + ": " + fmt.Sprintf("%d", kitchen.Invoice.Pax) + "\n"},
+		printing.Text{Text: printing.Translate("Invoice number", lang) + ": " + kitchen.Invoice.InvoiceNumber + "\n"},
+		printing.Text{Text: printing.Translate("Covers", lang) + ": " + fmt.Sprintf("%d", kitchen.Invoice.Pax) + "\n"},
 		printing.Text{Text: tableTakeout + "\n"},
-		printing.Text{Text: printing.Translate("Guest name") + ": " + guestName + "\n"},
+		printing.Text{Text: printing.Translate("Guest name", lang) + ": " + guestName + "\n"},
 		printing.Text{Text: fmt.Sprintf("%d", kitchen.Cashier.Number) + "/" + kitchen.Cashier.Name + "\n"},
 		printing.Text{Text: date + "\n"},
 		printing.Text{Linespc: "30"},
@@ -49,6 +50,7 @@ func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Text {
 }
 
 func OrderTableHeader(kitchen *printing.KitchenPrint) []printing.Text {
+	lang := printing.SetLang("")
 	tableHeader := []printing.Text{}
 	tableHeader = append(
 		tableHeader,
@@ -58,10 +60,10 @@ func OrderTableHeader(kitchen *printing.KitchenPrint) []printing.Text {
 		printing.Text{Emphasized: "true"},
 		printing.Text{Color: "color_1"},
 		printing.Text{Font: "font_a"},
-		printing.Text{Text: printing.Translate("Item") + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "item_kitchen")-
+		printing.Text{Text: printing.Translate("Item", lang) + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "item_kitchen")-
 			utf8.RuneCountInString("Item")) +
-			printing.Translate("Qty") + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "qty_kitchen")-utf8.RuneCountInString("Qty")) +
-			printing.Translate("Unit") + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "unit")-utf8.RuneCountInString("Unit")) + "\n"},
+			printing.Translate("Qty", lang) + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "qty_kitchen")-utf8.RuneCountInString("Qty")) +
+			printing.Translate("Unit", lang) + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "unit")-utf8.RuneCountInString("Unit")) + "\n"},
 	)
 	return tableHeader
 }
@@ -106,6 +108,7 @@ func OrderTableContent(kitchen *printing.KitchenPrint) []printing.Text {
 	return tableContent
 }
 func KitchenFooter(kitchen *printing.KitchenPrint) []printing.Text {
+	lang := printing.SetLang("")
 	fotter := []printing.Text{}
 	doubleDashedLine := printing.AddLine("doubledashed",
 		printing.PrintingParams(kitchen.Printer.PaperWidth, "char_per_line"))
@@ -116,8 +119,8 @@ func KitchenFooter(kitchen *printing.KitchenPrint) []printing.Text {
 		printing.Text{DoubleWidth: "true"},
 		printing.Text{DoubleHight: "true"},
 		printing.Text{Align: "center"},
-		printing.Text{Text: strings.ToUpper(printing.Translate("This is not a")) + "\n"},
-		printing.Text{Text: strings.ToUpper(printing.Translate("valid tax invoice")) + "\n"},
+		printing.Text{Text: strings.ToUpper(printing.Translate("This is not a", lang)) + "\n"},
+		printing.Text{Text: strings.ToUpper(printing.Translate("valid tax invoice", lang)) + "\n"},
 	)
 	return fotter
 
@@ -147,8 +150,6 @@ func (e Epsonxml) PrintKitchen(kitchen *printing.KitchenPrint) error {
 	}
 	api := "http://" + *kitchen.Printer.PrinterIP + "/cgi-bin/epos/service.cgi?devid=" +
 		kitchen.Printer.PrinterID + "&timeout=6000"
-
-	// api := "http://" + "192.168.1.220" + "/cgi-bin/epos/service.cgi?devid=local_printer&timeout=6000"
 	printing.Send(api, reqBody)
 	return nil
 }
