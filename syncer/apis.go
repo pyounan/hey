@@ -4,7 +4,7 @@ var ConfApis map[string]string = make(map[string]string)
 var SingleLoadApis map[string]string = make(map[string]string)
 
 func init() {
-	ConfApis["stores"] = "api/pos/store/"
+	ConfApis["stores"] = "api/pos/store/?outlet=true"
 	ConfApis["fixeddiscounts"] = "api/pos/fixeddiscount/"
 	ConfApis["storedetails"] = "api/pos/storedetails/"
 	ConfApis["terminals"] = "api/pos/terminal/"
