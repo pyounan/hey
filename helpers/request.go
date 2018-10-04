@@ -21,8 +21,8 @@ func NewNetClient() *http.Client {
 				Timeout:   120 * time.Second,
 				KeepAlive: 120 * time.Second,
 			}).Dial,
-			TLSHandshakeTimeout:   15 * time.Second,
-			ResponseHeaderTimeout: 15 * time.Second,
+			TLSHandshakeTimeout:   30 * time.Second,
+			ResponseHeaderTimeout: 30 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 		},
 	}
