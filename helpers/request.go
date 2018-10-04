@@ -18,8 +18,8 @@ func NewNetClient() *http.Client {
 	c := &http.Client{
 		Transport: &http.Transport{
 			Dial: (&net.Dialer{
-				Timeout:   50 * time.Second,
-				KeepAlive: 50 * time.Second,
+				Timeout:   120 * time.Second,
+				KeepAlive: 120 * time.Second,
 			}).Dial,
 			TLSHandshakeTimeout:   15 * time.Second,
 			ResponseHeaderTimeout: 15 * time.Second,
