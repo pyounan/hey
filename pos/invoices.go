@@ -15,12 +15,10 @@ import (
 	"pos-proxy/libs/libfdm"
 	"pos-proxy/opera"
 	"pos-proxy/payment"
-	"pos-proxy/payment/gateways/ccv"
 	"pos-proxy/pos/fdm"
 	"pos-proxy/pos/locks"
 	"pos-proxy/pos/models"
 	"pos-proxy/proxy"
-	"pos-proxy/socket"
 	"pos-proxy/syncer"
 	"strconv"
 	"strings"
@@ -664,15 +662,13 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		// create fdm connection
 		conn, err := fdm.Connect(req.RCRS)
 		if err != nil {
-			cancelErr := CancelLastPayment(req)
-			helpers.ReturnErrorMessage(w, err.Error()+cancelErr.Error())
+			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
 		defer conn.Close()
 		responses, err := fdm.Payment(conn, req)
 		if err != nil {
-			cancelErr := CancelLastPayment(req)
-			helpers.ReturnErrorMessage(w, err.Error()+cancelErr.Error())
+			helpers.ReturnErrorMessage(w, err.Error())
 			return
 		}
 		fdmResponses = append(fdmResponses, responses...)
@@ -742,45 +738,6 @@ func PayInvoice(w http.ResponseWriter, r *http.Request) {
 		go sendToPrint(printReq)
 	}
 	helpers.ReturnSuccessMessage(w, req)
-}
-
-//CancelLastPayment check if posting contains ccv , then send cancel request for all ccv posting
-func CancelLastPayment(res models.InvoicePOSTRequest) error {
-	postingLength := len(res.Postings)
-	lastCCVPayment := true
-	for i := postingLength - 1; i >= 0; i-- {
-		if strings.ToLower(res.Postings[i].PostingType) == "ccv" {
-			cancelPayment := payment.PaymentPayload{}
-			cancel := ccv.CancelPayload{}
-			if !lastCCVPayment {
-				//set authcode,amount,currency only if not last payment
-				cancel.AuthCode = res.Postings[i].Comments
-				cancel.Amount = res.Postings[i].ForeignAmount
-				cancel.Currency = res.Postings[i].CurrencyDetails
-			}
-			lastCCVPayment = false
-			cancelPayment.Gateway = "ccv"
-			cancelPayment.Action = "cancel"
-			cancel.TerminalID = res.TerminalID
-			cancel.TerminalNumber = res.TerminalNumber
-			cancel.CashierID = res.CashierNumber
-			event := socket.Event{}
-			cancelPayload, err := json.Marshal(cancel)
-			if err != nil {
-				fmt.Printf("Cancel Last json cancelPayload error %v\n", err)
-				return fmt.Errorf(" Cancel Last json cancelPayload %v", err.Error())
-			}
-			cancelPayment.Data = cancelPayload
-			paymentPayload, err := json.Marshal(cancelPayment)
-			if err != nil {
-				fmt.Printf("Cancel Last json paymentPayload error %v\n", err)
-				return fmt.Errorf(" Cancel Last json paymentPayload error %v", err)
-			}
-			event.Payload = paymentPayload
-			payment.InputSignal <- event
-		}
-	}
-	return nil
 }
 
 // CreatePaymentEJ swagger:route POST /api/pos/posinvoices/createpaymentej/ invoices createPaymentEJ
@@ -1597,4 +1554,42 @@ func ComputeDiscounts(amount float64, discounts []models.AppliedDiscount) float6
 		amount -= value
 	}
 	return -helpers.Round(discountsValue, 0.05)
+}
+
+// CancelLastPayment swagger:route POST /api/pos/posinvoices/{invoice_number}/cancellastpayment/ invoices createPostings
+//
+// Cancel Last Payment
+//
+// loop through posting and cancel them in reverse order
+//
+// Parameters:
+// + name: invoice_number
+//   in: path
+//   required: true
+//   schema:
+//      type: integer
+//
+// + name: body
+//   in: body
+//   type: invoicePOSTRequest
+//   required: true
+//
+// Responses:
+// 200: string
+// 500: string
+func CancelLastPayment(w http.ResponseWriter, r *http.Request) {
+	var req models.InvoicePOSTRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	defer r.Body.Close()
+	err = payment.CancelLastPayment(req)
+	if err != nil {
+		helpers.ReturnErrorMessage(w, err.Error())
+		return
+	}
+	helpers.ReturnSuccessMessage(w, "Cancel payment request sent successfully")
+	return
 }

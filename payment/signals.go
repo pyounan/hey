@@ -7,15 +7,19 @@ package payment
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"pos-proxy/payment/gateways/ccv"
+	"pos-proxy/pos/models"
 	"pos-proxy/socket"
+	"strings"
 )
 
-var InputSignal = make(chan socket.Event)
+var inputSignal = make(chan socket.Event)
 var outputSignal = make(chan socket.Event)
 
 func init() {
-	socket.Register("payment", InputSignal)
+	socket.Register("payment", inputSignal)
 	go handleInputSignals()
 	go handleOutputSignals()
 }
@@ -29,7 +33,7 @@ type PaymentPayload struct {
 
 func handleInputSignals() {
 	log.Println("waiting for incoming payment events")
-	for event := range InputSignal {
+	for event := range inputSignal {
 		log.Println("a new socket event was received, processing...")
 		var payload PaymentPayload
 		err := json.Unmarshal(event.Payload, &payload)
@@ -78,4 +82,43 @@ func handleOutputSignals() {
 	for v := range outputSignal {
 		socket.Send(v)
 	}
+}
+
+//CancelLastPayment check if posting contains ccv , then send cancel request for all ccv posting
+func CancelLastPayment(res models.InvoicePOSTRequest) error {
+	postingLength := len(res.Postings)
+	lastCCVPayment := true
+	for i := postingLength - 1; i >= 0; i-- {
+		if strings.ToLower(res.Postings[i].PostingType) == "ccv" {
+			cancelPayment := PaymentPayload{}
+			cancel := ccv.CancelPayload{}
+			if !lastCCVPayment {
+				//set authcode,amount,currency only if not last payment
+				cancel.AuthCode = res.Postings[i].Comments
+				cancel.Amount = res.Postings[i].ForeignAmount
+				cancel.Currency = res.Postings[i].CurrencyDetails
+			}
+			lastCCVPayment = false
+			cancelPayment.Gateway = "ccv"
+			cancelPayment.Action = "cancel"
+			cancel.TerminalID = res.TerminalID
+			cancel.TerminalNumber = res.TerminalNumber
+			cancel.CashierID = res.CashierNumber
+			event := socket.Event{}
+			cancelPayload, err := json.Marshal(cancel)
+			if err != nil {
+				log.Printf("Cancel Last json cancelPayload error %v\n", err)
+				return fmt.Errorf(" Cancel Last json cancelPayload %v", err.Error())
+			}
+			cancelPayment.Data = cancelPayload
+			paymentPayload, err := json.Marshal(cancelPayment)
+			if err != nil {
+				log.Printf("Cancel Last json paymentPayload error %v\n", err)
+				return fmt.Errorf(" Cancel Last json paymentPayload error %v", err)
+			}
+			event.Payload = paymentPayload
+			inputSignal <- event
+		}
+	}
+	return nil
 }
