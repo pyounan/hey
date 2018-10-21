@@ -11,7 +11,7 @@ type PaymentGateway interface {
 	Sale(data json.RawMessage)
 	Refund(data json.RawMessage)
 	Abort()
-	Reprint()
+	Reprint(data json.RawMessage)
 	Cancel(data json.RawMessage)
 }
 

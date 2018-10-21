@@ -57,7 +57,7 @@ func handleInputSignals() {
 				log.Println("received a sale request from web socket")
 				v.Sale(payload.Data)
 			case "reprint":
-				v.Reprint()
+				v.Reprint(payload.Data)
 			case "abort":
 				v.Abort()
 			case "refund":
