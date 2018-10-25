@@ -72,6 +72,7 @@ type Text struct {
 	Color       string   `xml:"color,attr,omitempty"`
 	DoubleWidth string   `xml:"dw,attr,omitempty"`
 	DoubleHight string   `xml:"dh,attr,omitempty"`
+	Lang        string   `xml:"lang,attr,omitempty"`
 }
 
 //Cut defines body of Cut tag
