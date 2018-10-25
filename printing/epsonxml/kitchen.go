@@ -148,6 +148,8 @@ func (e Epsonxml) PrintKitchen(kitchen *printing.KitchenPrint) error {
 	if err != nil {
 		return err
 	}
+	// append xml header
+	reqBody = []byte(xml.Header + string(reqBody))
 	api := "http://" + *kitchen.Printer.PrinterIP + "/cgi-bin/epos/service.cgi?devid=" +
 		kitchen.Printer.PrinterID + "&timeout=6000"
 	printing.Send(api, reqBody)
