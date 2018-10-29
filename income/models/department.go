@@ -25,4 +25,5 @@ type Department struct {
 	PaymentGateway  *string             `json:"payment_gateway" bson:"payment_gateway"`
 	PaymentType     *string             `json:"payment_type" bson:"payment_type"`
 	POSPayment      bool                `json:"pos_payment" bson:"pos_payment"`
+	OpenCashDrawer  bool                `json:"open_cash_drawer" bson:"open_cash_drawer"`
 }
