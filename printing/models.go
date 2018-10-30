@@ -53,7 +53,7 @@ type EposPrint struct {
 	XMLns   string   `xml:"xmlns,attr"`
 	Layout  *Layout  `xml:"layout"`
 	Align   *Text    `xml:""`
-	Image   *Image   `xml:"image,omitempty"`
+	Image   []Image  `xml:"image,omitempty"`
 	Text    []Text   `xml:""`
 	Feed    *Feed    `xml:"feed,omitempty"`
 	Cut     Cut      `xml:"cut"`
