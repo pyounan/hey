@@ -19,28 +19,28 @@ func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Image {
 	header := []printing.Image{}
 
 	//Printer ID
-	data, w, h, _ := p.TextToRaster(printing.CheckLang(printing.Translate("Printer ID", lang) + ": " + kitchen.Printer.PrinterID))
+	data, w, h, _ := p.TextToRaster(printing.CheckLang(printing.Translate("Printer ID", lang)+": "+kitchen.Printer.PrinterID), 30.0, true)
 	imgXML := ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 
 	//double Dashed Line
 	doubleDashedLine := printing.AddLine("doubledashed", 55)
 
-	data, w, h, _ = p.TextToRaster(doubleDashedLine)
+	data, w, h, _ = p.TextToRaster(doubleDashedLine, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 
 	// Invoice Number
-	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth / 2) -
-		len(printing.CheckLang(printing.Translate("Invoice number", lang)+": "+kitchen.Invoice.InvoiceNumber))) / 2)) +
-		printing.CheckLang(printing.Translate("Invoice number", lang)+": "+kitchen.Invoice.InvoiceNumber))
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		len(printing.CheckLang(printing.Translate("Invoice number", lang)+": "+kitchen.Invoice.InvoiceNumber)))/2))+
+		printing.CheckLang(printing.Translate("Invoice number", lang)+": "+kitchen.Invoice.InvoiceNumber), 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 
 	// Covers
-	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth / 2) -
-		len(printing.Translate("Covers", lang)+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax))) / 2)) +
-		printing.Translate("Covers", lang) + ": " + fmt.Sprintf("%d", kitchen.Invoice.Pax))
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		len(printing.Translate("Covers", lang)+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax)))/2))+
+		printing.Translate("Covers", lang)+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax), 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 
@@ -52,9 +52,9 @@ func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Image {
 		tableTakeout = printing.Translate("Takeout", lang)
 	}
 
-	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth / 2) -
-		len(tableTakeout)) / 2)) +
-		tableTakeout)
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		len(tableTakeout))/2))+
+		tableTakeout, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 
@@ -69,16 +69,16 @@ func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Image {
 	}
 
 	guest := printing.Translate("Guest name", lang) + ": " + printing.CheckLang(guestName)
-	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth / 2) -
-		(len(guest) / 2)) / 2)) +
-		guest)
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		(len(guest)/2))/2))+
+		guest, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 
 	// Cashier
 	cashier := fmt.Sprintf("%d", kitchen.Cashier.Number) + "/" + printing.CheckLang(kitchen.Cashier.Name)
-	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth / 2) -
-		(len(cashier) / 2)) / 2)) + cashier)
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		(len(cashier)/2))/2))+cashier, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 
@@ -87,13 +87,13 @@ func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Image {
 	submittedOn := time.Now().In(loc)
 	date := submittedOn.Format(time.RFC1123)
 
-	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth / 2) -
-		len(date)) / 2)) + date)
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		len(date))/2))+date, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 
 	//double Dashed Line
-	data, w, h, _ = p.TextToRaster(doubleDashedLine)
+	data, w, h, _ = p.TextToRaster(doubleDashedLine, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 
@@ -106,10 +106,10 @@ func OrderTableHeader(kitchen *printing.KitchenPrint) []printing.Image {
 
 	//Header
 	data, w, h, _ := p.TextToRaster(
-		printing.Translate("Item", lang) + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "item_kitchen")-
-			utf8.RuneCountInString("Item")) +
-			printing.Translate("Qty", lang) + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "qty_kitchen")-utf8.RuneCountInString("Qty")) +
-			printing.Translate("Unit", lang) + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "unit")-utf8.RuneCountInString("Unit")))
+		printing.Translate("Item", lang)+printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "item_kitchen")-
+			utf8.RuneCountInString("Item"))+
+			printing.Translate("Qty", lang)+printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "qty_kitchen")-utf8.RuneCountInString("Qty"))+
+			printing.Translate("Unit", lang)+printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "unit")-utf8.RuneCountInString("Unit")), 30.0, false)
 	imgXML := ImgToXML(data, w, h)
 	tableHeader = append(tableHeader, *imgXML)
 
@@ -123,7 +123,7 @@ func OrderTableContent(kitchen *printing.KitchenPrint) []printing.Image {
 	doubleDashedLine := printing.AddLine("doubledashed",
 		printing.PrintingParams(kitchen.Printer.PaperWidth, "char_per_line"))
 
-	data, w, h, _ := p.TextToRaster(doubleDashedLine)
+	data, w, h, _ := p.TextToRaster(doubleDashedLine, 30.0, true)
 	imgXML := ImgToXML(data, w, h)
 	tableContent = append(tableContent, *imgXML)
 
@@ -147,13 +147,13 @@ func OrderTableContent(kitchen *printing.KitchenPrint) []printing.Image {
 		for _, condiment := range item.CondimentLineItems {
 			row += printing.CheckLang(condiment.Description)
 		}
-		data, w, h, _ := p.TextToRaster(row)
+		data, w, h, _ := p.TextToRaster(row, 30.0, true)
 		imgXML := ImgToXML(data, w, h)
 		kitchecnItems = append(kitchecnItems, *imgXML)
 
 		if item.CondimentsComment != "" {
 			row = printing.CheckLang(item.CondimentsComment)
-			data, w, h, _ := p.TextToRaster(row)
+			data, w, h, _ := p.TextToRaster(row, 30.0, true)
 			imgXML := ImgToXML(data, w, h)
 			kitchecnItems = append(kitchecnItems, *imgXML)
 		}
@@ -162,7 +162,7 @@ func OrderTableContent(kitchen *printing.KitchenPrint) []printing.Image {
 		if item.LastChildInCourse {
 			row = dashedLine
 		}
-		data, w, h, _ = p.TextToRaster(row)
+		data, w, h, _ = p.TextToRaster(row, 30.0, true)
 		imgXML = ImgToXML(data, w, h)
 		kitchecnItems = append(kitchecnItems, *imgXML)
 	}
@@ -178,18 +178,18 @@ func KitchenFooter(kitchen *printing.KitchenPrint) []printing.Image {
 	// double Dashed Line
 	doubleDashedLine := printing.AddLine("doubledashed", printing.PrintingParams(kitchen.Printer.PaperWidth, "char_per_line"))
 
-	data, w, h, _ := p.TextToRaster(doubleDashedLine)
+	data, w, h, _ := p.TextToRaster(doubleDashedLine, 30.0, true)
 	imgXML := ImgToXML(data, w, h)
 	footer = append(footer, *imgXML)
 
 	// note
-	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth / 2) - len("This is not a")) / 2)) +
-		printing.CheckLang(strings.ToUpper(printing.Translate("This is not a", lang))))
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-(len("This is not a")+10))/2))+
+		printing.CheckLang(strings.ToUpper(printing.Translate("This is not a", lang))), 40.0, true)
 	imgXML = ImgToXML(data, w, h)
 	footer = append(footer, *imgXML)
 
-	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth / 2) - len("valid tax invoice")) / 2)) +
-		printing.CheckLang(strings.ToUpper(printing.Translate("valid tax invoice", lang))))
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-(len("valid tax invoice")+10))/2))+
+		printing.CheckLang(strings.ToUpper(printing.Translate("valid tax invoice", lang))), 40.0, true)
 	imgXML = ImgToXML(data, w, h)
 	footer = append(footer, *imgXML)
 
