@@ -70,7 +70,7 @@ func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Image {
 
 	guest := printing.Translate("Guest name", lang) + ": " + printing.CheckLang(guestName)
 	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
-		(len(guest)/2))/2))+
+		(utf8.RuneCountInString(guest)))/2))+
 		guest, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
@@ -78,7 +78,7 @@ func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Image {
 	// Cashier
 	cashier := fmt.Sprintf("%d", kitchen.Cashier.Number) + "/" + printing.CheckLang(kitchen.Cashier.Name)
 	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
-		(len(cashier)/2))/2))+cashier, 30.0, true)
+		(utf8.RuneCountInString(cashier)))/2))+cashier, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	header = append(header, *imgXML)
 

@@ -143,7 +143,7 @@ func FolioHeader(folio *printing.FolioPrint) []printing.Image {
 
 	guest := printing.Translate("Guest name", lang) + ": " + printing.CheckLang(guestName)
 	data, w, h, _ = p.TextToRaster(printing.Pad((((folio.Printer.PaperWidth/2)-
-		(len(guest)/2))/2))+
+		(utf8.RuneCountInString(guest)))/2))+
 		guest, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	folioHeader = append(folioHeader, *imgXML)
@@ -452,7 +452,7 @@ func FolioFooter(folio *printing.FolioPrint) []printing.Image {
 	footer = append(footer, *imgXML)
 
 	//
-	createdBy := printing.Translate("Created by", lang) + ": " + folio.Invoice.CashierDetails
+	createdBy := printing.Translate("Created by", lang) + ": " + printing.CheckLang(folio.Invoice.CashierDetails)
 	data, w, h, _ = p.TextToRaster(createdBy, 30.0, true)
 	imgXML = ImgToXML(data, w, h)
 	footer = append(footer, *imgXML)
