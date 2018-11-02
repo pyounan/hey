@@ -12,7 +12,15 @@ import (
 )
 
 func TestPrintFolio(t *testing.T) {
-	config.Config.IsFDMEnabled = true
+	printFolio(t, false)
+}
+
+func TestPrintFolioFDM(t *testing.T) {
+	printFolio(t, true)
+}
+
+func printFolio(t *testing.T, fdm bool) {
+	config.Config.IsFDMEnabled = fdm
 	invoice := models.Invoice{
 		InvoiceNumber:  "200-1153",
 		Pax:            1,
