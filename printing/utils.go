@@ -138,7 +138,8 @@ func Send(api string, payload []byte) (int, []byte, error) {
 		log.Println(err)
 		return 0, nil, err
 	}
-	req.Header.Set("Content-Type", "application/xml; charset=utf-8")
+	// req.Header.Set("Content-Type", "application/xml; charset=utf-8")
+	req.Header.Set("Content-Type", "text/xml; charset=utf-8")
 	resp, err := c.Do(req)
 	if err != nil {
 		log.Println(err)

@@ -3,23 +3,62 @@ package epsonxml
 import (
 	"encoding/xml"
 	"fmt"
-	"pos-proxy/printing"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/cloudinn/escpos"
+
+	"pos-proxy/printing"
 )
 
-func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Text {
-	lang := printing.SetLang("")
+var p *escpos.Printer
 
-	header := []printing.Text{}
+func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Image {
+	lang := printing.SetLang("")
+	header := []printing.Image{}
+
+	//Printer ID
+	data, w, h, _ := p.TextToRaster(printing.CheckLang(printing.Translate("Printer ID", lang)+": "+kitchen.Printer.PrinterID), 30.0, true)
+	imgXML := ImgToXML(data, w, h)
+	header = append(header, *imgXML)
+
+	//double Dashed Line
 	doubleDashedLine := printing.AddLine("doubledashed", 55)
+
+	data, w, h, _ = p.TextToRaster(doubleDashedLine, 30.0, true)
+	imgXML = ImgToXML(data, w, h)
+	header = append(header, *imgXML)
+
+	// Invoice Number
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		len(printing.CheckLang(printing.Translate("Invoice number", lang)+": "+kitchen.Invoice.InvoiceNumber)))/2))+
+		printing.CheckLang(printing.Translate("Invoice number", lang)+": "+kitchen.Invoice.InvoiceNumber), 30.0, true)
+	imgXML = ImgToXML(data, w, h)
+	header = append(header, *imgXML)
+
+	// Covers
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		len(printing.Translate("Covers", lang)+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax)))/2))+
+		printing.Translate("Covers", lang)+": "+fmt.Sprintf("%d", kitchen.Invoice.Pax), 30.0, true)
+	imgXML = ImgToXML(data, w, h)
+	header = append(header, *imgXML)
+
+	// Table
 	tableTakeout := ""
 	if kitchen.Invoice.TableID != nil {
 		tableTakeout = printing.Translate("Table", lang) + ": " + *kitchen.Invoice.TableDetails
 	} else {
 		tableTakeout = printing.Translate("Takeout", lang)
 	}
+
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		len(tableTakeout))/2))+
+		tableTakeout, 30.0, true)
+	imgXML = ImgToXML(data, w, h)
+	header = append(header, *imgXML)
+
+	// Guest Name
 	guestName := ""
 	if kitchen.Invoice.WalkinName != "" {
 		guestName = kitchen.Invoice.WalkinName
@@ -28,61 +67,74 @@ func KitchenHeader(kitchen *printing.KitchenPrint) []printing.Text {
 	} else if kitchen.Invoice.RoomDetails != nil {
 		guestName = *kitchen.Invoice.RoomDetails
 	}
+
+	guest := printing.Translate("Guest name", lang) + ": " + printing.CheckLang(guestName)
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		(utf8.RuneCountInString(guest)))/2))+
+		guest, 30.0, true)
+	imgXML = ImgToXML(data, w, h)
+	header = append(header, *imgXML)
+
+	// Cashier
+	cashier := fmt.Sprintf("%d", kitchen.Cashier.Number) + "/" + printing.CheckLang(kitchen.Cashier.Name)
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		(utf8.RuneCountInString(cashier)))/2))+cashier, 30.0, true)
+	imgXML = ImgToXML(data, w, h)
+	header = append(header, *imgXML)
+
+	// date
 	loc, _ := time.LoadLocation(kitchen.Timezone)
 	submittedOn := time.Now().In(loc)
 	date := submittedOn.Format(time.RFC1123)
-	header = append(
-		header,
-		printing.Text{Text: printing.Translate("Printer ID", lang) + ": " + kitchen.Printer.PrinterID + "\n"},
-		printing.Text{Font: "font_b"},
-		printing.Text{Text: doubleDashedLine + "\n"},
-		printing.Text{Align: "center"},
-		printing.Text{Text: printing.Translate("Invoice number", lang) + ": " + kitchen.Invoice.InvoiceNumber + "\n"},
-		printing.Text{Text: printing.Translate("Covers", lang) + ": " + fmt.Sprintf("%d", kitchen.Invoice.Pax) + "\n"},
-		printing.Text{Text: tableTakeout + "\n"},
-		printing.Text{Text: printing.Translate("Guest name", lang) + ": " + guestName + "\n"},
-		printing.Text{Text: fmt.Sprintf("%d", kitchen.Cashier.Number) + "/" + kitchen.Cashier.Name + "\n"},
-		printing.Text{Text: date + "\n"},
-		printing.Text{Linespc: "30"},
-		printing.Text{Text: doubleDashedLine + "\n"},
-	)
+
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-
+		len(date))/2))+date, 30.0, true)
+	imgXML = ImgToXML(data, w, h)
+	header = append(header, *imgXML)
+
+	//double Dashed Line
+	data, w, h, _ = p.TextToRaster(doubleDashedLine, 30.0, true)
+	imgXML = ImgToXML(data, w, h)
+	header = append(header, *imgXML)
+
 	return header
 }
 
-func OrderTableHeader(kitchen *printing.KitchenPrint) []printing.Text {
+func OrderTableHeader(kitchen *printing.KitchenPrint) []printing.Image {
 	lang := printing.SetLang("")
-	tableHeader := []printing.Text{}
-	tableHeader = append(
-		tableHeader,
-		printing.Text{Align: "left"},
-		printing.Text{Reverse: "true"},
-		printing.Text{UnderLine: "false"},
-		printing.Text{Emphasized: "true"},
-		printing.Text{Color: "color_1"},
-		printing.Text{Font: "font_a"},
-		printing.Text{Text: printing.Translate("Item", lang) + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "item_kitchen")-
-			utf8.RuneCountInString("Item")) +
-			printing.Translate("Qty", lang) + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "qty_kitchen")-utf8.RuneCountInString("Qty")) +
-			printing.Translate("Unit", lang) + printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "unit")-utf8.RuneCountInString("Unit")) + "\n"},
-	)
+	tableHeader := []printing.Image{}
+
+	//Header
+	data, w, h, _ := p.TextToRaster(
+		printing.Translate("Item", lang)+printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "item_kitchen")-
+			utf8.RuneCountInString("Item"))+
+			printing.Translate("Qty", lang)+printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "qty_kitchen")-utf8.RuneCountInString("Qty"))+
+			printing.Translate("Unit", lang)+printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "unit")-utf8.RuneCountInString("Unit")), 30.0, false)
+	imgXML := ImgToXML(data, w, h)
+	tableHeader = append(tableHeader, *imgXML)
+
 	return tableHeader
 }
-func OrderTableContent(kitchen *printing.KitchenPrint) []printing.Text {
-	tableContent := []printing.Text{}
+
+func OrderTableContent(kitchen *printing.KitchenPrint) []printing.Image {
+	tableContent := []printing.Image{}
+
+	//double Dashed Line
 	doubleDashedLine := printing.AddLine("doubledashed",
 		printing.PrintingParams(kitchen.Printer.PaperWidth, "char_per_line"))
+
+	data, w, h, _ := p.TextToRaster(doubleDashedLine, 30.0, true)
+	imgXML := ImgToXML(data, w, h)
+	tableContent = append(tableContent, *imgXML)
+
+	// dash line
 	dashedLine := printing.AddLine("dash",
 		printing.PrintingParams(kitchen.Printer.PaperWidth, "char_per_line"))
-	tableContent = append(
-		tableContent,
-		printing.Text{Reverse: "false"},
-		printing.Text{UnderLine: "false"},
-		printing.Text{Emphasized: "false"},
-		printing.Text{Color: "color_1"},
-		printing.Text{Text: doubleDashedLine + "\n"},
-	)
-	kitchecnItems := []printing.Text{}
+
+	// items
+	kitchecnItems := []printing.Image{}
 	for _, item := range kitchen.GropLineItems {
+		// item
 		row := ""
 		desc := item.Description
 		qty := fmt.Sprintf("%.2f", item.Quantity)
@@ -91,40 +143,59 @@ func OrderTableContent(kitchen *printing.KitchenPrint) []printing.Text {
 			printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "item_kitchen")-
 				utf8.RuneCountInString(desc)) + qty +
 			printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "qty_kitchen")-
-				utf8.RuneCountInString(qty)) + baseUnit + "\n"
+				utf8.RuneCountInString(qty)) + printing.CheckLang(baseUnit)
 		for _, condiment := range item.CondimentLineItems {
-			row += condiment.Description + "\n"
+			row += printing.CheckLang(condiment.Description)
 		}
+		data, w, h, _ := p.TextToRaster(row, 30.0, true)
+		imgXML := ImgToXML(data, w, h)
+		kitchecnItems = append(kitchecnItems, *imgXML)
+
 		if item.CondimentsComment != "" {
-			row += item.CondimentsComment + "\n"
+			row = printing.CheckLang(item.CondimentsComment)
+			data, w, h, _ := p.TextToRaster(row, 30.0, true)
+			imgXML := ImgToXML(data, w, h)
+			kitchecnItems = append(kitchecnItems, *imgXML)
 		}
+
+		// dash line
 		if item.LastChildInCourse {
-			row += dashedLine + "\n"
+			row = dashedLine
 		}
-		kitchecnItems = append(kitchecnItems, printing.Text{Text: row})
+		data, w, h, _ = p.TextToRaster(row, 30.0, true)
+		imgXML = ImgToXML(data, w, h)
+		kitchecnItems = append(kitchecnItems, *imgXML)
 	}
 	tableContent = append(tableContent, kitchecnItems...)
 
 	return tableContent
 }
-func KitchenFooter(kitchen *printing.KitchenPrint) []printing.Text {
-	lang := printing.SetLang("")
-	fotter := []printing.Text{}
-	doubleDashedLine := printing.AddLine("doubledashed",
-		printing.PrintingParams(kitchen.Printer.PaperWidth, "char_per_line"))
-	fotter = append(
-		fotter,
-		printing.Text{Text: doubleDashedLine + "\n"},
-		printing.Text{Font: "font_b"},
-		printing.Text{DoubleWidth: "true"},
-		printing.Text{DoubleHight: "true"},
-		printing.Text{Align: "center"},
-		printing.Text{Text: strings.ToUpper(printing.Translate("This is not a", lang)) + "\n"},
-		printing.Text{Text: strings.ToUpper(printing.Translate("valid tax invoice", lang)) + "\n"},
-	)
-	return fotter
 
+func KitchenFooter(kitchen *printing.KitchenPrint) []printing.Image {
+	lang := printing.SetLang("")
+	footer := []printing.Image{}
+
+	// double Dashed Line
+	doubleDashedLine := printing.AddLine("doubledashed", printing.PrintingParams(kitchen.Printer.PaperWidth, "char_per_line"))
+
+	data, w, h, _ := p.TextToRaster(doubleDashedLine, 30.0, true)
+	imgXML := ImgToXML(data, w, h)
+	footer = append(footer, *imgXML)
+
+	// note
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-(len("This is not a")+10))/2))+
+		printing.CheckLang(strings.ToUpper(printing.Translate("This is not a", lang))), 40.0, true)
+	imgXML = ImgToXML(data, w, h)
+	footer = append(footer, *imgXML)
+
+	data, w, h, _ = p.TextToRaster(printing.Pad((((kitchen.Printer.PaperWidth/2)-(len("valid tax invoice")+10))/2))+
+		printing.CheckLang(strings.ToUpper(printing.Translate("valid tax invoice", lang))), 40.0, true)
+	imgXML = ImgToXML(data, w, h)
+	footer = append(footer, *imgXML)
+
+	return footer
 }
+
 func (e Epsonxml) PrintKitchen(kitchen *printing.KitchenPrint) error {
 	xmlReq := printing.New()
 	xmlReq.XMLns = "http://schemas.xmlsoap.org/soap/envelope/"
@@ -133,14 +204,23 @@ func (e Epsonxml) PrintKitchen(kitchen *printing.KitchenPrint) error {
 	eposPrint.Layout = &printing.Layout{}
 	eposPrint.Layout.Type = "receipt"
 	eposPrint.Layout.Width = "800"
+
+	// header
 	kitchenHeader := KitchenHeader(kitchen)
+	eposPrint.Image = append(eposPrint.Image, kitchenHeader...)
+
+	// table header
 	tableHeader := OrderTableHeader(kitchen)
+	eposPrint.Image = append(eposPrint.Image, tableHeader...)
+
+	// table content
 	tableContent := OrderTableContent(kitchen)
+	eposPrint.Image = append(eposPrint.Image, tableContent...)
+
+	// footer
 	kitchenFooter := KitchenFooter(kitchen)
-	eposPrint.Text = append(eposPrint.Text, kitchenHeader...)
-	eposPrint.Text = append(eposPrint.Text, tableHeader...)
-	eposPrint.Text = append(eposPrint.Text, tableContent...)
-	eposPrint.Text = append(eposPrint.Text, kitchenFooter...)
+	eposPrint.Image = append(eposPrint.Image, kitchenFooter...)
+
 	eposPrint.Text = append(eposPrint.Text, printing.Text{Text: "\n\n"})
 	eposPrint.Cut.Type = "feed"
 	xmlReq.Body.EposPrint = eposPrint
@@ -148,8 +228,11 @@ func (e Epsonxml) PrintKitchen(kitchen *printing.KitchenPrint) error {
 	if err != nil {
 		return err
 	}
+	// append xml header
+	reqBody = []byte(xml.Header + string(reqBody))
 	api := "http://" + *kitchen.Printer.PrinterIP + "/cgi-bin/epos/service.cgi?devid=" +
 		kitchen.Printer.PrinterID + "&timeout=6000"
 	printing.Send(api, reqBody)
+	_ = reqBody
 	return nil
 }

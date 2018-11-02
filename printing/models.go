@@ -53,7 +53,7 @@ type EposPrint struct {
 	XMLns   string   `xml:"xmlns,attr"`
 	Layout  *Layout  `xml:"layout"`
 	Align   *Text    `xml:""`
-	Image   *Image   `xml:"image,omitempty"`
+	Image   []Image  `xml:"image,omitempty"`
 	Text    []Text   `xml:""`
 	Feed    *Feed    `xml:"feed,omitempty"`
 	Cut     Cut      `xml:"cut"`
@@ -72,6 +72,7 @@ type Text struct {
 	Color       string   `xml:"color,attr,omitempty"`
 	DoubleWidth string   `xml:"dw,attr,omitempty"`
 	DoubleHight string   `xml:"dh,attr,omitempty"`
+	Lang        string   `xml:"lang,attr,omitempty"`
 }
 
 //Cut defines body of Cut tag
