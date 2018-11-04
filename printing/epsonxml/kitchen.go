@@ -144,27 +144,32 @@ func OrderTableContent(kitchen *printing.KitchenPrint) []printing.Image {
 				utf8.RuneCountInString(desc)) + qty +
 			printing.Pad(printing.PrintingParams(kitchen.Printer.PaperWidth, "qty_kitchen")-
 				utf8.RuneCountInString(qty)) + printing.CheckLang(baseUnit)
-		for _, condiment := range item.CondimentLineItems {
-			row += printing.CheckLang(condiment.Description)
-		}
 		data, w, h, _ := p.TextToRaster(row, 30.0, true)
 		imgXML := ImgToXML(data, w, h)
 		kitchecnItems = append(kitchecnItems, *imgXML)
 
+		for _, condiment := range item.CondimentLineItems {
+			row = printing.CheckLang(condiment.Description)
+			data, w, h, _ = p.TextToRaster(row, 30.0, true)
+			imgXML = ImgToXML(data, w, h)
+			kitchecnItems = append(kitchecnItems, *imgXML)
+		}
+
+		// condiments
 		if item.CondimentsComment != "" {
 			row = printing.CheckLang(item.CondimentsComment)
-			data, w, h, _ := p.TextToRaster(row, 30.0, true)
-			imgXML := ImgToXML(data, w, h)
+			data, w, h, _ = p.TextToRaster(row, 30.0, true)
+			imgXML = ImgToXML(data, w, h)
 			kitchecnItems = append(kitchecnItems, *imgXML)
 		}
 
 		// dash line
 		if item.LastChildInCourse {
 			row = dashedLine
+			data, w, h, _ = p.TextToRaster(row, 30.0, true)
+			imgXML = ImgToXML(data, w, h)
+			kitchecnItems = append(kitchecnItems, *imgXML)
 		}
-		data, w, h, _ = p.TextToRaster(row, 30.0, true)
-		imgXML = ImgToXML(data, w, h)
-		kitchecnItems = append(kitchecnItems, *imgXML)
 	}
 	tableContent = append(tableContent, kitchecnItems...)
 
